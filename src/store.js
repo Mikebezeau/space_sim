@@ -3,7 +3,10 @@ import { Curves } from "three/examples/jsm/curves/CurveExtras";
 import { addEffect } from "react-three-fiber";
 import create from "zustand";
 //import * as audio from "./audio";
-import { getRandomInt, SCALE } from "./gameHelper";
+import { distance, SCALE } from "./gameHelper";
+import { useInitPlanets } from "./hooks/useSystemInit";
+
+const seedrandom = require("seedrandom");
 
 let guid = 1;
 
@@ -14,7 +17,6 @@ const [useStore] = create((set, get) => {
   //let track = new THREE.Vector3(0, 0, 0);
   let cancelLaserTO = undefined;
   let cancelExplosionTO = undefined;
-  const sytemScale = 3;
   const box = new THREE.Box3();
 
   return {
@@ -23,15 +25,19 @@ const [useStore] = create((set, get) => {
     camera: undefined,
     points: 0,
     health: 100,
-    ship: new THREE.Object3D(),
+    ship: initShip(),
+    mainMenuCam: initMainMenuCam(),
+    selectedStar: null,
+    playerScreen: { mainMenu: 0, flight: 1, station: 0 },
     speed: 1,
-    stationDock: { isDocked: 0, stationIndex: 0, portIndex: 0 },
+    stationDock: { stationIndex: 0, portIndex: 0 },
     lasers: [],
     explosions: [],
+    galaxyStarPositions: initGalaxyStarPositions(),
     rocks: randomData(120, track, 150, 8, () => 1 + Math.random() * 2.5),
     enemies: randomData(10, track, 20, 15, 1),
-    planets: randomPlanets(10, sytemScale, 3),
-    stations: randomStations(1),
+    planets: useInitPlanets(seedrandom(0), 2, 2),
+    stations: [], //randomStations(seedrandom("?"), 1),
     mutation: {
       t: 0,
       position: new THREE.Vector3(),
@@ -54,7 +60,7 @@ const [useStore] = create((set, get) => {
       binormal: new THREE.Vector3(),
       normal: new THREE.Vector3(),
       clock: new THREE.Clock(false),
-      mouse: new THREE.Vector2(-250, 50),
+      mouse: new THREE.Vector2(0, 0),
 
       // Re-usable objects
       dummy: new THREE.Object3D(),
@@ -73,10 +79,10 @@ const [useStore] = create((set, get) => {
     //------------------------------------------------------------------------------------
 
     actions: {
-      init(camera) {
+      init(camera, scene) {
         const { mutation, actions } = get();
 
-        set({ camera });
+        set({ camera, scene });
         mutation.clock.start();
         //actions.toggleSound(get().sound);
 
@@ -139,6 +145,47 @@ const [useStore] = create((set, get) => {
           //if (a.some(data => data.distance < 15)) set(state => ({ health: state.health - 1 }))
         });
       },
+      switchScreen() {
+        set((state) => ({
+          playerScreen: state.playerScreen.mainMenu
+            ? { flight: 1 }
+            : { mainMenu: 1 },
+        }));
+      },
+      detectTargetStar() {
+        //compare camera x,y position to stars x,y and determine which star is closest
+        const positions = get().galaxyStarPositions;
+        const mainMenuCam = get().mainMenuCam;
+        let closest = 0;
+        for (let i = 0; i < positions.length; i = i + 3) {
+          if (
+            distance(
+              { x: positions[i], y: positions[i + 1], z: positions[i + 2] },
+              {
+                x: mainMenuCam.position.x,
+                y: mainMenuCam.position.y,
+                z: mainMenuCam.position.z,
+              }
+            ) <=
+            distance(
+              {
+                x: positions[closest],
+                y: positions[closest + 1],
+                z: positions[closest + 2],
+              },
+              {
+                x: mainMenuCam.position.x,
+                y: mainMenuCam.position.y,
+                z: mainMenuCam.position.z,
+              }
+            )
+          )
+            closest = i;
+        }
+        console.log("closest", closest);
+        set(() => ({ selectedStar: closest }));
+        set(() => ({ planets: useInitPlanets(seedrandom(closest), 2, 2) }));
+      },
       shoot() {
         set((state) => ({ lasers: [...state.lasers, Date.now()] }));
         clearTimeout(cancelLaserTO);
@@ -158,7 +205,13 @@ const [useStore] = create((set, get) => {
         set((state) => ({ speed: state.speed - 1 }));
       },
       stationDoc() {
-        console.log("Docking...");
+        set((state) => ({
+          stationDock: {
+            isDocked: !state.stationDock.isDocked,
+            stationIndex: 0,
+            portIndex: 0,
+          },
+        }));
       },
       /*
       toggleSound(sound = !get().sound) {
@@ -175,10 +228,12 @@ const [useStore] = create((set, get) => {
         );
       },
       updateMouseMobile(event) {
-        var bounds = event.target.getBoundingClientRect();
-        let x = event.clientX - bounds.left;
-        let y = event.clientY - bounds.top;
-        /*
+        //console.log(event.changedTouches[0].clientX);
+        if (event) {
+          var bounds = event.target.getBoundingClientRect();
+          let x = event.changedTouches[0].clientX - bounds.left;
+          let y = event.changedTouches[0].clientY - bounds.top;
+          /*
         console.log(
           (x - bounds.width / 2) / bounds.width,
           (y - bounds.height / 2) / bounds.height,
@@ -186,10 +241,11 @@ const [useStore] = create((set, get) => {
           bounds
         );
 */
-        get().mutation.mouse.set(
-          (x - bounds.width / 2) / bounds.width,
-          (y - bounds.height / 2) / bounds.height
-        );
+          get().mutation.mouse.set(
+            (x - bounds.width / 2) / bounds.width,
+            (y - bounds.height / 2) / bounds.height
+          );
+        }
       },
       test(data) {
         box.min.copy(data.offset);
@@ -213,6 +269,75 @@ const [useStore] = create((set, get) => {
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
+
+function initGalaxyStarPositions(
+  rng = seedrandom("galaxy_stars"),
+  count = 100
+) {
+  const numArms = 4;
+  const armSeparationDistance = (2 * Math.PI) / numArms;
+  const armOffsetMax = 2;
+  const rotationFactor = 3;
+  const randomOffsetX = 0.03;
+  const randomOffsetY = 0.02;
+
+  let positions = [];
+  for (let i = 0; i < count; i++) {
+    // Choose a distance from the center of the galaxy.
+    let distance = rng();
+    distance = Math.pow(distance, 2);
+
+    // Choose an angle between 0 and 2 * PI.
+    let angle = rng() * 2 * Math.PI;
+    let armOffset = rng() * armOffsetMax;
+    armOffset = armOffset - armOffsetMax / 2;
+    armOffset = armOffset * (1 / distance);
+
+    let squaredArmOffset = Math.pow(armOffset, 2);
+    if (armOffset < 0) squaredArmOffset = squaredArmOffset * -1;
+    armOffset = squaredArmOffset;
+
+    let rotation = distance * rotationFactor;
+
+    angle =
+      Math.floor(angle / armSeparationDistance) * armSeparationDistance +
+      armOffset +
+      rotation;
+
+    // Convert polar coordinates to 2D cartesian coordinates.
+    let starX = Math.cos(angle) * distance;
+    let starY = Math.sin(angle) * distance;
+    let starZ = 0;
+
+    starX += rng() * randomOffsetX;
+    starY += rng() * randomOffsetY;
+
+    // Now we can assign coords.
+
+    positions.push(starX);
+    positions.push(starY);
+    positions.push(starZ);
+  }
+  return new Float32Array(positions);
+}
+
+function initShip() {
+  let ship = new THREE.Object3D();
+  ship.position.setX(0);
+  ship.position.setY(5000 * SCALE);
+  ship.position.setZ(40000 * SCALE);
+  //ship.rotateX(-Math.PI / 2);
+  return ship;
+}
+
+function initMainMenuCam() {
+  let mainMenuCam = new THREE.Object3D();
+  mainMenuCam.position.setX(0);
+  mainMenuCam.position.setY(-30 * SCALE);
+  mainMenuCam.position.setZ(80 * SCALE);
+  mainMenuCam.setRotationFromAxisAngle(new THREE.Vector3(), 0);
+  return mainMenuCam;
+}
 
 function randomData(count, track, radius, size, scale) {
   return new Array(count).fill().map(() => {
@@ -270,51 +395,7 @@ function randomRings(count, track) {
   return temp;
 }
 
-function randomPlanets(
-  num,
-  systemScale = 1,
-  planetScale = 1,
-  randomSeed = null
-) {
-  let temp = [];
-  //create sun
-  temp.push({
-    type: "SUN",
-    roughness: 0,
-    metalness: 1,
-    color: "#fff",
-    radius: 5000 * SCALE * systemScale * planetScale,
-    opacity: 1,
-    transparent: false,
-    position: { x: 0, y: 0, z: 0 },
-    rotation: { x: 0, y: 0, z: 0 },
-  });
-
-  for (let i = 1; i < num; i++) {
-    const colors = ["#173f5f", "#20639b", "#3caea3", "#f6d55c", "#ed553b"];
-    const radius =
-      SCALE * i * 20 * (getRandomInt(5) + i * 2) * systemScale * planetScale;
-    const a = 1 * systemScale;
-    const b = (getRandomInt(250) + 875) * SCALE * systemScale;
-    const angle = 20 * i * systemScale;
-    const x = (a + b * angle) * Math.cos(angle);
-    const z = (a + b * angle) * Math.sin(angle);
-    temp.push({
-      type: "PLANET",
-      roughness: 1,
-      metalness: 0,
-      color: colors[getRandomInt(4)],
-      radius: radius,
-      opacity: 1,
-      transparent: false,
-      position: { x, y: 0, z },
-      rotation: { x: 0, y: 0, z: 0 },
-    });
-  }
-  return temp;
-}
-
-function randomStations(num) {
+function randomStations(rng, num) {
   let temp = [];
   //create sun
   temp.push({
@@ -392,3 +473,27 @@ function playAudio(audio, volume = 1, loop = false) {
 */
 export default useStore;
 //export { audio, playAudio };
+
+/*
+SEED RANDOM
+// Local PRNG: does not affect Math.random.
+var seedrandom = require('seedrandom');
+var rng = seedrandom('hello.');
+console.log(rng());                  // Always 0.9282578795792454
+ 
+// Global PRNG: set Math.random.
+seedrandom('hello.', { global: true });
+console.log(Math.random());          // Always 0.9282578795792454
+ 
+// Autoseeded ARC4-based PRNG.
+rng = seedrandom();
+console.log(rng());                  // Reasonably unpredictable.
+ 
+// Mixing accumulated entropy.
+rng = seedrandom('added entropy.', { entropy: true });
+console.log(rng());                  // As unpredictable as added entropy.
+ 
+// Using alternate algorithms, as listed above.
+var rng2 = seedrandom.xor4096('hello.')
+console.log(rng2());
+*/

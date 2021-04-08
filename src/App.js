@@ -4,6 +4,7 @@ import * as THREE from "three";
 //import ReactDOM from "react-dom";
 import React, { Suspense } from "react";
 import { Canvas } from "react-three-fiber";
+import MainMenu from "./3d/MainMenu";
 import Stars from "./3d/Stars";
 import Planets from "./3d/Planets";
 import Stations from "./3d/Stations";
@@ -17,6 +18,7 @@ import Track from "./3d/Track";
 import Ship from "./3d/Ship";
 //import Rig from "./3d/Rig";
 import Hud from "./Hud";
+import StationMenu from "./StationMenu";
 import useStore from "./store";
 import useKBControls from "./hooks/useKBControls";
 import { IS_MOBLIE } from "./gameHelper";
@@ -24,6 +26,7 @@ import { IS_MOBLIE } from "./gameHelper";
 function App() {
   const { fov } = useStore((state) => state.mutation);
   const actions = useStore((state) => state.actions);
+  const playerScreen = useStore((state) => state.playerScreen);
 
   //SPEED UP
   function handleSpeedUp() {
@@ -31,7 +34,7 @@ function App() {
   }
   useKBControls("ArrowUp", handleSpeedUp);
 
-  //SPEED UP
+  //SPEED DOWN
   function handleSpeedDown() {
     actions.speedDown();
   }
@@ -39,20 +42,27 @@ function App() {
 
   //DOCK AT STATION
   function handleStationDoc() {
-    actions.stationDoc();
+    //actions.stationDoc();
+    actions.switchScreen();
   }
   useKBControls("KeyD", handleStationDoc);
 
   //IS_MOBLIE: conditional controls for mobile devices
-  console.log("IS_MOBLIE", IS_MOBLIE);
+  //console.log("IS_MOBLIE", IS_MOBLIE);
   return (
     <>
       <Canvas
         onPointerMove={IS_MOBLIE ? null : actions.updateMouse}
-        onClick={IS_MOBLIE ? null : actions.shoot}
+        onClick={
+          IS_MOBLIE
+            ? null
+            : playerScreen.flight
+            ? actions.shoot
+            : actions.detectTargetStar
+        }
         camera={{ position: [0, 0, 0], near: 0.001, far: 10000, fov }}
-        onCreated={({ gl, camera }) => {
-          actions.init(camera);
+        onCreated={({ gl, camera, scene }) => {
+          actions.init(camera, scene);
           //gl.gammaInput = true;
           //gl.toneMapping = THREE.Uncharted2ToneMapping;
           //gl.setClearColor(new THREE.Color("#020207"));
@@ -60,18 +70,25 @@ function App() {
       >
         <pointLight castShadow intensity={0.6} />
         <ambientLight intensity={0.025} />
-        <Stars />
-        <Explosions />
-        <Particles />
-        <Suspense fallback={null}>
-          <Rocks />
-          <Planets />
-          <Stations />
-          <Ship />
-        </Suspense>
+
+        {playerScreen.mainMenu && <MainMenu />}
+        {playerScreen.flight && (
+          <>
+            <Stars />
+            <Explosions />
+            <Particles />
+            <Suspense fallback={null}>
+              <Rocks />
+              <Planets />
+              <Stations />
+              <Ship />
+            </Suspense>
+          </>
+        )}
         <Effects />
       </Canvas>
-      <Hud />
+      {playerScreen.flight && <Hud />}
+      {playerScreen.station && <StationMenu />}
     </>
   );
 }

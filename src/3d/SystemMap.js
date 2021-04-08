@@ -1,7 +1,6 @@
 import * as THREE from "three";
 import React from "react";
-import useStore from "../store";
-import { SCALE, distance } from "../gameHelper";
+import { distance } from "../gameHelper";
 
 const ringGeometry = new THREE.RingBufferGeometry(1, 1.01, 32);
 const ringMaterial = new THREE.MeshBasicMaterial({
@@ -10,16 +9,15 @@ const ringMaterial = new THREE.MeshBasicMaterial({
 });
 const planetGeometry = new THREE.DodecahedronBufferGeometry(0.5, 0);
 
-export default function SystemMap() {
+export default function SystemMap({ planets }) {
   return (
-    <group rotation={[Math.PI / 1.5, 0, 0]} scale={[SCALE, SCALE, SCALE]}>
-      <Rings />
+    <group>
+      <System planets={planets} />
     </group>
   );
 }
 
-function Rings() {
-  const planets = useStore((state) => state.planets);
+function System({ planets }) {
   //planet at end of array has largest orbit
   const maxRadius = distance(planets[planets.length - 1].position, {
     x: 0,
@@ -30,6 +28,7 @@ function Rings() {
   const mapScale = maxMapSize / maxRadius;
 
   return planets.map((planet, index) => {
+    //console.log(planet.type);
     const ringRadius =
       mapScale * distance(planet.position, { x: 0, y: 0, z: 0 });
     //console.log(mapScale, planet.position.x); // scale={[mapScale, mapScale, mapScale]}>

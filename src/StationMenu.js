@@ -1,92 +1,37 @@
 //import React, { useMemo, useRef, useEffect } from "react";
-import React, { useMemo } from "react";
+import React from "react";
 import styled, { css, createGlobalStyle } from "styled-components";
 import useStore from "./store";
-import {
-  useTouchStartControls,
-  useTouchMoveControls,
-  useTouchEndControls,
-} from "./hooks/useTouchControls";
+import useKBControls from "./hooks/useKBControls";
 
-export default function Hud() {
+export default function StationMenu() {
   const actions = useStore((state) => state.actions);
-  const speed = useStore((state) => state.speed);
-  //const points = useStore((state) => state.points);
   const health = useStore((state) => state.health);
-  //const sound = useStore((state) => state.sound);
-  //const toggle = useStore((state) => state.actions.toggleSound);
-  /*
-  const toggle = () => {
-    return null;
-  };
-  //const seconds = useRef();
-  
-  useEffect(() => {
-    const t = Date.now();
-    const i = setInterval(
-      () => (seconds.current.innerText = ((Date.now() - t) / 1000).toFixed(1)),
-      100
-    );
-    return () => clearInterval(i);
-  }, []);
-*/
+  const stationDock = useStore((state) => state.stationDock);
+  const stations = useStore((state) => state.stations);
 
-  //SPEED UP
-  function handleSpeedUp() {
-    actions.speedUp();
+  //
+  function handle() {
+    //actions.?();
   }
-  useTouchStartControls("btn-speed-up", handleSpeedUp);
+  useKBControls("btn-1", handle);
 
-  //SPEED DOWN
-  function handleSpeedDown() {
-    actions.speedDown();
-  }
-  useTouchStartControls("btn-speed-down", handleSpeedDown);
-
-  //SHOOT LASERS
-  function handleShoot() {
-    actions.shoot();
-  }
-  useTouchStartControls("btn-shoot", handleShoot);
-
-  //MOVE SHIP
-  function handleMoveShipStart(event) {
-    actions.updateMouseMobile(event);
-  }
-  useTouchStartControls("btn-ship-move", handleMoveShipStart);
-  function handleMoveShip(event) {
-    actions.updateMouseMobile(event);
-  }
-  useTouchMoveControls("btn-ship-move", handleMoveShip);
-  //END MOVE SHIP (to recenter control)
-  function handleMoveShipEnd(event) {
-    let x = window.innerWidth / 2;
-    let y = window.innerHeight / 2;
-    actions.updateMouse({ clientX: x, clientY: y });
-  }
-  useTouchEndControls("btn-ship-move", handleMoveShipEnd);
-
-  const score = useMemo(
-    () => (speed >= 1000 ? (speed / 1000).toFixed(1) + "K" : speed),
-    [speed]
-  );
   return (
     <>
       <UpperLeft>
-        <h2>Speed</h2>
-        <h1>{score}</h1>
+        <h2>Station</h2>
+        <h1>{stations[stationDock.stationIndex].name}</h1>
+        <h1>{stations[stationDock.stationIndex].type}</h1>
       </UpperLeft>
       <UpperRight>
         <div style={{ width: health + "%" }} />
       </UpperRight>
-      <LowerLeft>
-        <div id="btn-ship-move"></div>
-      </LowerLeft>
+      <LowerLeft></LowerLeft>
       <Global />
       <LowerRight>
-        <div id="btn-speed-up"></div>
-        <div id="btn-speed-down"></div>
-        <div id="btn-shoot"></div>
+        <div id="btn-1"></div>
+        <div id="btn-2"></div>
+        <div id="btn-3"></div>
       </LowerRight>
     </>
   );

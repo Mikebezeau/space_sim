@@ -2,14 +2,13 @@ import * as THREE from "three";
 import useStore from "../store";
 import { useLoader } from "react-three-fiber";
 import { TextureLoader } from "three/src/loaders/TextureLoader.js";
-import { getRandomInt } from "../gameHelper";
 
 import { distance } from "../gameHelper";
 
-function Planet({ planet, index }) {
+function Planet({ planet }) {
   //console.log(index, planet);
   //load textures
-  const texture_maps = useLoader(TextureLoader, [
+  const textureMaps = useLoader(TextureLoader, [
     "images/maps/sunmap.jpg",
     "images/maps/earthmap1k.jpg",
     "images/maps/jupitermap.jpg",
@@ -37,7 +36,7 @@ function Planet({ planet, index }) {
       >
         <sphereGeometry attach="geometry" args={[planet.radius, 30, 30]} />
         <meshStandardMaterial
-          map={texture_maps[index === 0 ? 0 : getRandomInt(6 + 1)]}
+          map={textureMaps[planet.textureMap]}
           attach="material"
           //color={planet.color}
           emissive={planet.type === "SUN" ? planet.color : "false"}
@@ -65,7 +64,7 @@ function Planets() {
   return (
     <>
       {planets.map((planet, index) => (
-        <Planet key={index} planet={planet} index={index} />
+        <Planet key={index} planet={planet} />
       ))}
     </>
   );
