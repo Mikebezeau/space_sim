@@ -13,5 +13,5 @@ export const distance = (p1, p2) => {
 };
 
 export const getRandomInt = (max) => {
-  return Math.floor(Math.random() * Math.floor(max));
+  return Math.floor(Math.random() * max);
 };

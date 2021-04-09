@@ -4,7 +4,7 @@ import { addEffect } from "react-three-fiber";
 import create from "zustand";
 //import * as audio from "./audio";
 import { distance, SCALE } from "./gameHelper";
-import { useInitPlanets } from "./hooks/useSystemInit";
+import { useSetPlanets } from "./hooks/usePlanets";
 
 const seedrandom = require("seedrandom");
 
@@ -12,13 +12,15 @@ let guid = 1;
 
 //const [useStore, api] = create((set, get) => {
 const [useStore] = create((set, get) => {
+  //change spline and track to change where the space debrie and asteroids are located
   let spline = new Curves.GrannyKnot();
   let track = new THREE.TubeBufferGeometry(spline, 250, 0.15, 10, true);
-  //let track = new THREE.Vector3(0, 0, 0);
+  //these used for laser hits
   let cancelLaserTO = undefined;
   let cancelExplosionTO = undefined;
   const box = new THREE.Box3();
 
+  //globally available variables
   return {
     sound: true,
     sytemScale: 3,
@@ -26,7 +28,7 @@ const [useStore] = create((set, get) => {
     points: 0,
     health: 100,
     ship: initShip(),
-    mainMenuCam: initMainMenuCam(),
+    menuCam: initCamMainMenu(),
     selectedStar: null,
     playerScreen: { mainMenu: 0, flight: 1, station: 0 },
     speed: 1,
@@ -36,7 +38,7 @@ const [useStore] = create((set, get) => {
     galaxyStarPositions: initGalaxyStarPositions(),
     rocks: randomData(120, track, 150, 8, () => 1 + Math.random() * 2.5),
     enemies: randomData(10, track, 20, 15, 1),
-    planets: useInitPlanets(seedrandom(0), 2, 2),
+    planets: useSetPlanets(seedrandom(0), 2, 2),
     stations: [], //randomStations(seedrandom("?"), 1),
     mutation: {
       t: 0,
@@ -48,7 +50,7 @@ const [useStore] = create((set, get) => {
       scale: 15,
       fov: 70,
       hits: false,
-      rings: randomRings(30, track),
+      //rings: randomRings(30, track),
       particles: randomData(
         3000,
         track,
@@ -79,13 +81,15 @@ const [useStore] = create((set, get) => {
     //------------------------------------------------------------------------------------
 
     actions: {
-      init(camera, scene) {
+      init(camera) {
         const { mutation, actions } = get();
 
-        set({ camera, scene });
+        set({ camera });
         mutation.clock.start();
         //actions.toggleSound(get().sound);
 
+        //addEffect will add the following code to what gets run per frame
+        //all related to laser shots, will be changing this later
         addEffect(() => {
           const { rocks, enemies } = get();
 
@@ -145,6 +149,7 @@ const [useStore] = create((set, get) => {
           //if (a.some(data => data.distance < 15)) set(state => ({ health: state.health - 1 }))
         });
       },
+      //changing player screen (main menu, flight, space station menu...)
       switchScreen() {
         set((state) => ({
           playerScreen: state.playerScreen.mainMenu
@@ -152,19 +157,20 @@ const [useStore] = create((set, get) => {
             : { mainMenu: 1 },
         }));
       },
+      //main menu slecting star in galaxy map
       detectTargetStar() {
         //compare camera x,y position to stars x,y and determine which star is closest
         const positions = get().galaxyStarPositions;
-        const mainMenuCam = get().mainMenuCam;
+        const menuCam = get().menuCam;
         let closest = 0;
         for (let i = 0; i < positions.length; i = i + 3) {
           if (
             distance(
               { x: positions[i], y: positions[i + 1], z: positions[i + 2] },
               {
-                x: mainMenuCam.position.x,
-                y: mainMenuCam.position.y,
-                z: mainMenuCam.position.z,
+                x: menuCam.position.x,
+                y: menuCam.position.y,
+                z: menuCam.position.z,
               }
             ) <=
             distance(
@@ -174,9 +180,9 @@ const [useStore] = create((set, get) => {
                 z: positions[closest + 2],
               },
               {
-                x: mainMenuCam.position.x,
-                y: mainMenuCam.position.y,
-                z: mainMenuCam.position.z,
+                x: menuCam.position.x,
+                y: menuCam.position.y,
+                z: menuCam.position.z,
               }
             )
           )
@@ -184,8 +190,9 @@ const [useStore] = create((set, get) => {
         }
         console.log("closest", closest);
         set(() => ({ selectedStar: closest }));
-        set(() => ({ planets: useInitPlanets(seedrandom(closest), 2, 2) }));
+        set(() => ({ planets: useSetPlanets(seedrandom(closest), 2, 2) }));
       },
+      //player ship shoot laser
       shoot() {
         set((state) => ({ lasers: [...state.lasers, Date.now()] }));
         clearTimeout(cancelLaserTO);
@@ -198,12 +205,15 @@ const [useStore] = create((set, get) => {
         );
         //playAudio(audio.zap, 0.5);
       },
+      //player ship speed up
       speedUp() {
         set((state) => ({ speed: state.speed + 1 }));
       },
+      //player ship speed down
       speedDown() {
         set((state) => ({ speed: state.speed - 1 }));
       },
+      //dock at spacestation
       stationDoc() {
         set((state) => ({
           stationDock: {
@@ -221,32 +231,27 @@ const [useStore] = create((set, get) => {
         playAudio(audio.bg, 1, true);
       },
       */
+      //save mouse position (-1 to 1) based on location on screen
       updateMouse({ clientX: x, clientY: y }) {
         get().mutation.mouse.set(
           (x - window.innerWidth / 2) / window.innerWidth,
           (y - window.innerHeight / 2) / window.innerHeight
         );
       },
+      //save screen touch position (-1 to 1) relative to touch movement control
       updateMouseMobile(event) {
-        //console.log(event.changedTouches[0].clientX);
         if (event) {
           var bounds = event.target.getBoundingClientRect();
           let x = event.changedTouches[0].clientX - bounds.left;
           let y = event.changedTouches[0].clientY - bounds.top;
-          /*
-        console.log(
-          (x - bounds.width / 2) / bounds.width,
-          (y - bounds.height / 2) / bounds.height,
-          "bounds",
-          bounds
-        );
-*/
+
           get().mutation.mouse.set(
             (x - bounds.width / 2) / bounds.width,
             (y - bounds.height / 2) / bounds.height
           );
         }
       },
+      //testing for laser hits using ray (ray from spaceship)
       test(data) {
         box.min.copy(data.offset);
         box.max.copy(data.offset);
@@ -270,6 +275,7 @@ const [useStore] = create((set, get) => {
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
+//creating galaxy like the milky way
 function initGalaxyStarPositions(
   rng = seedrandom("galaxy_stars"),
   count = 100
@@ -312,8 +318,7 @@ function initGalaxyStarPositions(
     starX += rng() * randomOffsetX;
     starY += rng() * randomOffsetY;
 
-    // Now we can assign coords.
-
+    //placae positions in array
     positions.push(starX);
     positions.push(starY);
     positions.push(starZ);
@@ -326,19 +331,19 @@ function initShip() {
   ship.position.setX(0);
   ship.position.setY(5000 * SCALE);
   ship.position.setZ(40000 * SCALE);
-  //ship.rotateX(-Math.PI / 2);
   return ship;
 }
-
-function initMainMenuCam() {
-  let mainMenuCam = new THREE.Object3D();
-  mainMenuCam.position.setX(0);
-  mainMenuCam.position.setY(-30 * SCALE);
-  mainMenuCam.position.setZ(80 * SCALE);
-  mainMenuCam.setRotationFromAxisAngle(new THREE.Vector3(), 0);
-  return mainMenuCam;
+//set camera to view galaxy in main menu
+function initCamMainMenu() {
+  let cam = new THREE.Object3D();
+  cam.position.setX(0);
+  cam.position.setY(0);
+  cam.position.setZ(0);
+  cam.setRotationFromAxisAngle(new THREE.Vector3(), 0);
+  return cam;
 }
 
+//used to create space dedrie and asteroids
 function randomData(count, track, radius, size, scale) {
   return new Array(count).fill().map(() => {
     const t = Math.random();
@@ -372,6 +377,24 @@ function randomData(count, track, radius, size, scale) {
   });
 }
 
+function randomStations(rng, num) {
+  let temp = [];
+  //create sun
+  temp.push({
+    type: "EQUIPMENT",
+    name: "X-22",
+    roughness: 1,
+    metalness: 5,
+    color: "#ddd",
+    size: 500 * SCALE,
+    ports: [{ x: 0.5, y: 0.5, z: 0.5 }],
+    position: { x: 0, y: 5000 * SCALE, z: 35000 * SCALE },
+    rotation: { x: 0, y: 0, z: 0 },
+  });
+  return temp;
+}
+
+/*
 function randomRings(count, track) {
   let temp = [];
   let t = 0.4;
@@ -394,23 +417,7 @@ function randomRings(count, track) {
   }
   return temp;
 }
-
-function randomStations(rng, num) {
-  let temp = [];
-  //create sun
-  temp.push({
-    type: "EQUIPMENT",
-    name: "X-22",
-    roughness: 1,
-    metalness: 5,
-    color: "#ddd",
-    size: 500 * SCALE,
-    ports: [{ x: 0.5, y: 0.5, z: 0.5 }],
-    position: { x: 0, y: 5000 * SCALE, z: 35000 * SCALE },
-    rotation: { x: 0, y: 0, z: 0 },
-  });
-  return temp;
-}
+*/
 
 /*
 //dirty function to try to make asteroids

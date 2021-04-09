@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { SCALE } from "../gameHelper";
 
 export default function Stars({ count = 1000 }) {

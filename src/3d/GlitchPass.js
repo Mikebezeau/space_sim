@@ -8,7 +8,6 @@
  */
 
 import {
-  //Math as _Math,
   Mesh,
   OrthographicCamera,
   PlaneBufferGeometry,

@@ -1,4 +1,6 @@
-import React, { useRef } from "react";
+//NOT USED
+
+import { useRef } from "react";
 import { useThree, useFrame } from "react-three-fiber";
 import useStore from "../store";
 

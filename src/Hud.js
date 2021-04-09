@@ -1,15 +1,9 @@
-//import React, { useMemo, useRef, useEffect } from "react";
 import React, { useMemo } from "react";
-import styled, { css, createGlobalStyle } from "styled-components";
+import styled, { css } from "styled-components";
 import useStore from "./store";
-import {
-  useTouchStartControls,
-  useTouchMoveControls,
-  useTouchEndControls,
-} from "./hooks/useTouchControls";
 
+//basic HTML/CSS heads up display used to show player info
 export default function Hud() {
-  const actions = useStore((state) => state.actions);
   const speed = useStore((state) => state.speed);
   //const points = useStore((state) => state.points);
   const health = useStore((state) => state.health);
@@ -31,41 +25,6 @@ export default function Hud() {
   }, []);
 */
 
-  //SPEED UP
-  function handleSpeedUp() {
-    actions.speedUp();
-  }
-  useTouchStartControls("btn-speed-up", handleSpeedUp);
-
-  //SPEED DOWN
-  function handleSpeedDown() {
-    actions.speedDown();
-  }
-  useTouchStartControls("btn-speed-down", handleSpeedDown);
-
-  //SHOOT LASERS
-  function handleShoot() {
-    actions.shoot();
-  }
-  useTouchStartControls("btn-shoot", handleShoot);
-
-  //MOVE SHIP
-  function handleMoveShipStart(event) {
-    actions.updateMouseMobile(event);
-  }
-  useTouchStartControls("btn-ship-move", handleMoveShipStart);
-  function handleMoveShip(event) {
-    actions.updateMouseMobile(event);
-  }
-  useTouchMoveControls("btn-ship-move", handleMoveShip);
-  //END MOVE SHIP (to recenter control)
-  function handleMoveShipEnd(event) {
-    let x = window.innerWidth / 2;
-    let y = window.innerHeight / 2;
-    actions.updateMouse({ clientX: x, clientY: y });
-  }
-  useTouchEndControls("btn-ship-move", handleMoveShipEnd);
-
   const score = useMemo(
     () => (speed >= 1000 ? (speed / 1000).toFixed(1) + "K" : speed),
     [speed]
@@ -79,29 +38,10 @@ export default function Hud() {
       <UpperRight>
         <div style={{ width: health + "%" }} />
       </UpperRight>
-      <LowerLeft>
-        <div id="btn-ship-move"></div>
-      </LowerLeft>
-      <Global />
-      <LowerRight>
-        <div id="btn-speed-up"></div>
-        <div id="btn-speed-down"></div>
-        <div id="btn-shoot"></div>
-      </LowerRight>
     </>
   );
 }
-/*
 
-      <LowerLeft>
-        <h2 ref={seconds}>0.0</h2>
-        <h1>{score}</h1>
-      </LowerLeft>
-      
-      <LowerRight>
-        <div style={{ width: health + "%" }} />
-      </LowerRight>
-      */
 const base = css`
   font-family: "Teko", sans-serif;
   position: absolute;
@@ -112,21 +52,6 @@ const base = css`
   pointer-events: none;
   color: lightblue;
 `;
-
-/*
-const UpperLeft = styled.div`
-  ${base}
-  top: 40px;
-  left: 50px;
-  font-size: 2em;
-  transform: skew(5deg, 10deg);
-  pointer-events: all;
-  cursor: pointer;
-  @media only screen and (max-width: 700px) {
-    font-size: 1.5em;
-  }
-`;
-*/
 
 const UpperLeft = styled.div`
   ${base}
@@ -155,26 +80,6 @@ const UpperLeft = styled.div`
     }
   }
 `;
-
-/*
-const UpperRight = styled.div`
-  ${base}
-  text-align: right;
-  top: 40px;
-  right: 50px;
-  font-size: 2em;
-  transform: skew(-5deg, -10deg);
-  pointer-events: all;
-  cursor: pointer;
-  & > a {
-    color: lightblue;
-    text-decoration: none;
-  }
-  @media only screen and (max-width: 700px) {
-    font-size: 1.5em;
-  }
-`;
-*/
 
 const UpperRight = styled.div`
   ${base}
@@ -225,33 +130,7 @@ const LowerLeft = styled.div`
     }
   }
 `;
-*/
 
-const LowerLeft = styled.div`
-  ${base}
-  display:none;
-  bottom: 40px;
-  left: 50px;
-  width: 200px;
-  height: 200px;
-
-  & > div {
-    pointer-events: all;
-    height: 100%;
-    width: 100%;
-    background: gray;
-    border-radius: 500px;
-  }
-
-  @media only screen and (max-width: 700px) {
-    display: block;
-    height: 120px;
-    width: 120px;
-    left: 5%;
-  }
-`;
-
-/*
 const LowerRight = styled.div`
   ${base}
   bottom: 70px;
@@ -272,64 +151,3 @@ const LowerRight = styled.div`
   }
 `;
 */
-
-const LowerRight = styled.div`
-  ${base}
-  display:none;
-  bottom: 120px;
-  right: 50px;
-  transform: skew(-5deg, -10deg);
-  height: 240px;
-  width: 200px;
-
-  & > div {
-    margin-top: 10%;
-    float: right;
-    clear: both;
-    height: 40%;
-    width: 40%;
-    pointer-events: all;
-    background: gray;
-    border-radius: 30px 20px;
-  }
-
-  @media only screen and (max-width: 700px) {
-    display: block;
-    height: 30%;
-    width: 20%;
-    right: 5%;
-    bottom: 15%;
-  }
-`;
-
-const Global = createGlobalStyle`
-  * {
-    box-sizing: border-box;
-  }
-
-  html,
-  body,
-  #root {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    user-select: none;
-    overflow: hidden;
-  }
-
-  #root {
-    overflow: auto;
-    padding: 0px;
-  }
-
-  body {
-    position: fixed;
-    overflow: hidden;
-    overscroll-behavior-y: none;
-    font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir, helvetica neue, helvetica, ubuntu, roboto, noto, segoe ui, arial, sans-serif;
-    color: black;
-    background: white;
-    cursor: none;
-  }
-`;

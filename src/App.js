@@ -10,13 +10,14 @@ import Planets from "./3d/Planets";
 import Stations from "./3d/Stations";
 import Effects from "./3d/Effects";
 import Particles from "./3d/Particles";
-//import Enemies from "./3d/Enemies";
+import Enemies from "./3d/Enemies";
 import Rocks from "./3d/Rocks";
 import Explosions from "./3d/Explosions";
 //import Rings from "./3d/Rings";
 import Track from "./3d/Track";
 import Ship from "./3d/Ship";
 //import Rig from "./3d/Rig";
+import TouchControls from "./TouchControls";
 import Hud from "./Hud";
 import StationMenu from "./StationMenu";
 import useStore from "./store";
@@ -80,6 +81,7 @@ function App() {
             <Suspense fallback={null}>
               <Rocks />
               <Planets />
+              <Enemies />
               <Stations />
               <Ship />
             </Suspense>
@@ -89,6 +91,7 @@ function App() {
       </Canvas>
       {playerScreen.flight && <Hud />}
       {playerScreen.station && <StationMenu />}
+      {IS_MOBLIE && <TouchControls />}
     </>
   );
 }

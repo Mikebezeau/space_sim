@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import React, { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { useThree, useLoader, useFrame } from "react-three-fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import useStore from "../store";

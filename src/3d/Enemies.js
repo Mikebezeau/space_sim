@@ -1,8 +1,10 @@
 import * as THREE from "three";
 import React, { useRef } from "react";
-import { useLoader, useFrame } from "react-three-fiber";
+import { useFrame } from "react-three-fiber";
+//import { useLoader, useFrame } from "react-three-fiber";
 //import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import useStore from "../store";
+import { SCALE } from "../gameHelper";
 
 export default function Enemies() {
   const enemies = useStore((state) => state.enemies);
@@ -24,13 +26,18 @@ const Drone = React.memo(({ data }) => {
   const ref = useRef();
 
   useFrame(() => {
-    const r = Math.cos((clock.getElapsedTime() / 2) * data.speed) * Math.PI;
-    ref.current.position.copy(data.offset);
-    ref.current.rotation.set(r, r, r);
+    if (ref.current) {
+      const r = Math.cos((clock.getElapsedTime() / 2) * data.speed) * Math.PI;
+      ref.current.position.copy(data.offset);
+      ref.current.rotation.set(r, r, r);
+    }
   });
 
   return (
-    <group ref={ref} scale={[5, 5, 5]}>
+    <group ref={ref} scale={[500 * SCALE, 500 * SCALE, 500 * SCALE]}>
+      {/* place drone model here */}
+
+      {/* drone beam */}
       <mesh
         position={[0, 0, 50]}
         rotation={[Math.PI / 2, 0, 0]}

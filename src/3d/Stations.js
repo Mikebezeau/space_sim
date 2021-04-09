@@ -2,7 +2,6 @@
 import useStore from "../store";
 import { useLoader } from "react-three-fiber";
 import { TextureLoader } from "three/src/loaders/TextureLoader.js";
-import { getRandomInt } from "../gameHelper";
 
 //const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
 

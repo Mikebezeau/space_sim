@@ -1,6 +1,6 @@
 import { SCALE } from "../gameHelper";
 
-export function useInitPlanets(rng, systemScale = 1, planetScale = 1) {
+export function useSetPlanets(rng, systemScale = 1, planetScale = 1) {
   let numPlanets = Math.floor(rng() * 5) + 4;
   let temp = [];
   //create sun
@@ -33,6 +33,7 @@ export function useInitPlanets(rng, systemScale = 1, planetScale = 1) {
     */
   });
 
+  //add moons around planets
   for (let i = 1; i <= numPlanets; i++) {
     const colors = ["#173f5f", "#20639b", "#3caea3", "#f6d55c", "#ed553b"];
     const radius =

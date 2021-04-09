@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import React from "react";
 import useStore from "../store";
 
 const geometry = new THREE.RingBufferGeometry(1, 1.01, 64);
