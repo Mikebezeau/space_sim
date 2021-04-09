@@ -5,7 +5,7 @@ import { useSetPlanets } from "../hooks/usePlanets";
 
 const seedrandom = require("seedrandom");
 
-export default function GalaxyStars({ count = 10000 }) {
+export default function GalaxyStarMap() {
   const galaxyStarPositions = useStore((state) => state.galaxyStarPositions);
   const selectedStar = useStore((state) => state.selectedStar);
 
@@ -25,7 +25,7 @@ export default function GalaxyStars({ count = 10000 }) {
         //increase size of system map to make more visible
         scale={[SCALE * 15, SCALE * 15, SCALE * 15]}
       >
-        <SystemMap planets={planets} />
+        <SystemMap planets={planets} doNotScale={true} />
       </group>
 
       {/* points shows the galaxy map (all stars) */}

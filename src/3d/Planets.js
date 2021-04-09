@@ -1,6 +1,7 @@
+import { useRef } from "react";
 import * as THREE from "three";
 import useStore from "../store";
-import { useLoader } from "react-three-fiber";
+import { Canvas, useLoader } from "react-three-fiber";
 import { TextureLoader } from "three/src/loaders/TextureLoader.js";
 
 import { distance } from "../gameHelper";
@@ -8,6 +9,15 @@ import { distance } from "../gameHelper";
 function Planet({ planet }) {
   //console.log(index, planet);
   //load textures
+  const cloudsTexture = useLoader(
+    TextureLoader,
+    "images/maps/earthcloudmap.jpg"
+  );
+  const cloudsAlpha = useLoader(
+    TextureLoader,
+    "images/maps/earthcloudmaptrans.jpg"
+  );
+
   const textureMaps = useLoader(TextureLoader, [
     "images/maps/sunmap.jpg",
     "images/maps/earthmap1k.jpg",
@@ -17,42 +27,77 @@ function Planet({ planet }) {
     "images/maps/moonmap1k.jpg",
     "images/maps/venusmap.jpg",
   ]);
-  //draw planet and line ring in system to show planet orbit
-  const geometry = new THREE.RingBufferGeometry(1.0, 1.01, 64);
-  const material = new THREE.MeshBasicMaterial({
+
+  //planet shape
+  const geometryPlanet = new THREE.SphereGeometry(planet.radius, 32, 32);
+  //planet material
+  const materialPlanet = new THREE.MeshPhongMaterial({
+    map: textureMaps[planet.textureMap],
+    emissive: planet.type === "SUN" ? planet.color : "false",
+    color: planet.color,
+    opacity: planet.opacity,
+    transparent: planet.transparent,
+    roughness: planet.roughness,
+    metalness: planet.metalness,
+  });
+
+  //cloud shape
+  const geometryClouds = new THREE.SphereGeometry(planet.radius * 1.02, 32, 32);
+  //cloud material
+  const materialClouds = new THREE.MeshStandardMaterial({
+    map: cloudsTexture,
+    alphaMap: cloudsAlpha,
+    opacity: 0.5,
+    transparent: 1,
+    depthWrite: false,
+  });
+
+  /*
+  <meshStandardMaterial
+    map={textureMaps[planet.textureMap]}
+    attach="material"
+    //color={planet.color}
+    emissive={planet.type === "SUN" ? planet.color : "false"}
+    opacity={planet.opacity}
+    transparent={planet.transparent}
+    roughness={planet.roughness}
+    metalness={planet.metalness}
+    //wireframe
+  />;
+  */
+  //ring geometry and material
+  const geometryRing = new THREE.RingBufferGeometry(1.0, 1.01, 64);
+  const materialRing = new THREE.MeshBasicMaterial({
     color: new THREE.Color("#adf"),
     side: THREE.DoubleSide,
     transparent: 1,
     opacity: 0.1,
   });
+
   const ringRadius = distance(planet.position, { x: 0, y: 0, z: 0 });
+
   //console.log(planet.position, ringSize);
+
+  //draw planet and line ring in system to show planet orbit
   return (
     <>
-      <mesh
-        visible
+      {/* planet and clouds */}
+      <group
         position={[planet.position.x, planet.position.y, planet.position.z]}
         rotation={[planet.rotation.x, planet.rotation.y, planet.rotation.z]}
       >
-        <sphereGeometry attach="geometry" args={[planet.radius, 30, 30]} />
-        <meshStandardMaterial
-          map={textureMaps[planet.textureMap]}
-          attach="material"
-          //color={planet.color}
-          emissive={planet.type === "SUN" ? planet.color : "false"}
-          opacity={planet.opacity}
-          transparent={planet.transparent}
-          roughness={planet.roughness}
-          metalness={planet.metalness}
-          //wireframe
-        />
-      </mesh>
+        <mesh geometry={geometryPlanet} material={materialPlanet}></mesh>
+        {planet.type != "SUN" && (
+          <mesh geometry={geometryClouds} material={materialClouds}></mesh>
+        )}
+      </group>
+      {/* ring */}
       <mesh
         position={[0, 0, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
         scale={[ringRadius, ringRadius, ringRadius]}
-        geometry={geometry}
-        material={material}
+        geometry={geometryRing}
+        material={materialRing}
       />
     </>
   );

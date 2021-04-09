@@ -3,7 +3,7 @@ import { useThree, useFrame } from "react-three-fiber";
 import { useRef } from "react";
 import useStore from "../store";
 import { SCALE } from "../gameHelper";
-import GalaxyStars from "./GalaxyStars";
+import GalaxyStarMap from "./GalaxyStarMap";
 
 const direction = new THREE.Vector3();
 
@@ -32,7 +32,7 @@ export default function MainMenu() {
   }
   return (
     <group ref={starMap} position={[0, 0, -700 * SCALE]} rotation={[0, 0, 0]}>
-      <GalaxyStars />
+      <GalaxyStarMap />
     </group>
   );
 }

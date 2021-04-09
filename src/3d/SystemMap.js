@@ -17,7 +17,7 @@ export default function SystemMap({ planets }) {
   );
 }
 
-function System({ planets }) {
+function System({ planets, doNotScale = false }) {
   //planet at end of array has largest orbit
   const maxRadius = distance(planets[planets.length - 1].position, {
     x: 0,
@@ -25,7 +25,7 @@ function System({ planets }) {
     z: 0,
   });
   const maxMapSize = 15;
-  const mapScale = maxMapSize / maxRadius;
+  const mapScale = doNotScale ? 1 : maxMapSize / maxRadius;
 
   return planets.map((planet, index) => {
     //console.log(planet.type);
@@ -52,6 +52,7 @@ function System({ planets }) {
             attach="material"
             emissive={planet.type === "SUN" ? "white" : "lightgreen"}
             emissiveIntensity="0.5"
+            wireframe
           />
         </mesh>
       </group>

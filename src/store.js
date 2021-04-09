@@ -7,7 +7,8 @@ import { distance, SCALE } from "./gameHelper";
 import { useSetPlanets } from "./hooks/usePlanets";
 
 const seedrandom = require("seedrandom");
-
+const systemScale = 0.5,
+  planetScale = 2;
 let guid = 1;
 
 //const [useStore, api] = create((set, get) => {
@@ -38,8 +39,8 @@ const [useStore] = create((set, get) => {
     galaxyStarPositions: initGalaxyStarPositions(),
     rocks: randomData(120, track, 150, 8, () => 1 + Math.random() * 2.5),
     enemies: randomData(10, track, 20, 15, 1),
-    planets: useSetPlanets(seedrandom(0), 2, 2),
-    stations: [], //randomStations(seedrandom("?"), 1),
+    planets: useSetPlanets(seedrandom(0), systemScale, planetScale),
+    stations: randomStations(seedrandom(0), 1),
     mutation: {
       t: 0,
       position: new THREE.Vector3(),
@@ -190,7 +191,9 @@ const [useStore] = create((set, get) => {
         }
         console.log("closest", closest);
         set(() => ({ selectedStar: closest }));
-        set(() => ({ planets: useSetPlanets(seedrandom(closest), 2, 2) }));
+        set(() => ({
+          planets: useSetPlanets(seedrandom(closest), systemScale, planetScale),
+        }));
       },
       //player ship shoot laser
       shoot() {
@@ -329,8 +332,9 @@ function initGalaxyStarPositions(
 function initShip() {
   let ship = new THREE.Object3D();
   ship.position.setX(0);
-  ship.position.setY(5000 * SCALE);
-  ship.position.setZ(40000 * SCALE);
+  ship.position.setY(25000 * SCALE * systemScale);
+  ship.position.setZ(100000 * SCALE * systemScale);
+  //ship.lookAt(0, 0, 0);
   return ship;
 }
 //set camera to view galaxy in main menu
@@ -388,8 +392,8 @@ function randomStations(rng, num) {
     color: "#ddd",
     size: 500 * SCALE,
     ports: [{ x: 0.5, y: 0.5, z: 0.5 }],
-    position: { x: 0, y: 5000 * SCALE, z: 35000 * SCALE },
-    rotation: { x: 0, y: 0, z: 0 },
+    position: { x: 0, y: 50000 * SCALE, z: 180000 * SCALE },
+    rotation: { x: 0, y: 0.5, z: 0 },
   });
   return temp;
 }
