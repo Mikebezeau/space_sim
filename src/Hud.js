@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import styled, { css } from "styled-components";
-import useStore from "./store";
+import useStore from "./stores/store";
 
 //basic HTML/CSS heads up display used to show player info
 export default function Hud() {
@@ -25,15 +25,17 @@ export default function Hud() {
   }, []);
 */
 
-  const score = useMemo(
+  /*
+  const speedVal = useMemo(
     () => (speed >= 1000 ? (speed / 1000).toFixed(1) + "K" : speed),
     [speed]
   );
+  */
   return (
     <>
       <UpperLeft>
         <h2>Speed</h2>
-        <h1>{score}</h1>
+        <h1>{speed}</h1>
       </UpperLeft>
       <UpperRight>
         <div style={{ width: health + "%" }} />

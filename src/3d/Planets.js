@@ -1,10 +1,10 @@
 import { useRef } from "react";
 import * as THREE from "three";
-import useStore from "../store";
+import useStore from "../stores/store";
 import { Canvas, useLoader } from "react-three-fiber";
 import { TextureLoader } from "three/src/loaders/TextureLoader.js";
 
-import { distance } from "../gameHelper";
+import { distance } from "../util/gameUtil";
 
 function Planet({ planet }) {
   //console.log(index, planet);

@@ -1,5 +1,5 @@
-import { SCALE } from "../gameHelper";
-import useStore from "../store";
+import { SCALE } from "../util/gameUtil";
+import useStore from "../stores/store";
 import SystemMap from "./SystemMap";
 import { useSetPlanets } from "../hooks/usePlanets";
 

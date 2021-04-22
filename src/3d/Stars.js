@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { SCALE } from "../gameHelper";
+import { SCALE } from "../util/gameUtil";
 
 export default function Stars({ count = 1000 }) {
   const positions = useMemo(() => {

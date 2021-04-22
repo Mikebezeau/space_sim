@@ -1,6 +1,6 @@
 import React from "react";
 import styled, { css } from "styled-components";
-import useStore from "./store";
+import useStore from "./stores/store";
 import {
   useTouchStartControls,
   useTouchMoveControls,

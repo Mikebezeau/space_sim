@@ -2,8 +2,8 @@ import * as THREE from "three";
 import { useRef } from "react";
 import { useThree, useLoader, useFrame } from "react-three-fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import useStore from "../store";
-import { SCALE } from "../gameHelper";
+import useStore from "../stores/store";
+import { SCALE, FLIGHT, MAIN_MENU, EQUIPMENT_SCREEN } from "../util/gameUtil";
 import SystemMap from "./SystemMap";
 
 const geometry = new THREE.BoxBufferGeometry(0.25, 0.25, 30);
@@ -43,7 +43,7 @@ export default function Ship() {
     endQuat = new THREE.Quaternion();
 
   useFrame(() => {
-    if (playerScreen.flight && main.current) flyingShip();
+    if (playerScreen === FLIGHT && main.current) flyingShip();
   });
 
   function flyingShip() {

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import React from "react";
-import { distance } from "../gameHelper";
+import { distance } from "../util/gameUtil";
 
 const ringGeometry = new THREE.RingBufferGeometry(1, 1.01, 32);
 const ringMaterial = new THREE.MeshBasicMaterial({

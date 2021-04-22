@@ -2,8 +2,9 @@ import * as THREE from "three";
 //import React, { useRef, useMemo, useEffect } from "react";
 import React, { useRef, useMemo } from "react";
 import { useFrame } from "react-three-fiber";
-import useStore from "../store";
+import useStore from "../stores/store";
 //import useStore, { audio, playAudio } from "../store";
+import { SCALE } from "../util/gameUtil";
 
 function make(color, speed) {
   return {
@@ -27,7 +28,7 @@ function make(color, speed) {
 export default function Explosions() {
   const explosions = useStore((state) => state.explosions);
   return explosions.map(({ guid, offset, scale }) => (
-    <Explosion key={guid} position={offset} scale={scale * 0.75} />
+    <Explosion key={guid} position={offset} scale={SCALE * scale * 75} />
   ));
 }
 

@@ -19,11 +19,16 @@ import Ship from "./3d/Ship";
 //import Rig from "./3d/Rig";
 import TouchControls from "./TouchControls";
 import Hud from "./Hud";
-import StationMenu from "./StationMenu";
-import useStore from "./store";
+import EquipmentMenu from "./EquipmentMenu";
+import useStore from "./stores/store";
 import useKBControls from "./hooks/useKBControls";
-import { IS_MOBLIE } from "./gameHelper";
-
+import {
+  IS_MOBLIE,
+  SCALE,
+  FLIGHT,
+  MAIN_MENU,
+  EQUIPMENT_SCREEN,
+} from "./util/gameUtil";
 function App() {
   const { fov } = useStore((state) => state.mutation);
   const actions = useStore((state) => state.actions);
@@ -42,14 +47,14 @@ function App() {
   useKBControls("ArrowDown", handleSpeedDown);
 
   //DOCK AT STATION
-  function handleStationDoc() {
+  function handleSwitchScreen() {
     //actions.stationDoc();
     actions.switchScreen();
   }
-  useKBControls("KeyD", handleStationDoc);
+  useKBControls("KeyD", handleSwitchScreen);
 
   //IS_MOBLIE: conditional controls for mobile devices
-  //console.log("IS_MOBLIE", IS_MOBLIE);
+  //console.log("playerScreen", playerScreen, FLIGHT);
   return (
     <>
       <Canvas
@@ -57,13 +62,13 @@ function App() {
         onClick={
           IS_MOBLIE
             ? null
-            : playerScreen.flight
+            : playerScreen === FLIGHT
             ? actions.shoot
             : actions.detectTargetStar
         }
         camera={{ position: [0, 0, 0], near: 0.001, far: 10000, fov }}
         onCreated={({ gl, camera, scene }) => {
-          actions.init(camera, scene);
+          actions.init(camera);
           //gl.gammaInput = true;
           //gl.toneMapping = THREE.Uncharted2ToneMapping;
           //gl.setClearColor(new THREE.Color("#020207"));
@@ -72,8 +77,8 @@ function App() {
         <pointLight castShadow intensity={0.6} />
         <ambientLight intensity={0.025} />
 
-        {playerScreen.mainMenu && <MainMenu />}
-        {playerScreen.flight && (
+        {playerScreen === MAIN_MENU && <MainMenu />}
+        {playerScreen === FLIGHT && (
           <>
             <Stars />
             <Explosions />
@@ -89,8 +94,8 @@ function App() {
         )}
         <Effects />
       </Canvas>
-      {playerScreen.flight && <Hud />}
-      {playerScreen.station && <StationMenu />}
+      {playerScreen === FLIGHT && <Hud />}
+      {playerScreen === EQUIPMENT_SCREEN && <EquipmentMenu />}
       {IS_MOBLIE && <TouchControls />}
     </>
   );

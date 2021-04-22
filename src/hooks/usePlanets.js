@@ -1,4 +1,4 @@
-import { SCALE } from "../gameHelper";
+import { SCALE } from "../util/gameUtil";
 
 export function useSetPlanets(rng, systemScale = 1, planetScale = 1) {
   let numPlanets = Math.floor(rng() * 5) + 4;

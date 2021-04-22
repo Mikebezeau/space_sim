@@ -1,4 +1,4 @@
-import { SCALE } from "../gameHelper";
+import { SCALE } from "../util/gameUtil";
 
 const Loading = () => {
   return (

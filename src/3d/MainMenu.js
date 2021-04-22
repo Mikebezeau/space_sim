@@ -1,8 +1,9 @@
 import * as THREE from "three";
 import { useThree, useFrame } from "react-three-fiber";
 import { useRef } from "react";
-import useStore from "../store";
-import { SCALE } from "../gameHelper";
+import useStore from "../stores/store";
+import { SCALE, FLIGHT, MAIN_MENU, EQUIPMENT_SCREEN } from "../util/gameUtil";
+
 import GalaxyStarMap from "./GalaxyStarMap";
 
 const direction = new THREE.Vector3();
@@ -17,7 +18,7 @@ export default function MainMenu() {
   useFrame(() => {
     //if in main menu
     //if (playerScreen.mainMenu && starMap.current) navStarMap();
-    if (playerScreen.mainMenu) navStarMap();
+    if (playerScreen === MAIN_MENU) navStarMap();
   });
 
   function navStarMap() {

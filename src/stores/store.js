@@ -3,13 +3,21 @@ import { Curves } from "three/examples/jsm/curves/CurveExtras";
 import { addEffect } from "react-three-fiber";
 import create from "zustand";
 //import * as audio from "./audio";
-import { distance, SCALE } from "./gameHelper";
-import { useSetPlanets } from "./hooks/usePlanets";
+import {
+  distance,
+  SCALE,
+  FLIGHT,
+  MAIN_MENU,
+  EQUIPMENT_SCREEN,
+  NUM_SCREEN_OPTIONS,
+} from "../util/gameUtil";
+import { useSetPlanets } from "../hooks/usePlanets";
 
 const seedrandom = require("seedrandom");
 const systemScale = 0.5,
   planetScale = 2;
-let guid = 1;
+
+let guid = 1; //global unique ID
 
 //const [useStore, api] = create((set, get) => {
 const [useStore] = create((set, get) => {
@@ -31,7 +39,7 @@ const [useStore] = create((set, get) => {
     ship: initShip(),
     menuCam: initCamMainMenu(),
     selectedStar: null,
-    playerScreen: { mainMenu: 0, flight: 1, station: 0 },
+    playerScreen: FLIGHT,
     speed: 1,
     stationDock: { stationIndex: 0, portIndex: 0 },
     lasers: [],
@@ -67,7 +75,7 @@ const [useStore] = create((set, get) => {
 
       // Re-usable objects
       dummy: new THREE.Object3D(),
-      ray: new THREE.Ray(), //THIS IS A RAY FROM SHIP
+      ray: new THREE.Ray(), //USED FOR RAY FROM SHIP for laser hit detection
       box: new THREE.Box3(),
     },
 
@@ -150,12 +158,14 @@ const [useStore] = create((set, get) => {
           //if (a.some(data => data.distance < 15)) set(state => ({ health: state.health - 1 }))
         });
       },
-      //changing player screen (main menu, flight, space station menu...)
+      //changing player screen (main menu, flight)
       switchScreen() {
+        console.log("playerScreen", get().playerScreen, NUM_SCREEN_OPTIONS);
         set((state) => ({
-          playerScreen: state.playerScreen.mainMenu
-            ? { flight: 1 }
-            : { mainMenu: 1 },
+          playerScreen:
+            state.playerScreen + 1 > NUM_SCREEN_OPTIONS
+              ? 1
+              : state.playerScreen + 1,
         }));
       },
       //main menu slecting star in galaxy map
@@ -383,16 +393,21 @@ function randomData(count, track, radius, size, scale) {
 
 function randomStations(rng, num) {
   let temp = [];
-  //create sun
+  //create station
   temp.push({
     type: "EQUIPMENT",
     name: "X-22",
     roughness: 1,
     metalness: 5,
-    color: "#ddd",
+    color: new THREE.Color("#222"),
     size: 500 * SCALE,
     ports: [{ x: 0.5, y: 0.5, z: 0.5 }],
-    position: { x: 0, y: 50000 * SCALE, z: 180000 * SCALE },
+    position: {
+      x: 0,
+      y: 25000 * SCALE * systemScale,
+      z: 50000 * SCALE * systemScale,
+    },
+
     rotation: { x: 0, y: 0.5, z: 0 },
   });
   return temp;

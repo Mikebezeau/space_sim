@@ -1,7 +1,7 @@
 //NOT USED
 
 import React from "react";
-import useStore from "../store";
+import useStore from "../stores/store";
 
 export default function Track() {
   const { scale, track } = useStore((state) => state.mutation);
