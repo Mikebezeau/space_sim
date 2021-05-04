@@ -16,6 +16,10 @@ export const equipList = {
     costMult: [0.6, 1, 1.75, 3, 7.5, 15, 75, 200],
   },
 
+  servo: {
+    type: ["Head", "Wing", "Arm", "Leg", "Torso"],
+  },
+
   class: {
     type: [
       "Superlight",
@@ -72,13 +76,6 @@ export const equipList = {
   },
 
   weapon: {
-    Type: ["Beam", "Projectile", "Missile", "Energy Melee", "Melee"],
-    listType: [
-      "beamList",
-      "projList",
-      "missileList",
-      "eMeleeList",
-      "meleeList",
-    ],
+    type: ["Beam", "Projectile", "Missile", "Energy Melee", "Melee"],
   },
 };

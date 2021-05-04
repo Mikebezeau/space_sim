@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { Curves } from "three/examples/jsm/curves/CurveExtras";
-import { addEffect } from "react-three-fiber";
+import { addEffect } from "@react-three/fiber";
 import create from "zustand";
 //import * as audio from "./audio";
 import {
@@ -14,8 +14,8 @@ import {
 import { useSetPlanets } from "../hooks/usePlanets";
 
 const seedrandom = require("seedrandom");
-const systemScale = 0.5,
-  planetScale = 2;
+const systemScale = 2,
+  planetScale = 10;
 
 let guid = 1; //global unique ID
 
@@ -31,33 +31,37 @@ const [useStore] = create((set, get) => {
 
   //globally available variables
   return {
-    sound: true,
-    sytemScale: 3,
+    sound: false,
+    sytemScale: systemScale,
+    //galaxy map
+    menuCam: initCamMainMenu(),
+    selectedStar: null,
+    galaxyStarPositions: initGalaxyStarPositions(),
+    //blueprint design
+    blueprintCam: initCamMainMenu(),
+    //flying
     camera: undefined,
     points: 0,
     health: 100,
     ship: initShip(),
-    menuCam: initCamMainMenu(),
-    selectedStar: null,
     playerScreen: FLIGHT,
     speed: 1,
     stationDock: { stationIndex: 0, portIndex: 0 },
     lasers: [],
     explosions: [],
-    galaxyStarPositions: initGalaxyStarPositions(),
     rocks: randomData(120, track, 150, 8, () => 1 + Math.random() * 2.5),
     enemies: randomData(10, track, 20, 15, 1),
     planets: useSetPlanets(seedrandom(0), systemScale, planetScale),
     stations: randomStations(seedrandom(0), 1),
     mutation: {
       t: 0,
-      position: new THREE.Vector3(),
-      startTime: Date.now(),
+      //position: new THREE.Vector3(),
+      //startTime: Date.now(),
 
-      track,
+      track, //only used for placing random object, change this later
 
       scale: 15,
-      fov: 70,
+      //fov: 70,//set directly in camera declaration
       hits: false,
       //rings: randomRings(30, track),
       particles: randomData(
@@ -67,16 +71,16 @@ const [useStore] = create((set, get) => {
         1,
         () => 0.5 + Math.random() * 0.5
       ),
-      looptime: 40 * 1000,
-      binormal: new THREE.Vector3(),
-      normal: new THREE.Vector3(),
-      clock: new THREE.Clock(false),
+      //looptime: 40 * 1000,//don't need this
+      //binormal: new THREE.Vector3(),//only used in track
+      //normal: new THREE.Vector3(), //not used
+      clock: new THREE.Clock(false), //used to make enemies rotate
       mouse: new THREE.Vector2(0, 0),
 
       // Re-usable objects
       dummy: new THREE.Object3D(),
       ray: new THREE.Ray(), //USED FOR RAY FROM SHIP for laser hit detection
-      box: new THREE.Box3(),
+      box: new THREE.Box3(), //also used for ray hit detection
     },
 
     //------------------------------------------------------------------------------------
@@ -92,8 +96,8 @@ const [useStore] = create((set, get) => {
     actions: {
       init(camera) {
         const { mutation, actions } = get();
-
-        set({ camera });
+        //set({ camera });//set in App canvas
+        //clock used in auto rotations
         mutation.clock.start();
         //actions.toggleSound(get().sound);
 
@@ -103,12 +107,13 @@ const [useStore] = create((set, get) => {
           const { rocks, enemies } = get();
 
           const time = Date.now();
+          /*
           const t = (mutation.t =
             ((time - mutation.startTime) % mutation.looptime) /
             mutation.looptime);
           mutation.position = track.parameters.path.getPointAt(t);
           mutation.position.multiplyScalar(mutation.scale);
-
+*/
           // test for wormhole/warp
           /*
           let warping = false;
@@ -146,7 +151,7 @@ const [useStore] = create((set, get) => {
               1000
             );
             set((state) => ({
-              points: state.points + r.length * 100 + e.length * 200,
+              //points: state.points + r.length * 100 + e.length * 200,
               rocks: state.rocks.filter(
                 (rock) => !r.find((r) => r.guid === rock.guid)
               ),
@@ -160,7 +165,7 @@ const [useStore] = create((set, get) => {
       },
       //changing player screen (main menu, flight)
       switchScreen() {
-        console.log("playerScreen", get().playerScreen, NUM_SCREEN_OPTIONS);
+        //console.log("playerScreen", get().playerScreen, NUM_SCREEN_OPTIONS);
         set((state) => ({
           playerScreen:
             state.playerScreen + 1 > NUM_SCREEN_OPTIONS
@@ -199,7 +204,6 @@ const [useStore] = create((set, get) => {
           )
             closest = i;
         }
-        console.log("closest", closest);
         set(() => ({ selectedStar: closest }));
         set(() => ({
           planets: useSetPlanets(seedrandom(closest), systemScale, planetScale),
@@ -343,7 +347,7 @@ function initShip() {
   let ship = new THREE.Object3D();
   ship.position.setX(0);
   ship.position.setY(25000 * SCALE * systemScale);
-  ship.position.setZ(100000 * SCALE * systemScale);
+  ship.position.setZ(150000 * SCALE * systemScale);
   //ship.lookAt(0, 0, 0);
   return ship;
 }
@@ -399,16 +403,24 @@ function randomStations(rng, num) {
     name: "X-22",
     roughness: 1,
     metalness: 5,
-    color: new THREE.Color("#222"),
+    //color: new THREE.Color("rgb(255, 0, 0)"),//THREE.Color used for effects
     size: 500 * SCALE,
     ports: [{ x: 0.5, y: 0.5, z: 0.5 }],
     position: {
       x: 0,
       y: 25000 * SCALE * systemScale,
-      z: 50000 * SCALE * systemScale,
+      z: 145000 * SCALE * systemScale,
     },
 
     rotation: { x: 0, y: 0.5, z: 0 },
+
+    material: new THREE.MeshPhongMaterial({
+      color: 0x222222,
+      emissive: 0x222222,
+      emissiveIntensity: 0.01,
+      //roughness: station.roughness,
+      //metalness: station.metalness,
+    }),
   });
   return temp;
 }

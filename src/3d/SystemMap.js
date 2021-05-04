@@ -10,11 +10,7 @@ const ringMaterial = new THREE.MeshBasicMaterial({
 const planetGeometry = new THREE.DodecahedronBufferGeometry(0.5, 0);
 
 export default function SystemMap({ planets }) {
-  return (
-    <group>
-      <System planets={planets} />
-    </group>
-  );
+  return <System planets={planets} />;
 }
 
 function System({ planets, doNotScale = false }) {

@@ -28,3 +28,10 @@ body {
   color: black;
   cursor: move !important;
 }
+
+.selectedItem {
+  color: green;
+}
+.nonSelectedItem {
+  color: blue;
+}

@@ -19,3 +19,32 @@ export const distance = (p1, p2) => {
 export const getRandomInt = (max) => {
   return Math.floor(Math.random() * max);
 };
+
+/*
+//DOUBLE SLIDER LABEL CREATOR
+function doubleSliderLabel(topArr, bottomArr) {
+  var combinedArr = [];
+  for (var i = 0; i < topArr.length; i++) {
+    combinedArr[i] = "<b>" + topArr[i] + "</b>" + bottomArr[i];
+  }
+  return combinedArr;
+}
+
+//RETURN ARRAY WITH CONTENTS AS STRING
+function castStringArray(array) {
+  var stringArray = [];
+  for (var i = 0; i < array.length; i++) {
+    stringArray[i] = String(array[i]);
+  }
+  return stringArray;
+}
+
+//RETURN ARRAY WITH CONTENTS AS PERCENTAGE
+function castPercentArray(array) {
+  var percentArray = [];
+  for (var i = 0; i < array.length; i++) {
+    percentArray[i] = array[i] * 100 + "%";
+  }
+  return percentArray;
+}
+*/

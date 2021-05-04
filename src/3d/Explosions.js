@@ -1,7 +1,7 @@
 import * as THREE from "three";
 //import React, { useRef, useMemo, useEffect } from "react";
 import React, { useRef, useMemo } from "react";
-import { useFrame } from "react-three-fiber";
+import { useFrame } from "@react-three/fiber";
 import useStore from "../stores/store";
 //import useStore, { audio, playAudio } from "../store";
 import { SCALE } from "../util/gameUtil";

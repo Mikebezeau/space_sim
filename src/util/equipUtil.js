@@ -1,60 +1,119 @@
-import { equipConst, equipList } from "./equipList";
+import { equipConst, equipList } from "../data/equipData";
 
-export const scale = {
-  applyScaledWeight: function (scale, weight) {
-    return Math.round(weight * equipList.scale.weightMult[scale] * 10) / 10;
+function applyScaledWeightMult(scale, weight) {
+  return Math.round(weight * equipList.scale.weightMult[scale] * 10) / 10;
+}
+
+function applyScaledCPMult(scale, CP) {
+  return Math.round(CP * equipList.scale.costMult[scale] * 10) / 10;
+}
+
+const armorUtil = {
+  value: function (armor) {
+    //cost points
+    return equipList.class.armorVal[armor.class]; //each weight point reduced costs 2 CP
   },
 
-  applyScaledCP: function (scale, CP) {
-    console.log(scale, CP);
-    return Math.round(CP * equipList.scale.costMult[scale] * 10) / 10;
+  type: function (armor) {
+    return (
+      equipList.armor.rating[armor.type] +
+      "(" +
+      equipList.armor.threshold[armor.type] +
+      ")"
+    );
+  },
+
+  threshold: function (armor) {
+    return equipList.armor.threshold[armor.type];
+  },
+
+  CP: function (armor) {
+    //cost points
+    var CP = equipList.class.armorVal[armor.class]; //each weight point reduced costs 2 CP
+    CP = CP + equipList.armor.costMP[armor.type];
+    return CP;
+  },
+
+  weight: function (armor) {
+    //
+    return 0;
   },
 };
 
-export const servo = {
+const servoUtil = {
+  servoLocation: function (locationServoId, servos) {
+    return servos.find((s) => s.id === locationServoId);
+  },
+
   class: function (servo) {
     return equipList.class.type[servo.class];
   }, //class name (i.e. striker)
 
-  classValue: function (servo) {
+  classValue: function (type, classIndex) {
     //class number value
     var servoVal = 0;
-    switch (servo.type) {
+    switch (type) {
       case "Head":
       case "Wing":
-        servoVal = equipList.class.headWingVal[servo.class];
+        servoVal = equipList.class.headWingVal[classIndex];
         break;
       case "Arm":
       case "Leg":
-        servoVal = equipList.class.armLegVal[servo.class];
+        servoVal = equipList.class.armLegVal[classIndex];
         break;
       case "Torso":
-        servoVal = equipList.class.torsoVal[servo.class];
+        servoVal = equipList.class.torsoVal[classIndex];
         break;
+      default:
     }
     return servoVal;
   },
 
-  weight: function () {
+  structure: function (scale, classValue, SPMod) {
+    return applyScaledWeightMult(scale, classValue) - SPMod; //space modifier (bonus space reduces structure points)
+  },
+
+  SP: function (scale, classValue, SPMod) {
     //space points
-    var weight = this.getClassValue() / 2;
-    weight = weight + this.armor.getWeight(); //armor weight
-    weight = weight - this.wEff;
+    var SP = applyScaledWeightMult(
+      scale,
+      classValue // + hydrRefObj.SP[mecha.hydraulicsType]
+    );
+    SP = SP + SPMod; //space modifier (bonus space allotted)
+    return SP;
+  },
+  usedSP: function (id, mechBP) {
+    let usedSP = 0;
+    //look for weapons in this location
+    Object.values(mechBP.weaponList).map((weapons) => {
+      weapons.map((weapon) => {
+        usedSP += weapon.locationServoId === id ? weapon.scaledCP() : 0;
+      });
+    });
+    //check hydraulics
+    //check crew
+    if (mechBP.crewLocationServoId[0] === id) usedSP += mechBP.crewSP();
+    //check all else
+    return usedSP;
+  },
+  CP: function (classValue, wEff, armor) {
+    //cost points
+    var CP = classValue + 2 * wEff; //each weight point reduced costs 2 CP
+    CP = CP + armorUtil.CP(armor);
+    return CP;
+  },
+
+  scaledCP: function (scale, CP) {
+    //cost points
+    return applyScaledCPMult(scale, CP);
+  },
+
+  weight: function (classValue, wEff, armor) {
+    //space points
+    var weight = classValue / 2;
+    weight = weight + armorUtil.weight(armor.class); //armor weight
+    weight = weight - wEff;
     return weight;
-  },
-
-  armorCP: function () {
-    //cost points
-    var CP = this.getClassValue() + 2 * this.wEff; //each weight point reduced costs 2 CP
-    CP = CP + this.armor.getCP();
-    return CP;
-  },
-
-  scaledCP: function (scale, servo) {
-    //cost points
-    let CP = servo.getCP() + servo.armor.getCP();
-    CP = scale.applyScaledCP(scale, CP);
-    return CP;
   },
 
   armMeleeBonus: function (servoList) {
@@ -69,15 +128,15 @@ export const servo = {
   },
 };
 
-export const mecha = {
+const mech = {
   meleeBonus(hydraulicsType) {
     return equipList.hydraulics.melee[hydraulicsType];
   },
 
   scaledMeleeBonus: function (hydraulicsType) {
-    let meleeBonus = scale.applyScaledWeight(
+    let meleeBonus = applyScaledWeightMult(
       equipList.hydraulics.melee[hydraulicsType]
-    ); //scale melee damage bonus with mecha scale
+    ); //scale melee damage bonus with mech scale
     return meleeBonus;
   },
 
@@ -95,17 +154,42 @@ export const mecha = {
     return CP;
   },
 
+  crewServoLocation: function (crew, passengers) {
+    let CP = 0;
+    CP = (crew - 1) * 2;
+    CP += passengers * 1;
+    return CP;
+  },
+
+  servoWeaponList: function (servoId, weaponList) {
+    let servoWeapons = [];
+    Object.values(weaponList).map((weapons, key) => {
+      weapons.map((weapon) => {
+        if (weapon.locationServoId === servoId) servoWeapons.push(weapon);
+      });
+    });
+    return servoWeapons;
+  },
+
+  findWeaponId: function (weaponId, weaponList) {
+    let found = null;
+    Object.values(weaponList).map((weapons) => {
+      weapons.map((weapon) => {
+        if (weapon.id === weaponId) found = weapon;
+      });
+    });
+    return found;
+  },
+
   totalWeight: function (servoList, weaponList, weightIneff, weightEff) {
     let weight = 0;
     for (let i = 0; i < servoList.length; i++) {
       //servo & armor weight
-      weight += servoList[i].getWeight();
-      //console.log(weight);
+      weight += servoList[i].weight();
     }
     for (let key in weaponList) {
       for (let i = 0; i < weaponList[key].length; i++) {
-        weight += weaponList[key][i].getWeight();
-        //console.log(weight);
+        weight += weaponList[key][i].weight();
       }
     }
     if (weightIneff) weight = weight * 2;
@@ -130,12 +214,12 @@ export const mecha = {
 
     for (let i = 0; i < servoList.length; i++) {
       //servo & armor weight
-      CP += servoList[i].getCP();
+      CP += servoList[i].CP();
     }
     for (let key in weaponList) {
       for (let i = 0; i < weaponList[key].length; i++) {
         //CP += weapon.getCP(weaponList[key][i]);
-        CP += weaponList[key][i].getCP();
+        CP += weaponList[key][i].CP();
       }
     }
     //Parts CP
@@ -211,7 +295,7 @@ export const mecha = {
     return MV;
   },
 
-  liftVal: function (servoList, hydraulicsType) {
+  liftVal: function (scale, servoList, hydraulicsType) {
     //lifting ability
     let torsoClass = 0;
     let liftVal = 0;
@@ -222,8 +306,10 @@ export const mecha = {
     //  /2.5 for conversion
     liftVal = ((torsoClass + 1) * 5) / 2.5;
     liftVal =
-      scale.applyScaledWeight(liftVal) *
+      applyScaledWeightMult(scale, liftVal) *
       equipList.hydraulics.lift[hydraulicsType];
     return liftVal;
   },
 };
+
+export { applyScaledWeightMult, applyScaledCPMult, servoUtil, mech, armorUtil };

@@ -1,5 +1,5 @@
 import { useRef, useEffect } from "react";
-import { extend, useThree, useFrame } from "react-three-fiber";
+import { extend, useThree, useFrame } from "@react-three/fiber";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";

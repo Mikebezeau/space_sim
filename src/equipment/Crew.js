@@ -1,33 +1,60 @@
+import { useState } from "react";
 import useEquipStore from "../stores/equipStore";
-import { equipList } from "../util/equipList";
-import { mecha } from "../util/equipUtil";
+import { ServoSpaceAssignButtons } from "./Servos";
 //CREW / PILOT
 
-const CrewDesign = () => {
-  const { crew, passengers, crewSP, crewCP, actions } = useEquipStore(
-    (state) => state
-  );
-
-  const handleCrew = (e) => {
-    actions.setCrew(e.target.value);
+export const CrewAssignSpaces = ({ heading }) => {
+  const { mechBP, actions } = useEquipStore((state) => state);
+  const [servoSelectedId, setServoSelectedId] = useState(0);
+  /*
+  const handleCrewSelect = (weaponType, id) => {
+    actions.assignPartLocationMenu.setCrewLocation(servoSelectedId);
   };
-
-  const handlePassengers = (e) => {
-    actions.setPassengers(e.target.value);
+*/
+  const handleServoSelect = (id) => {
+    setServoSelectedId(id);
+    actions.assignPartLocationMenu.setCrewLocation(id);
   };
 
   return (
     <>
-      <h2>Pilot / Crew / Controls</h2>
-      <h3>Cost does not scale</h3>
+      <h2>{heading}</h2>
+      <ServoSpaceAssignButtons
+        mechBP={mechBP}
+        servoSelectedId={servoSelectedId}
+        callBack={handleServoSelect}
+      />
+      <hr />
+      <button>
+        Crew/Passengers {mechBP.crewSP()}SP{" "}
+        {mechBP.crewServoLocation(mechBP.servoList) &&
+          mechBP.crewServoLocation(mechBP.servoList).type}
+      </button>
+    </>
+  );
+};
+
+export const Crew = ({ heading }) => {
+  const { mechBP, actions } = useEquipStore((state) => state);
+
+  const handleCrew = (e) => {
+    actions.basicMenu.setCrew(e.target.value);
+  };
+
+  const handlePassengers = (e) => {
+    actions.basicMenu.setPassengers(e.target.value);
+  };
+
+  return (
+    <>
+      <h2>{heading}</h2>
+      <h3>(does not scale)</h3>
       <div>
-        <label for="crew">CREW MEMBERS (2 CP / each additional)</label>
+        <label htmlFor="crew">CREW MEMBERS (2 CP / each additional)</label>
         <select
           name="crew"
           id="crew"
-          name="passengers"
-          id="passengers"
-          defaultValue={crew}
+          defaultValue={mechBP.crew}
           onChange={handleCrew}
         >
           <option value="1">1</option>
@@ -43,11 +70,11 @@ const CrewDesign = () => {
         </select>
         <br />
 
-        <label for="passengers">PASSENGERS (1 CP each)</label>
+        <label htmlFor="passengers">PASSENGERS (1 CP each)</label>
         <select
           name="passengers"
           id="passengers"
-          defaultValue={passengers}
+          defaultValue={mechBP.passengers}
           onChange={handlePassengers}
         >
           <option value="0">0</option>
@@ -70,8 +97,8 @@ const CrewDesign = () => {
               <th>Cost</th>
             </tr>
             <tr>
-              <td>{crewSP() + " SP"}</td>
-              <td>{crewCP() + " CP"}</td>
+              <td>{mechBP.crewSP()} SP</td>
+              <td>{mechBP.crewCP()} CP</td>
             </tr>
           </tbody>
         </table>
@@ -79,7 +106,6 @@ const CrewDesign = () => {
     </>
   );
 };
-export default CrewDesign;
 
 /*
 <tr>
@@ -89,19 +115,19 @@ export default CrewDesign;
           </tr>
           <tr>
             <td>
-              <input type="text" id="crewMR" class="textBox" value="0" />
+              <input type="text" id="crewMR" className="textBox" value="0" />
             </td>
             <td>
-              <input type="text" id="crewCmd" class="textBox" value="0" />
+              <input type="text" id="crewCmd" className="textBox" value="0" />
             </td>
             <td>
-              <input type="text" id="crewActions" class="textBox" value="2" />
+              <input type="text" id="crewActions" className="textBox" value="2" />
             </td>
           </tr>
         </table>
-        <div class="sliderBoxHorizontal">
-          <div class="sliderLable">
-            <label for="controlType">Piloting Controls Type</label>
+        <div className="sliderBoxHorizontal">
+          <div className="sliderLable">
+            <label htmlFor="controlType">Piloting Controls Type</label>
             <select name="controlType" id="controlType">
               <option value="0">Manual</option>
               <option value="1">Screen</option>
@@ -119,17 +145,17 @@ export default CrewDesign;
           </tr>
           <tr>
             <td>
-              <input type="text" id="controlsPool" class="textBox" value="" />
+              <input type="text" id="controlsPool" className="textBox" value="" />
             </td>
             <td>
-              <input type="text" id="controlsCM" class="textBox" value="" />
+              <input type="text" id="controlsCM" className="textBox" value="" />
             </td>
           </tr>
         </table>
 
-        <div class="sliderBoxHorizontal">
-          <div class="sliderLable">
-            <label for="cockpitType">Cockpit Type</label>
+        <div className="sliderBoxHorizontal">
+          <div className="sliderLable">
+            <label htmlFor="cockpitType">Cockpit Type</label>
             <select name="cockpitType" id="cockpitType">
               <option value="0">Armored (fully enclosed)</option>
               <option value="1">Canopy (windows, 1/2 armor)</option>
