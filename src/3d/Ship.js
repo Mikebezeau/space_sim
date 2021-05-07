@@ -97,12 +97,18 @@ export default function Ship() {
     tempObjectDummy.translateY(30 * SCALE);
     tempObjectDummy.translateZ(-80 * SCALE);
     systemMap.current.position.copy(tempObjectDummy.position);
-    //give map relative rotation to camera to stop it from rotating while camera rotates
+
+    //give map opposite & inverted rotation of camera to stop it from rotating while camera rotates
+    systemMap.current.rotation.setFromQuaternion(
+      camQuat.conjugate().invert().normalize()
+    );
     /*
+    //trying to add angle to static system map
     curQuat.setFromEuler(systemMap.current.rotation);
-    endQuat.setFromUnitVectors(curQuat, camQuat.invert());
-    systemMap.current.rotation.setFromQuaternion(endQuat.normalize());
+    endQuat.setFromAxisAngle(Math.PI / 1.5, 0, 0);
+    systemMap.current.rotation.setFromQuaternion(curQuat.multiply(endQuat));
 */
+
     //engine flicker
     let flickerVal = Math.sin(clock.getElapsedTime() * 500);
     let speedRoof = speed > 25 ? 25 : speed;
@@ -144,7 +150,7 @@ export default function Ship() {
   return (
     <>
       <group ref={systemMap} rotation={[Math.PI / 1.5, 0, 0]} scale={SCALE}>
-        <SystemMap planets={planets} />
+        <SystemMap planets={planets} playerPos={ship.position} />
       </group>
       <group
         ref={main}

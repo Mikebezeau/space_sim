@@ -396,7 +396,7 @@ function randomEnemies(track) {
     enemy.groupLeaderGuid = 0;
     enemy.formation = null;
     enemy.formationPosition = new Vector3();
-    enemy.speed = 90 + Math.random() * 20;
+    enemy.speed = 10 + Math.random() * 10;
     return enemy;
   });
   //group enemies into squads

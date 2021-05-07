@@ -89,7 +89,7 @@ select desitation:
           enemy.speed
         : //else if ship is far away from target destination go faster
         distance(enemy.object3d.position, destinationPosition) > 1000 * SCALE
-        ? enemyLeader.speed + 40
+        ? enemyLeader.speed * 2
         : enemyLeader.speed;
 
     //move toward target

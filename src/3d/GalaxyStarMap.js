@@ -25,7 +25,7 @@ export default function GalaxyStarMap() {
         //increase size of system map to make more visible
         scale={[SCALE * 15, SCALE * 15, SCALE * 15]}
       >
-        <SystemMap planets={planets} doNotScale={true} />
+        <SystemMap planets={planets} />
       </group>
 
       {/* points shows the galaxy map (all stars) */}
