@@ -3,19 +3,14 @@ import { Curves } from "three/examples/jsm/curves/CurveExtras";
 import { addEffect } from "@react-three/fiber";
 import create from "zustand";
 //import * as audio from "./audio";
-import {
-  distance,
-  SCALE,
-  FLIGHT,
-  MAIN_MENU,
-  EQUIPMENT_SCREEN,
-  NUM_SCREEN_OPTIONS,
-} from "../util/gameUtil";
+import { distance, SCALE, FLIGHT, NUM_SCREEN_OPTIONS } from "../util/gameUtil";
 import { useSetPlanets } from "../hooks/usePlanets";
+import { loopAI } from "../masterAI";
+import { Object3D, Vector3 } from "three";
 
 const seedrandom = require("seedrandom");
-const systemScale = 2,
-  planetScale = 10;
+const systemScale = 1,
+  planetScale = 2;
 
 let guid = 1; //global unique ID
 
@@ -23,7 +18,7 @@ let guid = 1; //global unique ID
 const [useStore] = create((set, get) => {
   //change spline and track to change where the space debrie and asteroids are located
   let spline = new Curves.GrannyKnot();
-  let track = new THREE.TubeBufferGeometry(spline, 250, 0.15, 10, true);
+  let track = new THREE.TubeBufferGeometry(spline, 250, 15 * SCALE, 10, true);
   //these used for laser hits
   let cancelLaserTO = undefined;
   let cancelExplosionTO = undefined;
@@ -49,8 +44,8 @@ const [useStore] = create((set, get) => {
     stationDock: { stationIndex: 0, portIndex: 0 },
     lasers: [],
     explosions: [],
-    rocks: randomData(120, track, 150, 8, () => 1 + Math.random() * 2.5),
-    enemies: randomData(10, track, 20, 15, 1),
+    rocks: randomData(120, track, 50, 50, () => 1 + Math.random() * 2.5),
+    enemies: randomEnemies(track), //randomData(1, track, 20, 100, 1),
     planets: useSetPlanets(seedrandom(0), systemScale, planetScale),
     stations: randomStations(seedrandom(0), 1),
     mutation: {
@@ -60,7 +55,7 @@ const [useStore] = create((set, get) => {
 
       track, //only used for placing random object, change this later
 
-      scale: 15,
+      //scale: 15,
       //fov: 70,//set directly in camera declaration
       hits: false,
       //rings: randomRings(30, track),
@@ -68,7 +63,7 @@ const [useStore] = create((set, get) => {
         3000,
         track,
         50,
-        1,
+        1000,
         () => 0.5 + Math.random() * 0.5
       ),
       //looptime: 40 * 1000,//don't need this
@@ -94,7 +89,7 @@ const [useStore] = create((set, get) => {
     //------------------------------------------------------------------------------------
 
     actions: {
-      init(camera) {
+      init() {
         const { mutation, actions } = get();
         //set({ camera });//set in App canvas
         //clock used in auto rotations
@@ -102,33 +97,29 @@ const [useStore] = create((set, get) => {
         //actions.toggleSound(get().sound);
 
         //addEffect will add the following code to what gets run per frame
-        //all related to laser shots, will be changing this later
+        //removes exploded emenies and rocks from store data, removes explosions once they have timed out
         addEffect(() => {
-          const { rocks, enemies } = get();
+          if (get().playerScreen !== FLIGHT) return;
+
+          const { ship, rocks, enemies } = get();
+          //run enemy AI routine
+          loopAI(ship, enemies, get().mutation.clock);
 
           const time = Date.now();
           /*
+          //interseting code for moving along a geometric path
           const t = (mutation.t =
             ((time - mutation.startTime) % mutation.looptime) /
             mutation.looptime);
           mutation.position = track.parameters.path.getPointAt(t);
           mutation.position.multiplyScalar(mutation.scale);
 */
-          // test for wormhole/warp
-          /*
-          let warping = false;
-          if (t > 0.3 && t < 0.4) {
-            if (!warping) {
-              warping = true;
-              //playAudio(audio.warp);
-            }
-          } else if (t > 0.5) warping = false;
-*/
           // test for hits
           const r = rocks.filter(actions.test);
           const e = enemies.filter(actions.test);
           const a = r.concat(e);
           //If hit a new object play sound
+          //edited out audio for now
           //const previous = mutation.hits;
           mutation.hits = a.length;
           //if (previous === 0 && mutation.hits) playAudio(audio.click);
@@ -162,6 +153,16 @@ const [useStore] = create((set, get) => {
           }
           //if (a.some(data => data.distance < 15)) set(state => ({ health: state.health - 1 }))
         });
+      },
+      //testing for laser hits using ray (ray from spaceship)
+      test(data) {
+        box.min.copy(data.object3d.position);
+        box.max.copy(data.object3d.position);
+        box.expandByScalar(data.size * SCALE * 10);
+        data.hit.set(1000, 1000, 10000);
+        const result = get().mutation.ray.intersectBox(box, data.hit);
+        data.distance = get().mutation.ray.origin.distanceTo(data.hit);
+        return result;
       },
       //changing player screen (main menu, flight)
       switchScreen() {
@@ -224,11 +225,11 @@ const [useStore] = create((set, get) => {
       },
       //player ship speed up
       speedUp() {
-        set((state) => ({ speed: state.speed + 1 }));
+        set((state) => ({ speed: state.speed + 10 }));
       },
       //player ship speed down
       speedDown() {
-        set((state) => ({ speed: state.speed - 1 }));
+        set((state) => ({ speed: state.speed - 10 }));
       },
       //dock at spacestation
       stationDoc() {
@@ -267,16 +268,6 @@ const [useStore] = create((set, get) => {
             (y - bounds.height / 2) / bounds.height
           );
         }
-      },
-      //testing for laser hits using ray (ray from spaceship)
-      test(data) {
-        box.min.copy(data.offset);
-        box.max.copy(data.offset);
-        box.expandByScalar(data.size * data.scale);
-        data.hit.set(10000, 10000, 10000);
-        const result = get().mutation.ray.intersectBox(box, data.hit);
-        data.distance = get().mutation.ray.origin.distanceTo(data.hit);
-        return result;
       },
     },
   };
@@ -362,7 +353,7 @@ function initCamMainMenu() {
 }
 
 //used to create space dedrie and asteroids
-function randomData(count, track, radius, size, scale) {
+function randomData(count, track, radius, size, randomScale) {
   return new Array(count).fill().map(() => {
     const t = Math.random();
     //new pos will be translateZ
@@ -379,20 +370,53 @@ function randomData(count, track, radius, size, scale) {
           -radius + Math.random() * radius * 2
         )
       );
-    const speed = 0.1 + Math.random();
+    //get rid of offset completely
+    const object3d = new Object3D();
+    object3d.position.copy(offset);
     return {
       guid: guid++,
-      scale: typeof scale === "function" ? scale() : scale,
+      groupLeaderGuid: 0,
+      groupId: 0,
+      scale: typeof randomScale === "function" ? randomScale() : randomScale,
       size,
       offset,
+      object3d,
       pos,
-      speed,
+      speed: 0,
       radius,
       t,
       hit: new THREE.Vector3(),
       distance: 1000,
     };
   });
+}
+function randomEnemies(track) {
+  let enemies = randomData(100, track, 20, 10, 1);
+  enemies.map((enemy) => {
+    enemy.groupLeaderGuid = 0;
+    enemy.formation = null;
+    enemy.formationPosition = new Vector3();
+    enemy.speed = 90 + Math.random() * 20;
+    return enemy;
+  });
+  //group enemies into squads
+  enemies.forEach((enemy, i) => {
+    //enemy with no group: make group leader and select all nearby enemies to join group
+    if (!enemy.groupLeaderGuid) {
+      enemies
+        .filter(
+          (e) =>
+            distance(enemy.object3d.position, e.object3d.position) <
+            200000 * SCALE
+        )
+        .forEach((eGroup) => {
+          //this will apply to leader as well as all those nearby
+          eGroup.groupLeaderGuid = enemy.guid;
+          //console.log(eGroup.groupLeaderGuid);
+        });
+    }
+  });
+  return enemies;
 }
 
 function randomStations(rng, num) {

@@ -76,14 +76,13 @@ export default function EquipmentMenu() {
     */
       weapons: {
         buttonLable: "Weapons / Shields",
-        component: <Weapons heading="View Weapon List, add weaponry" />,
+        component: <Weapons heading={"View Weapon List, add weaponry"} />,
       },
     },
     {
       //asign spaces
       crew: {
         buttonLable: "Crew / Controls / Passengers",
-
         component: (
           <CrewAssignSpaces heading={"Choose servo to hold compartment"} />
         ),
@@ -97,7 +96,9 @@ export default function EquipmentMenu() {
       weapons: {
         buttonLable: "Weapons / Shields",
         component: (
-          <WeaponsAssignSpaces heading="Select Servo, then select weapon to place" />
+          <WeaponsAssignSpaces
+            heading={"Select Servo, then select weapon to place"}
+          />
         ),
       },
     },
@@ -222,24 +223,6 @@ const Center = styled.div`
 
 const LeftSidebar = styled.div`
   float: left;
-`;
-
-const CenterList = styled.div`
-  position: absolute;
-  margin-top: 5%;
-  margin-left: 5%;
-  width: 30%;
-  height: 90%;
-  border: 1px solid #fff;
-`;
-
-const EquipBox = styled.div`
-  position: absolute;
-  margin-top: 5%;
-  margin-left: 40%;
-  width: 55%;
-  height: 90%;
-  border: 1px solid #fff;
 `;
 
 const UpperLeft = styled.div`

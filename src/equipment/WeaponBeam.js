@@ -2,7 +2,6 @@ import useEquipStore from "../stores/equipStore";
 
 export const WeaponBeamList = () => {
   const { mechBP } = useEquipStore((state) => state);
-  console.log(mechBP.weaponList.beam);
   return (
     <>
       {mechBP.weaponList.beam.map((value, index) => (
@@ -13,13 +12,15 @@ export const WeaponBeamList = () => {
 };
 
 export const WeaponBeamItem = ({ beamBP }) => {
+  const { actions } = useEquipStore((state) => state);
+  const handleChangeData = (weaponType, id, propName, val) => {
+    actions.weaponMenu.setDataValue(weaponType, id, propName, val);
+  };
+
   return (
     <>
       <table>
         <tbody>
-          <tr>
-            <th colSpan="100%">Beam Weapon</th>
-          </tr>
           <tr className="tableHeaders">
             <th>Name</th>
             <th>Damage</th>
@@ -31,17 +32,15 @@ export const WeaponBeamItem = ({ beamBP }) => {
             <th>SP</th>
             <th>Weight Eff.</th>
             <th>Weight</th>
-            {/*<th>Weight</th>*/}
             <th>Cost</th>
           </tr>
 
           <tr>
             <td>
               <input
-                className="nameWeapon greenHighlight"
-                data-type="beam"
-                data-index="index"
-                type="text"
+                onChange={(e) =>
+                  handleChangeData("beam", beamBP.id, "name", e.target.value)
+                }
                 value={beamBP.data.name}
               />
             </td>
@@ -50,22 +49,20 @@ export const WeaponBeamItem = ({ beamBP }) => {
             <td>{beamBP.range()}</td>
             <td>{beamBP.accuracy()}</td>
             <td>{beamBP.burstValue()}</td>
-            <td className="greenHighlight">
+            <td>
               <input
-                className="weaponSPeff"
-                data-type="beam"
-                data-index="index"
-                type="text"
+                onChange={(e) =>
+                  handleChangeData("beam", beamBP.id, "SPeff", e.target.value)
+                }
                 value={beamBP.data.SPeff}
               />
             </td>
             <td>{beamBP.SP()}</td>
-            <td className="greenHighlight">
+            <td>
               <input
-                className="weaponWeff"
-                data-type="beam"
-                data-index={0}
-                type="text"
+                onChange={(e) =>
+                  handleChangeData("beam", beamBP.id, "wEff", e.target.value)
+                }
                 value={beamBP.data.wEff}
               />
             </td>
@@ -104,11 +101,12 @@ export const WeaponBeamItem = ({ beamBP }) => {
   );
 };
 
-const WeaponBeam = () => {
+export const WeaponBeamCreate = () => {
   const { beamBP, actions } = useEquipStore((state) => state);
 
   const handleAddWeapon = () => {
     actions.weaponMenu.addBeamWeapon();
+    alert("weapon added");
   };
 
   return (
@@ -119,5 +117,3 @@ const WeaponBeam = () => {
     </>
   );
 };
-
-export default WeaponBeam;

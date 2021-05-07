@@ -1,12 +1,14 @@
 import { useState } from "react";
 import useEquipStore from "../stores/equipStore";
 import { equipList } from "../data/equipData";
-import WeaponBeam from "./WeaponBeam";
+import { WeaponBeamList, WeaponBeamCreate } from "./WeaponBeam";
+import { WeaponProjList, WeaponProjCreate } from "./WeaponProj";
+import { WeaponMissileList, WeaponMissileCreate } from "./WeaponMissile";
+import { WeaponEMeleeList, WeaponEMeleeCreate } from "./WeaponEMelee";
+import { WeaponMeleeList, WeaponMeleeCreate } from "./WeaponMelee";
 import { ServoSpaceAssignButtons } from "./Servos";
 
-import { WeaponBeamList } from "./WeaponBeam";
-
-export const WeaponsAssignSpaces = () => {
+export const WeaponsAssignSpaces = ({ heading }) => {
   const { mechBP, actions } = useEquipStore((state) => state);
   const [servoSelectedId, setServoSelectedId] = useState(0);
 
@@ -24,6 +26,7 @@ export const WeaponsAssignSpaces = () => {
 
   return (
     <>
+      <h2>{heading}</h2>
       <ServoSpaceAssignButtons
         mechBP={mechBP}
         servoSelectedId={servoSelectedId}
@@ -73,7 +76,11 @@ export const Weapons = ({ heading }) => {
         ))}
       </div>
       {selection === -1 && <WeaponList />}
-      {selection === 0 && <WeaponBeam />}
+      {selection === 0 && <WeaponBeamCreate />}
+      {selection === 1 && <WeaponProjCreate />}
+      {selection === 2 && <WeaponMissileCreate />}
+      {selection === 3 && <WeaponEMeleeCreate />}
+      {selection === 4 && <WeaponMeleeCreate />}
     </>
   );
 };
@@ -83,6 +90,10 @@ const WeaponList = () => {
     <>
       <h2>Weapon List</h2>
       <WeaponBeamList />
+      <WeaponProjList />
+      <WeaponMissileList />
+      <WeaponEMeleeList />
+      <WeaponMeleeList />
     </>
   );
 };

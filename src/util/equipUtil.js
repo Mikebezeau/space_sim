@@ -1,4 +1,4 @@
-import { equipConst, equipList } from "../data/equipData";
+import { equipList } from "../data/equipData";
 
 function applyScaledWeightMult(scale, weight) {
   return Math.round(weight * equipList.scale.weightMult[scale] * 10) / 10;
@@ -85,8 +85,8 @@ const servoUtil = {
   usedSP: function (id, mechBP) {
     let usedSP = 0;
     //look for weapons in this location
-    Object.values(mechBP.weaponList).map((weapons) => {
-      weapons.map((weapon) => {
+    Object.values(mechBP.weaponList).forEach((weapons) => {
+      weapons.forEach((weapon) => {
         usedSP += weapon.locationServoId === id ? weapon.scaledCP() : 0;
       });
     });
@@ -163,8 +163,8 @@ const mech = {
 
   servoWeaponList: function (servoId, weaponList) {
     let servoWeapons = [];
-    Object.values(weaponList).map((weapons, key) => {
-      weapons.map((weapon) => {
+    Object.values(weaponList).forEach((weapons, key) => {
+      weapons.forEach((weapon) => {
         if (weapon.locationServoId === servoId) servoWeapons.push(weapon);
       });
     });
@@ -173,8 +173,8 @@ const mech = {
 
   findWeaponId: function (weaponId, weaponList) {
     let found = null;
-    Object.values(weaponList).map((weapons) => {
-      weapons.map((weapon) => {
+    Object.values(weaponList).forEach((weapons) => {
+      weapons.forEach((weapon) => {
         if (weapon.id === weaponId) found = weapon;
       });
     });

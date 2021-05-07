@@ -17,6 +17,38 @@ const weaponShapeData = {
       geometry: geoList.cone,
     },
   ],
+  proj: [
+    {
+      scale: [0.5, 0.5, 0.5],
+      position: [0, 0, -5],
+      rotation: [-Math.PI / 2, 0, 0],
+      geometry: geoList.cone,
+    },
+  ],
+  missile: [
+    {
+      scale: [0.5, 0.5, 0.5],
+      position: [0, 0, -5],
+      rotation: [-Math.PI / 2, 0, 0],
+      geometry: geoList.cone,
+    },
+  ],
+  eMelee: [
+    {
+      scale: [0.5, 0.5, 0.5],
+      position: [0, 0, -5],
+      rotation: [-Math.PI / 2, 0, 0],
+      geometry: geoList.cone,
+    },
+  ],
+  melee: [
+    {
+      scale: [0.5, 0.5, 0.5],
+      position: [0, 0, -5],
+      rotation: [-Math.PI / 2, 0, 0],
+      geometry: geoList.cone,
+    },
+  ],
 };
 
 export const servoShapes = function (servo, material = null) {

@@ -10,7 +10,7 @@ import Planets from "./3d/Planets";
 import Stations from "./3d/Stations";
 import Effects from "./3d/Effects";
 import Particles from "./3d/Particles";
-import Enemies from "./3d/Enemies";
+import EnemyMechs from "./3d/EnemyMechs";
 import Rocks from "./3d/Rocks";
 import Explosions from "./3d/Explosions";
 import Ship from "./3d/Ship";
@@ -34,7 +34,7 @@ import {
   EQUIPMENT_SCREEN,
 } from "./util/gameUtil";
 function App() {
-  const { fov } = useStore((state) => state.mutation);
+  //const { fov } = useStore((state) => state.mutation);
   const actions = useStore((state) => state.actions);
   const playerScreen = useStore((state) => state.playerScreen);
 
@@ -96,8 +96,8 @@ function App() {
             <Suspense fallback={null}>
               <Rocks />
               <Planets />
-              <Enemies />
-              <Stations />
+              <EnemyMechs />
+              {/*<Stations />*/}
               <Ship />
             </Suspense>
           </>

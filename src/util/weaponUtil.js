@@ -14,9 +14,10 @@ const weaponUtil = {
 
   //needed for calculating space / space efficiency properly
   baseCP: function (data) {
+    let CP = 0;
     switch (data.weaponType) {
       case "beam":
-        let CP = weaponList.beam.damageRange.CP[data.damageRange];
+        CP = weaponList.beam.damageRange.CP[data.damageRange];
         CP =
           CP *
           weaponList.beam.accuracy.CM[data.accuracy] *
@@ -32,14 +33,101 @@ const weaponUtil = {
           weaponList.beam.megaBeam.CM[data.megaBeam] *
           weaponList.beam.disruptor.CM[data.disruptor];
         return CP;
+      case "proj":
+        CP = weaponList.proj.damageRange.CP[data.damageRange];
+        CP =
+          CP *
+          weaponList.proj.accuracy.CM[data.accuracy] *
+          weaponList.proj.rangeMod.CM[data.rangeMod] *
+          weaponList.proj.burstValue.CM[data.burstValue] *
+          weaponList.proj.multiFeed.CM[data.multiFeed] *
+          weaponList.proj.longRange.CM[data.longRange] *
+          weaponList.proj.hyperVelocity.CM[data.hyperVelocity] *
+          weaponList.proj.special.CM[data.special] *
+          weaponList.proj.variable.CM[data.variable];
+        return CP;
+      case "missile":
+        CP = weaponList.missile.damageRange.CP[data.damageRange];
+        CP =
+          CP *
+          weaponList.missile.accuracy.CM[data.accuracy] *
+          weaponList.missile.blastRadius.CM[data.blastRadius] *
+          weaponList.missile.rangeMod.CM[data.rangeMod] *
+          weaponList.missile.smart.CM[data.smart] *
+          weaponList.missile.skill.CM[data.skill] *
+          weaponList.missile.type.CM[data.type] *
+          weaponList.missile.special.CM[data.special] *
+          weaponList.missile.variable.CM[data.variable] *
+          weaponList.missile.longRange.CM[data.longRange] *
+          weaponList.missile.hyperVelocity.CM[data.hyperVelocity] *
+          data.numMissile;
+        CP = Math.round(CP * 100) / 100;
+
+        return CP;
+
+      case "eMelee":
+        CP = weaponList.eMelee.damageRange.CP[data.damageRange];
+        CP =
+          CP *
+          weaponList.eMelee.accuracy.CM[data.accuracy] *
+          weaponList.eMelee.turnsUse.CM[data.turnsUse] *
+          weaponList.eMelee.attackFactor.CM[data.attackFactor] *
+          weaponList.eMelee.recharge.CM[data.recharge] *
+          weaponList.eMelee.throw.CM[data.throw] *
+          weaponList.eMelee.quick.CM[data.quick] *
+          weaponList.eMelee.hyper.CM[data.hyper] *
+          weaponList.eMelee.shield.CM[data.shield] *
+          weaponList.eMelee.variable.CM[data.variable];
+        CP = Math.round(CP * 100) / 100;
+
+        /*console.log(weaponList.eMelee.accuracy.CM[data.accuracy]
+                +' '+weaponList.eMelee.turnsUse.CM[data.turnsUse]
+                +' '+weaponList.eMelee.attackFactor.CM[data.attackFactor]
+            );*/
+        return CP;
+
+      case "melee":
+        CP = weaponList.melee.damageRange.CP[data.damageRange];
+        CP =
+          CP *
+          weaponList.melee.accuracy.CM[data.accuracy] *
+          weaponList.melee.handy.CM[data.handy] *
+          weaponList.melee.quick.CM[data.quick] *
+          weaponList.melee.clumsy.CM[data.clumsy] *
+          weaponList.melee.armorPiercing.CM[data.armorPiercing] *
+          weaponList.melee.entangle.CM[data.entangle] *
+          weaponList.melee.throw.CM[data.throw] *
+          weaponList.melee.returning.CM[data.returning] *
+          weaponList.melee.disruptor.CM[data.disruptor] *
+          weaponList.melee.shockOnly.CM[data.shockOnly] *
+          weaponList.melee.shockAdded.CM[data.shockAdded];
+        CP = Math.round(CP * 100) / 100;
+
+        return CP;
       default:
         console.log("invalid weapon type");
         return null;
     }
   },
 
+  //FOR PROJECTILE WEAPONS ONLY
+  ammoCP: function (weaponCP, ammoList) {
+    let CP = 0;
+    for (var i = 0; i < ammoList.length; i++) {
+      let baseCP = weaponCP;
+      for (var j = 0; j < ammoList[i].typeList.length; j++) {
+        baseCP = baseCP * weaponList.proj.ammo.CM[ammoList[i].type];
+      }
+      CP += baseCP * ammoList[i].numAmmo;
+    }
+
+    CP = CP / 10;
+    CP = Math.round(CP * 100) / 100;
+    return CP;
+  },
+
   damage: function (data) {
-    var damage = weaponList[data.weaponType].damageRange.val[data.damageRange];
+    let damage = weaponList[data.weaponType].damageRange.val[data.damageRange];
 
     //if melee weapon add servo & hydraulics bonus
     /*
@@ -102,7 +190,6 @@ const weaponUtil = {
   },
 
   scaledCP: function (scale, CP) {
-    //var scaledCP = this.CP(weapon);
     CP = applyScaledCPMult(scale, CP);
     CP = Math.round(CP * 10) / 10;
     return CP;

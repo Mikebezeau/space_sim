@@ -18,6 +18,7 @@ const Planet = React.memo(({ planet }) => {
   });
 
   //load textures
+  /*
   const cloudsTexture = useLoader(
     TextureLoader,
     "images/maps/earthcloudmap.jpg"
@@ -26,7 +27,7 @@ const Planet = React.memo(({ planet }) => {
     TextureLoader,
     "images/maps/earthcloudmaptrans.jpg"
   );
-
+*/
   const textureMaps = useLoader(TextureLoader, [
     "images/maps/sunmap.jpg",
     "images/maps/earthmap1k.jpg",

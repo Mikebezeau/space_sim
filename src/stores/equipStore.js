@@ -38,10 +38,17 @@ const guid = (A) => {
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 //                all MECH PROPERTIES and METHODS
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+const initEnemyMechBP = function (guid) {
+  let emenyMechBP = initMechBP(guid);
+
+  return emenyMechBP;
+};
+
 const initMechBP = function (guid) {
   //adding 3 servos and 2 weapons for testing
   let beamWeapons = [initWeaponBP(1, "beam"), initWeaponBP(2, "beam")];
-
+  beamWeapons[0].locationServoId = 2;
+  beamWeapons[1].locationServoId = 3;
   let servos = [
     initMechServo(1, 2, 6, "Torso"),
     initMechServo(2, 2, 6, "Wing"),
@@ -164,6 +171,14 @@ const initMechBP = function (guid) {
     liftVal: function () {
       return mech.liftVal(this.scale, this.servoList, this.hydraulicsType);
     },
+
+    concatWeaponList: function () {
+      return this.weaponList.beam
+        .concat(this.weaponList.proj)
+        .concat(this.weaponList.missile)
+        .concat(this.weaponList.eMelee)
+        .concat(this.weaponList.melee);
+    },
   };
 };
 
@@ -260,6 +275,91 @@ const initWeaponData = function (weaponType, scale = 1) {
         longRange: 0,
         megaBeam: 0,
         disruptor: 0,
+
+        SPeff: 0,
+        wEff: 0,
+      };
+    case "proj":
+      return {
+        scale: scale,
+        weaponType: "proj",
+        title: "Projectile",
+        name: "Enter Name",
+        damageRange: 3,
+        accuracy: 2,
+        rangeMod: 4,
+        burstValue: 2,
+        multiFeed: 0,
+        longRange: 0,
+        hyperVelocity: 0,
+        ammoList: [{ type: 0, numAmmo: 10 }],
+
+        special: 0, //phalanx & anti-personnel
+        variable: 0,
+
+        SPeff: 0,
+        wEff: 0,
+      };
+    case "missile":
+      return {
+        scale: scale,
+        weaponType: "missile",
+        title: "Missile",
+        name: "Enter Name",
+        damageRange: 0,
+        accuracy: 2,
+        blastRadius: 0,
+        rangeMod: 4,
+        smart: 0,
+        skill: 0,
+        type: 0,
+        special: 0,
+        variable: 0,
+        longRange: 0,
+        hyperVelocity: 0,
+        numMissile: 10,
+
+        SPeff: 0,
+        wEff: 0,
+      };
+    case "eMelee":
+      return {
+        scale: scale,
+        weaponType: "eMelee",
+        title: "Energy Melee",
+        name: "Enter Name",
+        damageRange: 4,
+        accuracy: 2,
+        turnsUse: 2,
+        attackFactor: 0,
+        recharge: 0,
+        throw: 0,
+        quick: 1,
+        hyper: 0,
+        shield: 0,
+        variable: 0,
+
+        SPeff: 0,
+        wEff: 0,
+      };
+    case "melee":
+      return {
+        scale: scale,
+        weaponType: "melee",
+        title: "Melee",
+        name: "Enter Name",
+        damageRange: 1,
+        accuracy: 2,
+        handy: 0,
+        quick: 0,
+        clumsy: 0,
+        armorPiercing: 0,
+        entangle: 0,
+        throw: 0,
+        returning: 0,
+        disruptor: 0,
+        shockOnly: 0,
+        shockAdded: 0,
 
         SPeff: 0,
         wEff: 0,
@@ -499,31 +599,13 @@ const [useEquipStore] = create((set, get) => {
       //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
       //                WEAPON MENU: NAME, ADD
       weaponMenu: {
-        setName(weaponType, val) {
-          let weaponBP = weaponType + "BP";
-          set((state) => ({
-            //mechBP: { ...state.mechBP, name: val },
-          }));
-        },
-
-        addBeamWeapon() {
-          const weaponList = get().mechBP.weaponList;
-          const id = guid(weaponList.beam);
-          const addWeapon = initWeaponBP(id, "beam");
-          addWeapon.data = get().beamBP.data;
-          weaponList.beam.push(addWeapon);
-
-          set((state) => ({
-            mechBP: { ...state.mechBP, weaponList: weaponList },
-          }));
-        },
-
         selectWeaponID(id) {
           set((state) => ({ editWeaponId: id }));
         },
+
         adjustWeaponOffset(x, y, z) {
           const weapon = get().mechBP.findWeaponId(get().editWeaponId);
-          console.log(weapon);
+
           if (weapon) {
             let offset = weapon.offset;
             offset.x += x;
@@ -531,12 +613,92 @@ const [useEquipStore] = create((set, get) => {
             offset.z += z;
 
             const weaponList = get().mechBP.weaponList;
-            weaponList[weapon.data.weaponType].offset = offset;
-
             set((state) => ({
               mechBP: { ...state.mechBP, weaponList: weaponList },
             }));
           }
+        },
+
+        setDataValue: function (weaponType, id, propName, val) {
+          const weapon = id
+            ? get().mechBP.findWeaponId(id)
+            : get()[weaponType + "BP"];
+
+          if (weapon) {
+            weapon.data[propName] = val;
+
+            if (id) {
+              //editing weapon already assigned to mech in its weapon list array
+              const weaponList = get().mechBP.weaponList;
+
+              set((state) => ({
+                mechBP: { ...state.mechBP, weaponList: weaponList },
+              }));
+            } else {
+              //editing a new weapon design
+              set((state) => ({ [weaponType + "BP"]: weapon }));
+            }
+          }
+        },
+
+        addBeamWeapon() {
+          const id = guid(get().mechBP.concatWeaponList());
+          const weaponList = get().mechBP.weaponList;
+          const addWeapon = initWeaponBP(id, "beam");
+          addWeapon.data = JSON.parse(JSON.stringify(get().beamBP.data));
+          weaponList.beam.push(addWeapon);
+
+          set((state) => ({
+            mechBP: { ...state.mechBP, weaponList: weaponList },
+          }));
+        },
+
+        addProjWeapon() {
+          const id = guid(get().mechBP.concatWeaponList());
+          const weaponList = get().mechBP.weaponList;
+          const addWeapon = initWeaponBP(id, "proj");
+          addWeapon.data = JSON.parse(JSON.stringify(get().projBP.data));
+          weaponList.proj.push(addWeapon);
+
+          set((state) => ({
+            mechBP: { ...state.mechBP, weaponList: weaponList },
+          }));
+        },
+
+        addMissileWeapon() {
+          const id = guid(get().mechBP.concatWeaponList());
+          const weaponList = get().mechBP.weaponList;
+          const addWeapon = initWeaponBP(id, "missile");
+          addWeapon.data = JSON.parse(JSON.stringify(get().missileBP.data));
+          weaponList.missile.push(addWeapon);
+
+          set((state) => ({
+            mechBP: { ...state.mechBP, weaponList: weaponList },
+          }));
+        },
+
+        addEMeleeWeapon() {
+          const id = guid(get().mechBP.concatWeaponList());
+          const weaponList = get().mechBP.weaponList;
+          const addWeapon = initWeaponBP(id, "eMelee");
+          addWeapon.data = JSON.parse(JSON.stringify(get().eMeleeBP.data));
+          weaponList.eMelee.push(addWeapon);
+
+          set((state) => ({
+            mechBP: { ...state.mechBP, weaponList: weaponList },
+          }));
+        },
+
+        addMeleeWeapon() {
+          const id = guid(get().mechBP.concatWeaponList());
+          const weaponList = get().mechBP.weaponList;
+          const addWeapon = initWeaponBP(id, "melee");
+          addWeapon.data = JSON.parse(JSON.stringify(get().meleeBP.data));
+          weaponList.melee.push(addWeapon);
+
+          set((state) => ({
+            mechBP: { ...state.mechBP, weaponList: weaponList },
+          }));
         },
       },
     },
@@ -548,10 +710,14 @@ const [useEquipStore] = create((set, get) => {
     mechBP: initMechBP(0),
     //weapon blueprints template
     beamBP: initWeaponBP(0, "beam"),
+    projBP: initWeaponBP(0, "proj"),
+    missileBP: initWeaponBP(0, "missile"),
+    eMeleeBP: initWeaponBP(0, "eMelee"),
+    meleeBP: initWeaponBP(0, "melee"),
     //PLAYER MECH BLUEPRINT list
     playerMechBP: [initMechBP(1)],
     //ENEMY MECH BLUEPRINT list
-    enemyMechBP: [],
+    enemyMechBP: initEnemyMechBP(1), //to load enemy model for test combat
   };
 });
 

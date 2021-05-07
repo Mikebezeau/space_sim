@@ -1,15 +1,17 @@
+import * as THREE from "three";
 import { SCALE } from "../util/gameUtil";
 
 export function useSetPlanets(rng, systemScale = 1, planetScale = 1) {
-  let numPlanets = Math.floor(rng() * 5) + 4;
+  let numPlanets = Math.floor(rng() * 7) + 4;
   let temp = [];
   //create sun
   temp.push({
     type: "SUN",
     roughness: 0,
     metalness: 1,
-    color: "#fff",
-    radius: 5000 * SCALE * systemScale * planetScale,
+    color: new THREE.Color(0xffffff),
+    radius:
+      (1000 + 10 * numPlanets) * SCALE * systemScale * planetScale * numPlanets,
     opacity: 1,
     textureMap: 0,
     transparent: false,
@@ -35,7 +37,14 @@ export function useSetPlanets(rng, systemScale = 1, planetScale = 1) {
 
   //add moons around planets
   for (let i = 1; i <= numPlanets; i++) {
-    const colors = ["#173f5f", "#20639b", "#3caea3", "#f6d55c", "#ed553b"];
+    const colors = [
+      new THREE.Color(0x173f5f),
+      new THREE.Color(0x173f5f),
+      new THREE.Color(0x20639b),
+      new THREE.Color(0x3caea3),
+      new THREE.Color(0xf6d55c),
+      new THREE.Color(0xed553b),
+    ];
     const radius =
       SCALE *
       i *

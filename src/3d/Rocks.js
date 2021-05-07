@@ -1,5 +1,5 @@
 //import { Box3, Vector3 } from "three";
-import React, { useRef, useMemo } from "react";
+import React, { useRef } from "react";
 //import { useFrame, useLoader } from "react-three-fiber";
 //import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import useStore from "../stores/store";
@@ -40,8 +40,12 @@ const Rock = React.memo(({ data }) => {
   //if (ray.intersectsBox(box)) {
   //});
   return (
-    <mesh ref={ref} position={data.offset} scale={[SCALE, SCALE, SCALE]}>
-      <dodecahedronBufferGeometry attach="geometry" args={[500, 0]} />
+    <mesh
+      ref={ref}
+      position={data.offset}
+      scale={[data.size * SCALE, data.size * SCALE, data.size * SCALE]}
+    >
+      <dodecahedronBufferGeometry attach="geometry" args={[20, 0]} />
       <meshStandardMaterial attach="material" color="gray" />
     </mesh>
   );

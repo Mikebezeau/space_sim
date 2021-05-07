@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { useThree, useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import useStore from "./stores/store";
-import { SCALE, FLIGHT, MAIN_MENU, EQUIPMENT_SCREEN } from "./util/gameUtil";
+import { SCALE } from "./util/gameUtil";
 
 import GalaxyStarMap from "./3d/GalaxyStarMap";
 

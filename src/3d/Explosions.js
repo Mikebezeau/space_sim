@@ -27,8 +27,12 @@ function make(color, speed) {
 
 export default function Explosions() {
   const explosions = useStore((state) => state.explosions);
-  return explosions.map(({ guid, offset, scale }) => (
-    <Explosion key={guid} position={offset} scale={SCALE * scale * 75} />
+  return explosions.map(({ guid, object3d, scale }) => (
+    <Explosion
+      key={guid}
+      position={object3d.position}
+      scale={SCALE * scale * 75}
+    />
   ));
 }
 
@@ -55,7 +59,7 @@ function Explosion({ position, scale }) {
         mesh.material.opacity -= 0.025;
         mesh.instanceMatrix.needsUpdate = true;
       } catch (e) {
-        console.log(e, particles);
+        //console.log(e, particles);
       }
     });
   });

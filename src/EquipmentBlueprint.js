@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { useThree, useFrame } from "@react-three/fiber";
 //import { useThree, useLoader, useFrame } from "@react-three/fiber";
 //import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import useStore from "./stores/store";
 import useEquipStore from "./stores/equipStore";
 import { servoShapes, weaponShapes } from "./data/equipShapes";
@@ -77,8 +77,9 @@ export default function MainMenu() {
           position={[servo.offset.x, servo.offset.y, servo.offset.z]}
         >
           <ServoBuild servo={servo} editServoId={editServoId} />
-          {mechBP.servoWeaponList(servo.id).map((weapon) => (
+          {mechBP.servoWeaponList(servo.id).map((weapon, j) => (
             <group
+              key={"weapon" + j}
               position={[weapon.offset.x, weapon.offset.y, weapon.offset.z]}
             >
               <WeaponBuild weapon={weapon} editWeaponId={editWeaponId} />

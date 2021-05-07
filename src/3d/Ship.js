@@ -6,7 +6,7 @@ import { useThree, useFrame } from "@react-three/fiber";
 import { servoShapes, weaponShapes } from "../data/equipShapes";
 import useStore from "../stores/store";
 import useEquipStore from "../stores/equipStore";
-import { SCALE, FLIGHT, MAIN_MENU, EQUIPMENT_SCREEN } from "../util/gameUtil";
+import { SCALE } from "../util/gameUtil";
 import SystemMap from "./SystemMap";
 
 const laserGeometry = new THREE.BoxBufferGeometry(0.25, 0.25, 30);
@@ -30,8 +30,9 @@ export default function Ship() {
   const sytemScale = useStore((state) => state.sytemScale);
   const planets = useStore((state) => state.planets);
   const lasers = useStore((state) => state.lasers);
+
   const main = useRef();
-  const map = useRef();
+  const systemMap = useRef();
   const laserGroup = useRef();
   const laserLight = useRef();
   const exhaust = useRef();
@@ -59,6 +60,7 @@ export default function Ship() {
   }, []);
   */
 
+  //moving camer, ship, altering crosshairs, engine and weapon lights (activates only while flying)
   useFrame(() => {
     if (!main.current) return null;
     //rotate ship based on mouse position
@@ -89,14 +91,18 @@ export default function Ship() {
     // rotate towards target quaternion
     camera.rotation.setFromQuaternion(camQuat.slerp(endQuat, 0.2).normalize());
 
-    //set system map rotation to match ship rotation
+    //place system map at top of screen (offset from camera location)
     tempObjectDummy.position.copy(camera.position);
     tempObjectDummy.rotation.copy(camera.rotation);
     tempObjectDummy.translateY(30 * SCALE);
     tempObjectDummy.translateZ(-80 * SCALE);
-    map.current.position.copy(tempObjectDummy.position);
-    //map.current.rotation.copy();
-
+    systemMap.current.position.copy(tempObjectDummy.position);
+    //give map relative rotation to camera to stop it from rotating while camera rotates
+    /*
+    curQuat.setFromEuler(systemMap.current.rotation);
+    endQuat.setFromUnitVectors(curQuat, camQuat.invert());
+    systemMap.current.rotation.setFromQuaternion(endQuat.normalize());
+*/
     //engine flicker
     let flickerVal = Math.sin(clock.getElapsedTime() * 500);
     let speedRoof = speed > 25 ? 25 : speed;
@@ -127,7 +133,7 @@ export default function Ship() {
     main.current.getWorldDirection(direction);
     //ray.origin.copy(main.current.position);//this works too
     ray.origin.copy(position);
-    ray.direction.copy(direction.negate());
+    ray.direction.copy(direction.negate()); //negate inverts the vector direction (x=-x,y=-y...)
 
     //update crosshair / target box switch if weapon hit possible
     crossMaterial.color = mutation.hits ? lightgreen : hotpink;
@@ -137,26 +143,22 @@ export default function Ship() {
 
   return (
     <>
-      <group
-        ref={map}
-        rotation={[Math.PI / 1.5, 0, 0]}
-        scale={[SCALE, SCALE, SCALE]}
-      >
+      <group ref={systemMap} rotation={[Math.PI / 1.5, 0, 0]} scale={SCALE}>
         <SystemMap planets={planets} />
       </group>
       <group
         ref={main}
-        scale={[SCALE, SCALE, SCALE]}
+        scale={SCALE}
         position={[ship.position.x, ship.position.y, ship.position.z]}
         rotation={[ship.rotation.x, ship.rotation.y, ship.rotation.z]}
       >
         <group>
           <group ref={cross} position={[0, 0, -300]} name="cross">
             <mesh renderOrder={1000} material={crossMaterial}>
-              <boxBufferGeometry attach="geometry" args={[20, 2, 2]} />
+              <boxBufferGeometry attach="geometry" args={[20, 1, 1]} />
             </mesh>
             <mesh renderOrder={1000} material={crossMaterial}>
-              <boxBufferGeometry attach="geometry" args={[2, 20, 2]} />
+              <boxBufferGeometry attach="geometry" args={[1, 20, 1]} />
             </mesh>
           </group>
           <group ref={target} position={[0, 0, -300]} name="target">
@@ -165,28 +167,28 @@ export default function Ship() {
               renderOrder={1000}
               material={crossMaterial}
             >
-              <boxBufferGeometry attach="geometry" args={[40, 2, 2]} />
+              <boxBufferGeometry attach="geometry" args={[40, 1, 1]} />
             </mesh>
             <mesh
               position={[0, -20, 0]}
               renderOrder={1000}
               material={crossMaterial}
             >
-              <boxBufferGeometry attach="geometry" args={[40, 2, 2]} />
+              <boxBufferGeometry attach="geometry" args={[40, 1, 1]} />
             </mesh>
             <mesh
               position={[20, 0, 0]}
               renderOrder={1000}
               material={crossMaterial}
             >
-              <boxBufferGeometry attach="geometry" args={[2, 40, 2]} />
+              <boxBufferGeometry attach="geometry" args={[1, 40, 1]} />
             </mesh>
             <mesh
               position={[-20, 0, 0]}
               renderOrder={1000}
               material={crossMaterial}
             >
-              <boxBufferGeometry attach="geometry" args={[2, 40, 2]} />
+              <boxBufferGeometry attach="geometry" args={[1, 40, 1]} />
             </mesh>
           </group>
           <pointLight
@@ -198,6 +200,7 @@ export default function Ship() {
           />
           <group ref={laserGroup}>
             {lasers.map((t, i) => (
+              //PLACE ALL WEAPON FIRING POINTS HERE // DIFFERENT ref FOR DIFFERENT WEAPON GROUPS
               <group key={i}>
                 <mesh
                   position={[-0.7, -1.5, -0.2]}
@@ -220,8 +223,9 @@ export default function Ship() {
               position={[servo.offset.x, servo.offset.y, servo.offset.z]}
             >
               {servoShapes(servo, mechBP.material)}
-              {mechBP.servoWeaponList(servo.id).map((weapon) => (
+              {mechBP.servoWeaponList(servo.id).map((weapon, j) => (
                 <group
+                  key={j}
                   position={[weapon.offset.x, weapon.offset.y, weapon.offset.z]}
                 >
                   {weaponShapes(weapon, mechBP.material)}
