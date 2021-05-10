@@ -16,15 +16,17 @@ export default function EnemyMechs() {
     <Drone key={i} enemy={enemy} enemyMechBP={enemyMechBP} />
   ));
 }
-
+/*
 const box = new THREE.Box3();
 box.setFromCenterAndSize(
   new THREE.Vector3(0, 0, 1),
   new THREE.Vector3(3, 3, 3)
 );
-const glowMaterial = new THREE.MeshPhongMaterial({
+*/
+const glowMaterial = new THREE.MeshStandardMaterial({
   color: new THREE.Color("lightblue"),
-  emissive: 0.5,
+  emissive: new THREE.Color("lightblue"),
+  emissiveIntensity: 0.5,
 });
 
 const Drone = ({ enemy, enemyMechBP }) => {
@@ -64,7 +66,6 @@ const Drone = ({ enemy, enemyMechBP }) => {
         material={glowMaterial}
       >
         <cylinderBufferGeometry attach="geometry" args={[0.25, 0.25, 50, 4]} />
-        <meshStandardMaterial attach="material" color="white" name="Body" />
       </mesh>
       <mesh
         position={[0, 0, 0]}
@@ -73,7 +74,6 @@ const Drone = ({ enemy, enemyMechBP }) => {
         material={glowMaterial}
       >
         <cylinderBufferGeometry attach="geometry" args={[0.25, 0.25, 50, 4]} />
-        <meshStandardMaterial attach="material" color="white" name="Body" />
       </mesh>
       <mesh
         position={[0, 0, 0]}
@@ -82,7 +82,6 @@ const Drone = ({ enemy, enemyMechBP }) => {
         material={glowMaterial}
       >
         <cylinderBufferGeometry attach="geometry" args={[0.25, 0.25, 50, 4]} />
-        <meshStandardMaterial attach="material" color="white" name="Body" />
       </mesh>
     </group>
   );

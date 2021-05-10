@@ -39,22 +39,24 @@ const guid = (A) => {
 //                all MECH PROPERTIES and METHODS
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 const initEnemyMechBP = function (guid) {
-  let emenyMechBP = initMechBP(guid);
+  let emenyMechBP = initMechBP(guid); //adding 3 servos and 2 weapons for testing
 
-  return emenyMechBP;
-};
-
-const initMechBP = function (guid) {
-  //adding 3 servos and 2 weapons for testing
   let beamWeapons = [initWeaponBP(1, "beam"), initWeaponBP(2, "beam")];
   beamWeapons[0].locationServoId = 2;
   beamWeapons[1].locationServoId = 3;
+  emenyMechBP.weaponList.beam = beamWeapons;
+
   let servos = [
     initMechServo(1, 2, 6, "Torso"),
     initMechServo(2, 2, 6, "Wing"),
     initMechServo(3, 2, 6, "Wing"),
   ];
+  emenyMechBP.servoList = servos;
 
+  return emenyMechBP;
+};
+
+const initMechBP = function (guid) {
   return {
     id: guid, //will not need new id for reseting base design template blueprint
     name: "New Blueprint",
@@ -62,7 +64,7 @@ const initMechBP = function (guid) {
     generatorClass: 0,
     generatorFragile: false,
 
-    servoList: servos,
+    servoList: [],
     hydraulicsType: 2,
 
     weightEff: 0,
@@ -79,7 +81,7 @@ const initMechBP = function (guid) {
     partList: [],
     multSystemList: [],
     weaponList: {
-      beam: beamWeapons,
+      beam: [],
       proj: [],
       missile: [],
       eMelee: [],
@@ -87,8 +89,8 @@ const initMechBP = function (guid) {
     },
 
     material: new THREE.MeshPhongMaterial({
-      color: 0x999999,
-      emissive: 0x999999,
+      color: new THREE.Color("#999"),
+      emissive: new THREE.Color("#999"),
       emissiveIntensity: 0.01,
       //roughness: station.roughness,
       //metalness: station.metalness,
@@ -112,7 +114,7 @@ const initMechBP = function (guid) {
       return mech.crewCP(this.crew, this.passengers);
     },
     crewServoLocation: function () {
-      return servoUtil.servoLocation(this.crewLocationServoId[0], servos);
+      return servoUtil.servoLocation(this.crewLocationServoId[0], this.servos);
     },
     servoWeaponList: function (servoId) {
       return mech.servoWeaponList(servoId, this.weaponList);
@@ -194,9 +196,7 @@ const initMechServo = function (guid, scale, classIndex = 0, type = "Torso") {
     scale: scale,
     SPMod: 0,
     wEff: 0,
-    posX: 0,
-    posY: 0,
-    armor: { class: 0, type: 1 }, //type 1 = standard armor
+    armor: { class: 0, rating: 1 }, //rating 1 = standard armor
 
     classType: function () {
       return equipList.class.type[this.class];
@@ -376,8 +376,8 @@ const initWeaponBP = function (guid, weaponType, scale) {
     offset: { x: 0, y: 0, z: 0 },
     locationServoId: null,
     material: new THREE.MeshPhongMaterial({
-      color: 0x999999,
-      emissive: 0x999999,
+      color: new THREE.Color("#999"),
+      emissive: new THREE.Color("#999"),
       emissiveIntensity: 0.01,
       //roughness: station.roughness,
       //metalness: station.metalness,
@@ -445,7 +445,10 @@ const [useEquipStore] = create((set, get) => {
       //                MECH BLUEPRINT: SELECTION, SAVING, DELETION
       blueprintMenu: {
         newBlueprint() {
-          set((state) => ({ mechBP: initMechBP(get().playerMechBP, true) }));
+          set((state) => ({
+            mechBP: initEnemyMechBP(0),
+          }));
+          //set((state) => ({ mechBP: initMechBP(get().playerMechBP, true) }));
         },
         selectBlueprint(id) {
           set((state) => ({
@@ -469,6 +472,59 @@ const [useEquipStore] = create((set, get) => {
           set((state) => ({
             playerMechBP: state.playerMechBP.filter((bp) => bp.id !== id),
           }));
+        },
+        importBlueprint(importBP) {
+          function transferProperties(mergBP, parsedBP) {
+            Object.keys(parsedBP).forEach((key) => {
+              if (typeof parsedBP[key] !== "object") {
+                mergBP[key] =
+                  key === "name" || key === "type"
+                    ? parsedBP[key]
+                    : Number(parsedBP[key]);
+              } else if (key === "offset") {
+                mergBP[key] = transferProperties(mergBP[key], parsedBP[key]);
+              }
+            });
+
+            return mergBP;
+          }
+          const parsedBP = JSON.parse(importBP);
+          let mergBP = initMechBP();
+          mergBP = transferProperties(mergBP, parsedBP);
+
+          /*
+          crewLocationServoId: [],
+          passengersLocationServoId: [],
+          propulsionList: [],
+          partList: [],
+          multSystemList: [],
+          */
+
+          parsedBP.servoList.forEach((parsedServo) => {
+            const servoBP = initMechServo(0);
+            mergBP.servoList.push(transferProperties(servoBP, parsedServo));
+          });
+
+          //parsedBP.weaponList.forEach((list, key) => {
+          Object.keys(parsedBP.weaponList).forEach((key) => {
+            parsedBP.weaponList[key].forEach((parsedWeapon) => {
+              const weaponBP = initWeaponBP(0, key);
+              mergBP.weaponList[key].push(
+                transferProperties(weaponBP, parsedWeapon)
+              );
+            });
+          });
+
+          //console.log(mergBP.weaponList);
+          //console.log(mergBP.servoList);
+          set((state) => ({ mechBP: mergBP }));
+        },
+        exportBlueprint() {
+          function replacer(key, value) {
+            if (key === "metadata" || key === "material") return undefined;
+            else return value;
+          }
+          return JSON.stringify(get().mechBP, replacer);
         },
       },
 
@@ -707,7 +763,7 @@ const [useEquipStore] = create((set, get) => {
     editServoId: null, //used for any selection of servoId in menus
     editWeaponId: 1, //used for any selection of weaponId in menus
     //MECH blueprint TEMPLATE
-    mechBP: initMechBP(0),
+    mechBP: initEnemyMechBP(0),
     //weapon blueprints template
     beamBP: initWeaponBP(0, "beam"),
     projBP: initWeaponBP(0, "proj"),

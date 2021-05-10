@@ -7,7 +7,6 @@ import { servoShapes, weaponShapes } from "../data/equipShapes";
 import useStore from "../stores/store";
 import useEquipStore from "../stores/equipStore";
 import { SCALE } from "../util/gameUtil";
-import SystemMap from "./SystemMap";
 
 const laserGeometry = new THREE.BoxBufferGeometry(0.25, 0.25, 30);
 
@@ -28,11 +27,11 @@ export default function Ship() {
   const ship = useStore((state) => state.ship);
   const speed = useStore((state) => state.speed);
   const sytemScale = useStore((state) => state.sytemScale);
-  const planets = useStore((state) => state.planets);
   const lasers = useStore((state) => state.lasers);
 
+  const { setShipPosition } = useStore((state) => state.actions);
+
   const main = useRef();
-  const systemMap = useRef();
   const laserGroup = useRef();
   const laserLight = useRef();
   const exhaust = useRef();
@@ -91,24 +90,6 @@ export default function Ship() {
     // rotate towards target quaternion
     camera.rotation.setFromQuaternion(camQuat.slerp(endQuat, 0.2).normalize());
 
-    //place system map at top of screen (offset from camera location)
-    tempObjectDummy.position.copy(camera.position);
-    tempObjectDummy.rotation.copy(camera.rotation);
-    tempObjectDummy.translateY(30 * SCALE);
-    tempObjectDummy.translateZ(-80 * SCALE);
-    systemMap.current.position.copy(tempObjectDummy.position);
-
-    //give map opposite & inverted rotation of camera to stop it from rotating while camera rotates
-    systemMap.current.rotation.setFromQuaternion(
-      camQuat.conjugate().invert().normalize()
-    );
-    /*
-    //trying to add angle to static system map
-    curQuat.setFromEuler(systemMap.current.rotation);
-    endQuat.setFromAxisAngle(Math.PI / 1.5, 0, 0);
-    systemMap.current.rotation.setFromQuaternion(curQuat.multiply(endQuat));
-*/
-
     //engine flicker
     let flickerVal = Math.sin(clock.getElapsedTime() * 500);
     let speedRoof = speed > 25 ? 25 : speed;
@@ -132,8 +113,10 @@ export default function Ship() {
       0.3;
 
     //save ship position / rotation to state
-    ship.position.copy(main.current.position);
+    //ship.position.copy(main.current.position);
+    setShipPosition(main.current.position); //made this set to state in this way as too reflect updates to other components (systemMap)
     ship.rotation.copy(main.current.rotation);
+
     // Get ships orientation and save it to the stores ray (used for hit detection)
     main.current.getWorldPosition(position);
     main.current.getWorldDirection(direction);
@@ -149,9 +132,6 @@ export default function Ship() {
 
   return (
     <>
-      <group ref={systemMap} rotation={[Math.PI / 1.5, 0, 0]} scale={SCALE}>
-        <SystemMap planets={planets} playerPos={ship.position} />
-      </group>
       <group
         ref={main}
         scale={SCALE}

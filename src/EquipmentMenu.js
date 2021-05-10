@@ -15,6 +15,7 @@ export default function EquipmentMenu() {
   const { playerMechBP, actions } = useEquipStore((state) => state);
 
   const [selectedBPid, setSelectedBPid] = useState(0); //top menu
+  const [importExportText, setImportExportText] = useState("");
 
   const handleNewBP = () => {
     actions.blueprintMenu.newBlueprint();
@@ -34,6 +35,17 @@ export default function EquipmentMenu() {
     actions.blueprintMenu.deleteBlueprint(id);
     handleNewBP();
     setSubSelection(null);
+  };
+  const handleImportChange = (e) => {
+    setImportExportText(e.target.value);
+  };
+  const handleImportBP = () => {
+    //console.log(importExportText);
+    actions.blueprintMenu.importBlueprint(importExportText);
+    setImportExportText("");
+  };
+  const handleExportBP = () => {
+    setImportExportText(actions.blueprintMenu.exportBlueprint());
   };
 
   //MAIN DESIGN MENU
@@ -147,6 +159,20 @@ export default function EquipmentMenu() {
             </span>
           ))}
           <button onClick={handleSaveBlueprint}>Save Blueprint</button>
+
+          <span style={{ float: "right" }}>
+            <input
+              type="textbox"
+              onChange={(e) => handleImportChange(e)}
+              value={importExportText}
+            />
+            <span>
+              <button onClick={handleImportBP}>Import BP</button>
+            </span>
+            <span>
+              <button onClick={handleExportBP}>Export BP</button>
+            </span>
+          </span>
         </div>
         <LeftSidebar>
           <hr />

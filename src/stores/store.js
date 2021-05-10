@@ -223,6 +223,12 @@ const [useStore] = create((set, get) => {
         );
         //playAudio(audio.zap, 0.5);
       },
+      //player ship shoot laser
+      setShipPosition(position) {
+        set((state) => ({
+          ship: { ...state.ship, position: position },
+        }));
+      },
       //player ship speed up
       speedUp() {
         set((state) => ({ speed: state.speed + 10 }));

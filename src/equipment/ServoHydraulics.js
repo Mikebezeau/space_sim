@@ -24,7 +24,7 @@ const ServoHydraulics = ({ heading }) => {
                 onChange={handleHydraulics}
               >
                 {equipList.hydraulics.type.map((value, key) => (
-                  <option value={"hydraulics" + key}>{value}</option>
+                  <option value={key}>{value}</option>
                 ))}
               </select>
             </div>

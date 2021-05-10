@@ -14,6 +14,7 @@ import EnemyMechs from "./3d/EnemyMechs";
 import Rocks from "./3d/Rocks";
 import Explosions from "./3d/Explosions";
 import Ship from "./3d/Ship";
+import SystemMap from "./3d/SystemMap";
 
 import TouchControls from "./TouchControls";
 import Hud from "./Hud";
@@ -99,6 +100,7 @@ function App() {
               <EnemyMechs />
               {/*<Stations />*/}
               <Ship />
+              <SystemMap showPlayer={true} />
             </Suspense>
           </>
         )}
