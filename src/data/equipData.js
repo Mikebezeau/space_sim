@@ -17,7 +17,7 @@ export const equipList = {
   },
 
   servo: {
-    type: ["Head", "Wing", "Arm", "Leg", "Torso"],
+    type: ["Pod", "Wing", "Arm", "Leg", "Torso"],
   },
 
   class: {

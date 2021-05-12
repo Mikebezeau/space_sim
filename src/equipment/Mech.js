@@ -5,11 +5,11 @@ const Mech = () => {
   const { mechBP, actions } = useEquipStore((state) => state);
 
   const handleName = (e) => {
-    actions.basicMenu.setName(e.target.value);
+    actions.basicMenu.setProp("name", e.target.value);
   };
 
   const handleScale = (e) => {
-    actions.basicMenu.setScale(e.target.value);
+    actions.basicMenu.setProp("scale", e.target.value);
   };
 
   return (

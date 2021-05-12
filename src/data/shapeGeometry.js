@@ -7,22 +7,29 @@ import * as THREE from "three";
 
 //ExtrudeGeometry
 //https://threejs.org/docs/?q=geomet#api/en/geometries/ExtrudeGeometry
-const length = 5,
-  width = 5;
+const length = 0.75,
+  width = 0.75;
+/*
+  const extrudeShape = new THREE.Shape();
+  extrudeShape.moveTo(0, 0);
+  extrudeShape.lineTo(0, width);
+  extrudeShape.lineTo(length, width);
+  extrudeShape.lineTo(length, 0);
+  extrudeShape.lineTo(0, 0);*/
 
 const extrudeShape = new THREE.Shape();
-extrudeShape.moveTo(0, 0);
-extrudeShape.lineTo(0, width);
+extrudeShape.moveTo(-length, -width);
+extrudeShape.lineTo(-length, width);
 extrudeShape.lineTo(length, width);
-extrudeShape.lineTo(length, 0);
-extrudeShape.lineTo(0, 0);
+extrudeShape.lineTo(length, -width);
+extrudeShape.lineTo(-length, -width);
 
 const extrudeSettings = {
   steps: 2,
-  depth: 3,
+  depth: 0.3,
   bevelEnabled: true,
-  bevelThickness: 1,
-  bevelSize: 1,
+  bevelThickness: 0.2,
+  bevelSize: 0.2,
   bevelOffset: 0,
   bevelSegments: 1,
 };
@@ -36,10 +43,10 @@ export const geoList = {
   circle: new THREE.CircleGeometry(1, 8),
   //CircleGeometry(radius : Float, segments : Integer, thetaStart : Float, thetaLength : Float)
 
-  cone: new THREE.ConeGeometry(1, 20, 8),
+  cone: new THREE.ConeGeometry(1, 1, 8),
   //ConeGeometry(radius : Float, height : Float, radialSegments : Integer, heightSegments : Integer, openEnded : Boolean, thetaStart : Float, thetaLength : Float)
 
-  cylinder: new THREE.CylinderGeometry(1, 1, 30, 8),
+  cylinder: new THREE.CylinderGeometry(1, 1, 1, 8),
   //CylinderGeometry(radiusTop : Float, radiusBottom : Float, height : Float, radialSegments : Integer, heightSegments : Integer, openEnded : Boolean, thetaStart : Float, thetaLength : Float)
 
   dodecahedron: new THREE.DodecahedronGeometry(1, 0),
@@ -77,11 +84,12 @@ export const geoList = {
 
   sphere: new THREE.SphereGeometry(1, 32, 32),
 
-  tetrahedron: new THREE.TetrahedronGeometry(5, 0),
+  tetrahedron: new THREE.TetrahedronGeometry(1, 0),
   //TetrahedronGeometry(radius : Float, detail : Integer) //4
 
-  torus: new THREE.TorusGeometry(5, 1, 5, 8),
+  torus: new THREE.TorusGeometry(1, 0.2, 4, 100),
   //const geometry = new THREE.TorusGeometry( 10, 3, 16, 100 ); //3d ring
+  //TorusGeometry(radius : Float, tube : Float, radialSegments : Integer, tubularSegments : Integer, arc : Float)
 
   //TorusKnotGeometry
 

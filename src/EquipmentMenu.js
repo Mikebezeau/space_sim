@@ -64,6 +64,7 @@ export default function EquipmentMenu() {
   ];
   const subCatagories = [
     {
+      //******************************************** */
       //design parts
       crew: {
         buttonLable: "Crew / Controls / Passengers",
@@ -92,6 +93,7 @@ export default function EquipmentMenu() {
       },
     },
     {
+      //********************************* */
       //asign spaces
       crew: {
         buttonLable: "Crew / Controls / Passengers",
@@ -174,6 +176,8 @@ export default function EquipmentMenu() {
             </span>
           </span>
         </div>
+        <hr />
+        <Mech style={{ float: "right" }} />
         <LeftSidebar>
           <hr />
           {topMenuSelection.map((value, key) => (
@@ -207,7 +211,6 @@ export default function EquipmentMenu() {
             )
           )}
         </LeftSidebar>
-        <Mech />
         <hr style={{ clear: "both" }} />
         {mainMenuSelection !== 2 &&
           subCatagories[mainMenuSelection][subSelection] &&
@@ -230,11 +233,13 @@ const base = css`
 
 const Center = styled.div`
   ${base}
+  overflow-y: scroll;
   top: 15%;
   left: 10%;
   pointer-events: all;
   cursor: pointer;
   width: 80%;
+  height: 80%;
   border: 1px solid #fff;
   @media only screen and (max-width: 700px) {
     font-size: 1.5em;

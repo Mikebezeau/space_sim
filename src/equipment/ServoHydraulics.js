@@ -6,7 +6,7 @@ const ServoHydraulics = ({ heading }) => {
   const { mechBP, actions } = useEquipStore((state) => state);
 
   const handleHydraulics = (e) => {
-    actions.basicMenu.setHydraulics(e.target.value);
+    actions.basicMenu.setProp("hydraulicsType", e.target.value);
   };
 
   return (

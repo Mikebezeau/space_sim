@@ -8,9 +8,11 @@ import { useSetPlanets } from "../hooks/usePlanets";
 import { loopAI } from "../masterAI";
 import { Object3D, Vector3 } from "three";
 
+import { initEnemyMechBP } from "../util/initEquipUtil";
+
 const seedrandom = require("seedrandom");
 const systemScale = 1,
-  planetScale = 2;
+  planetScale = 4;
 
 let guid = 1; //global unique ID
 
@@ -20,7 +22,6 @@ const [useStore] = create((set, get) => {
   let spline = new Curves.GrannyKnot();
   let track = new THREE.TubeBufferGeometry(spline, 250, 15 * SCALE, 10, true);
   //these used for laser hits
-  let cancelLaserTO = undefined;
   let cancelExplosionTO = undefined;
   const box = new THREE.Box3();
 
@@ -42,10 +43,16 @@ const [useStore] = create((set, get) => {
     playerScreen: FLIGHT,
     speed: 1,
     stationDock: { stationIndex: 0, portIndex: 0 },
-    lasers: [],
+    lasers: [], // {postion, time}
     explosions: [],
-    rocks: randomData(120, track, 50, 50, () => 1 + Math.random() * 2.5),
-    enemies: randomEnemies(track), //randomData(1, track, 20, 100, 1),
+    rocks: randomData(
+      120,
+      track,
+      50 * SCALE,
+      50 * SCALE,
+      () => 1 + Math.random() * 2.5
+    ),
+    enemies: randomEnemies(track),
     planets: useSetPlanets(seedrandom(0), systemScale, planetScale),
     stations: randomStations(seedrandom(0), 1),
     mutation: {
@@ -127,7 +134,7 @@ const [useStore] = create((set, get) => {
           if (
             mutation.hits &&
             lasers.length &&
-            time - lasers[lasers.length - 1] < 100
+            time - lasers[lasers.length - 1].time < 100
           ) {
             const updates = a.map((data) => ({ time: Date.now(), ...data }));
             set((state) => ({ explosions: [...state.explosions, ...updates] }));
@@ -164,6 +171,15 @@ const [useStore] = create((set, get) => {
         data.distance = get().mutation.ray.origin.distanceTo(data.hit);
         return result;
       },
+
+      setEnemyBP(index, mechBP) {
+        let enemies = get().enemies;
+        enemies[index].mechBP = mechBP;
+        set((state) => ({
+          enemies: enemies,
+        }));
+      },
+
       //changing player screen (main menu, flight)
       switchScreen() {
         //console.log("playerScreen", get().playerScreen, NUM_SCREEN_OPTIONS);
@@ -212,18 +228,31 @@ const [useStore] = create((set, get) => {
       },
       //player ship shoot laser
       shoot() {
-        set((state) => ({ lasers: [...state.lasers, Date.now()] }));
-        clearTimeout(cancelLaserTO);
-        cancelLaserTO = setTimeout(
-          () =>
-            set((state) => ({
-              lasers: state.lasers.filter((t) => Date.now() - t <= 1000),
-            })),
-          1000
-        );
+        let newLasers = [];
+        //for each weapon on the ship, find location and create a laser to be shot from there
+        let laserObj = new Object3D();
+        laserObj.position.copy(get().ship.position);
+        laserObj.rotation.copy(get().ship.rotation);
+        laserObj.translateY(-500 * SCALE);
+
+        newLasers.push({
+          object3d: laserObj,
+          time: Date.now(),
+        });
+
+        set((state) => ({
+          lasers: [...state.lasers.concat(newLasers)],
+        }));
         //playAudio(audio.zap, 0.5);
       },
-      //player ship shoot laser
+      //lasers
+      setLasers(lasers) {
+        set((state) => ({
+          lasers: lasers.filter((laser) => Date.now() - laser.time <= 1000),
+        }));
+      },
+
+      //player ship
       setShipPosition(position) {
         set((state) => ({
           ship: { ...state.ship, position: position },
@@ -345,7 +374,6 @@ function initShip() {
   ship.position.setX(0);
   ship.position.setY(25000 * SCALE * systemScale);
   ship.position.setZ(150000 * SCALE * systemScale);
-  //ship.lookAt(0, 0, 0);
   return ship;
 }
 //set camera to view galaxy in main menu
@@ -397,14 +425,15 @@ function randomData(count, track, radius, size, randomScale) {
   });
 }
 function randomEnemies(track) {
-  let enemies = randomData(100, track, 20, 10, 1);
+  let enemies = randomData(50, track, 5 * SCALE, 500 * SCALE, 1);
   enemies.map((enemy) => {
     enemy.groupLeaderGuid = 0;
     enemy.formation = null;
     enemy.formationPosition = new Vector3();
     enemy.speed = 10 + Math.random() * 10;
-    return enemy;
+    enemy.mechBP = initEnemyMechBP(Math.floor(Math.random() * 2));
   });
+
   //group enemies into squads
   enemies.forEach((enemy, i) => {
     //enemy with no group: make group leader and select all nearby enemies to join group

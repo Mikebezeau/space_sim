@@ -5,45 +5,15 @@ import { useThree, useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import useStore from "./stores/store";
 import useEquipStore from "./stores/equipStore";
-import { servoShapes, weaponShapes } from "./data/equipShapes";
+import BuildMech from "./3d/BuildMech";
 import { equipList } from "./data/equipData";
-
-//const direction = new THREE.Vector3();
-
-const material = new THREE.MeshPhongMaterial({
-  color: 0x666666,
-  emissive: 0x666666,
-  emissiveIntensity: 0.1,
-  //roughness: station.roughness,
-  //metalness: station.metalness,
-});
-const selectMaterial = new THREE.MeshPhongMaterial({
-  color: 0x666699,
-  emissive: 0x666699,
-  emissiveIntensity: 0.1,
-  //roughness: station.roughness,
-  //metalness: station.metalness,
-});
-
-function ServoBuild({ servo, editServoId }) {
-  return servoShapes(
-    servo,
-    servo.id === editServoId ? selectMaterial : material
-  );
-}
-
-function WeaponBuild({ weapon, editWeaponID }) {
-  return weaponShapes(
-    weapon,
-    weapon.id === editWeaponID ? selectMaterial : material
-  );
-}
 
 export default function MainMenu() {
   const {
     mainMenuSelection,
     editServoId,
     editWeaponId,
+    editShipRotation,
     mechBP,
   } = useEquipStore((state) => state);
   const { camera } = useThree();
@@ -64,29 +34,28 @@ export default function MainMenu() {
         ref.current.rotation.set(Math.PI / 4, r, 0);
       } else {
         //point ship in certain direction for editing of part location
-        ref.current.rotation.set(Math.PI / 4, 0, 0);
+        //modify by player selected rotation
+
+        const rotation = {
+          x: Math.PI / 4,
+          y:
+            Math.sign(editShipRotation.y) *
+            (Math.PI / 1 + Math.abs(editShipRotation.y)),
+          z: 0,
+        };
+
+        ref.current.rotation.set(rotation.x, rotation.y, rotation.z);
       }
     }
   });
 
   return (
     <group ref={ref} position={[0, 0, -10]} rotation={[Math.PI / 4, 0, 0]}>
-      {mechBP.servoList.map((servo, index) => (
-        <group
-          key={"servo" + index}
-          position={[servo.offset.x, servo.offset.y, servo.offset.z]}
-        >
-          <ServoBuild servo={servo} editServoId={editServoId} />
-          {mechBP.servoWeaponList(servo.id).map((weapon, j) => (
-            <group
-              key={"weapon" + j}
-              position={[weapon.offset.x, weapon.offset.y, weapon.offset.z]}
-            >
-              <WeaponBuild weapon={weapon} editWeaponId={editWeaponId} />
-            </group>
-          ))}
-        </group>
-      ))}
+      <BuildMech
+        mechBP={mechBP}
+        servoEditId={editServoId}
+        weaponEditId={editWeaponId}
+      />
     </group>
   );
 }

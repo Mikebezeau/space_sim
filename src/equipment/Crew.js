@@ -28,7 +28,7 @@ export const CrewAssignSpaces = ({ heading }) => {
       <button>
         Crew/Passengers {mechBP.crewSP()}SP{" "}
         {mechBP.crewServoLocation(mechBP.servoList) &&
-          mechBP.crewServoLocation(mechBP.servoList).type}
+          ">>> " + mechBP.crewServoLocation(mechBP.servoList).type}
       </button>
     </>
   );
@@ -38,11 +38,11 @@ export const Crew = ({ heading }) => {
   const { mechBP, actions } = useEquipStore((state) => state);
 
   const handleCrew = (e) => {
-    actions.basicMenu.setCrew(e.target.value);
+    actions.basicMenu.setProp("crew", e.target.value);
   };
 
   const handlePassengers = (e) => {
-    actions.basicMenu.setPassengers(e.target.value);
+    actions.basicMenu.setProp("passengers", e.target.value);
   };
 
   return (

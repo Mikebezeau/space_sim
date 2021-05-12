@@ -16,21 +16,21 @@ const armorUtil = {
 
   type: function (armor) {
     return (
-      equipList.armor.rating[armor.type] +
+      equipList.armor.rating[armor.rating] +
       "(" +
-      equipList.armor.threshold[armor.type] +
+      equipList.armor.threshold[armor.rating] +
       ")"
     );
   },
 
   threshold: function (armor) {
-    return equipList.armor.threshold[armor.type];
+    return equipList.armor.threshold[armor.rating];
   },
 
   CP: function (armor) {
     //cost points
     var CP = equipList.class.armorVal[armor.class]; //each weight point reduced costs 2 CP
-    CP = CP + equipList.armor.costMP[armor.type];
+    CP = CP + equipList.armor.costMP[armor.rating];
     return CP;
   },
 
@@ -45,15 +45,12 @@ const servoUtil = {
     return servos.find((s) => s.id === locationServoId);
   },
 
-  class: function (servo) {
-    return equipList.class.type[servo.class];
-  }, //class name (i.e. striker)
-
   classValue: function (type, classIndex) {
     //class number value
     var servoVal = 0;
     switch (type) {
       case "Head":
+      case "Pod":
       case "Wing":
         servoVal = equipList.class.headWingVal[classIndex];
         break;

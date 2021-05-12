@@ -44,7 +44,7 @@ export const WeaponsAssignSpaces = ({ heading }) => {
             >
               {weapon.data.name} {weapon.SP()} SP{" "}
               {weapon.servoLocation(mechBP.servoList) &&
-                weapon.servoLocation(mechBP.servoList).type}
+                ">>> " + weapon.servoLocation(mechBP.servoList).type}
             </button>
           ))}
         </span>

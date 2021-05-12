@@ -31,7 +31,13 @@ body {
 
 .selectedItem {
   color: green;
+  border: 1px solid white;
+  margin: 4px 6px;
 }
-.nonSelectedItem {
-  color: blue;
+button {
+  border: 1px solid grey !important;
+  margin: 4px 6px;
+}
+select {
+  margin: 4px 6px;
 }

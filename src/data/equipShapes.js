@@ -1,17 +1,83 @@
+import * as THREE from "three";
 import { geoList } from "./shapeGeometry";
 
-const servoShapeData = {
-  Head: [{ scale: [1, 1, 1], geometry: geoList.octahedron }],
-  Wing: [{ scale: [3, 1, 1], geometry: geoList.octahedron }],
-  Arm: [{ scale: [1, 3, 1], geometry: geoList.octahedron }],
-  Leg: [{ scale: [1, 3, 1], geometry: geoList.octahedron }],
-  Torso: [{ scale: [1, 1, 4], geometry: geoList.octahedron }],
+export const servoShapeData = {
+  Pod: [
+    { scale: [2, 1, 2], geometry: geoList.box },
+    { scale: [2, 1, 2], geometry: geoList.extrudeBox },
+    { scale: [2, 1, 2], geometry: geoList.circle },
+    { scale: [2, 1, 2], geometry: geoList.cone },
+    { scale: [2, 1, 2], geometry: geoList.cylinder },
+    { scale: [2, 1, 2], geometry: geoList.dodecahedron },
+    { scale: [2, 1, 2], geometry: geoList.icosahedron },
+    { scale: [2, 1, 2], geometry: geoList.octahedron },
+    { scale: [4, 1, 1], geometry: geoList.plane },
+    { scale: [2, 1, 2], geometry: geoList.sphere },
+    { scale: [2, 1, 2], geometry: geoList.tetrahedron },
+    { scale: [1, 1, 4], geometry: geoList.torus },
+  ],
+  Wing: [
+    { scale: [3, 1, 1], geometry: geoList.box },
+    { scale: [3, 1, 1], geometry: geoList.extrudeBox },
+    { scale: [3, 1, 1], geometry: geoList.circle },
+    { scale: [3, 1, 1], geometry: geoList.cone },
+    { scale: [3, 1, 1], geometry: geoList.cylinder },
+    { scale: [3, 1, 1], geometry: geoList.dodecahedron },
+    { scale: [3, 1, 1], geometry: geoList.icosahedron },
+    { scale: [3, 1, 1], geometry: geoList.octahedron },
+    { scale: [4, 1, 1], geometry: geoList.plane },
+    { scale: [3, 1, 1], geometry: geoList.sphere },
+    { scale: [3, 1, 1], geometry: geoList.tetrahedron },
+    { scale: [1, 1, 4], geometry: geoList.torus },
+  ],
+  Arm: [
+    { scale: [1, 3, 1], geometry: geoList.box },
+    { scale: [1, 3, 1], geometry: geoList.extrudeBox },
+    { scale: [1, 3, 1], geometry: geoList.circle },
+    { scale: [1, 3, 1], geometry: geoList.cone },
+    { scale: [1, 3, 1], geometry: geoList.cylinder },
+    { scale: [1, 3, 1], geometry: geoList.dodecahedron },
+    { scale: [1, 3, 1], geometry: geoList.icosahedron },
+    { scale: [1, 3, 1], geometry: geoList.octahedron },
+    { scale: [4, 1, 1], geometry: geoList.plane },
+    { scale: [1, 3, 1], geometry: geoList.sphere },
+    { scale: [1, 3, 1], geometry: geoList.tetrahedron },
+    { scale: [1, 1, 4], geometry: geoList.torus },
+  ],
+  Leg: [
+    { scale: [1, 3, 1], geometry: geoList.box },
+    { scale: [1, 3, 1], geometry: geoList.extrudeBox },
+    { scale: [1, 3, 1], geometry: geoList.circle },
+    { scale: [1, 3, 1], geometry: geoList.cone },
+    { scale: [1, 3, 1], geometry: geoList.cylinder },
+    { scale: [1, 3, 1], geometry: geoList.dodecahedron },
+    { scale: [1, 3, 1], geometry: geoList.icosahedron },
+    { scale: [1, 3, 1], geometry: geoList.octahedron },
+    { scale: [4, 1, 1], geometry: geoList.plane },
+    { scale: [1, 3, 1], geometry: geoList.sphere },
+    { scale: [1, 3, 1], geometry: geoList.tetrahedron },
+    { scale: [1, 1, 4], geometry: geoList.torus },
+  ],
+  Torso: [
+    { scale: [1, 1, 3], geometry: geoList.box },
+    { scale: [1, 1, 3], geometry: geoList.extrudeBox },
+    { scale: [1, 1, 3], geometry: geoList.circle },
+    { scale: [1, 1, 3], geometry: geoList.cone },
+    { scale: [1, 1, 3], geometry: geoList.cylinder },
+    { scale: [1, 1, 3], geometry: geoList.dodecahedron },
+    { scale: [1, 1, 3], geometry: geoList.icosahedron },
+    { scale: [1, 1, 3], geometry: geoList.octahedron },
+    { scale: [2, 8, 2], geometry: geoList.plane },
+    { scale: [1, 1, 3], geometry: geoList.sphere },
+    { scale: [1, 1, 3], geometry: geoList.tetrahedron },
+    { scale: [1, 1, 3], geometry: geoList.torus },
+  ],
 };
 
-const weaponShapeData = {
+export const weaponShapeData = {
   beam: [
     {
-      scale: [0.5, 0.5, 0.5],
+      scale: [0.5, 8, 0.5],
       position: [0, 0, -5],
       rotation: [-Math.PI / 2, 0, 0],
       geometry: geoList.cone,
@@ -19,7 +85,7 @@ const weaponShapeData = {
   ],
   proj: [
     {
-      scale: [0.5, 0.5, 0.5],
+      scale: [0.5, 6, 0.5],
       position: [0, 0, -5],
       rotation: [-Math.PI / 2, 0, 0],
       geometry: geoList.cone,
@@ -27,7 +93,7 @@ const weaponShapeData = {
   ],
   missile: [
     {
-      scale: [0.5, 0.5, 0.5],
+      scale: [0.5, 2, 0.5],
       position: [0, 0, -5],
       rotation: [-Math.PI / 2, 0, 0],
       geometry: geoList.cone,
@@ -51,23 +117,50 @@ const weaponShapeData = {
   ],
 };
 
-export const servoShapes = function (servo, material = null) {
+const constructionMaterial = new THREE.MeshStandardMaterial({
+  color: new THREE.Color("#666"),
+  emissive: new THREE.Color("#666"),
+  emissiveIntensity: 0.2,
+});
+
+const selectMaterial = new THREE.MeshStandardMaterial({
+  color: new THREE.Color("#669"),
+  emissive: new THREE.Color("#669"),
+  emissiveIntensity: 0.3,
+});
+
+export const servoShapes = function (servo, editing = false) {
   const size = servo.SP() / 16;
-  const useMaterial = material ? material : servo.material;
+  const useMaterial = editing ? selectMaterial : constructionMaterial; //servo.material;
+  const scaleX =
+    servo.scaleAdjust.x + servoShapeData[servo.type][servo.shape].scale[0]; //scale[0] is the scale of x axis
+  const scaleY =
+    servo.scaleAdjust.y + servoShapeData[servo.type][servo.shape].scale[1];
+  const scaleZ =
+    servo.scaleAdjust.z + servoShapeData[servo.type][servo.shape].scale[2];
+
   return (
     <group scale={[size, size, size]}>
       <mesh
-        scale={servoShapeData[servo.type][0].scale}
-        geometry={servoShapeData[servo.type][0].geometry}
+        rotation={[
+          Math.sign(servo.rotation.x) *
+            (Math.PI / 1 + Math.abs(servo.rotation.x)),
+          Math.sign(servo.rotation.y) *
+            (Math.PI / 1 + Math.abs(servo.rotation.y)),
+          Math.sign(servo.rotation.z) *
+            (Math.PI / 1 + Math.abs(servo.rotation.z)),
+        ]}
+        scale={[scaleX, scaleY, scaleZ]}
+        geometry={servoShapeData[servo.type][servo.shape].geometry}
         material={useMaterial}
       ></mesh>
     </group>
   );
 };
 
-export const weaponShapes = function (weapon, material) {
+export const weaponShapes = function (weapon, editing = false) {
   const size = weapon.SP() / 16;
-  const useMaterial = material ? material : weapon.material;
+  const useMaterial = editing ? selectMaterial : constructionMaterial; //weapon.material;
   return (
     <group scale={[size, size, size]}>
       <mesh

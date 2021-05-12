@@ -28,10 +28,13 @@ export default function SystemMap({ showPlayer = false }) {
     systemMap.current.translateZ(-80 * SCALE);
     //give map opposite & inverted rotation of camera to stop it from rotating while camera rotates
     camQuat.setFromEuler(camera.rotation);
+
     systemMap.current.rotation.setFromQuaternion(
       camQuat.conjugate().invert().normalize()
     );
 
+    systemMap.current.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI * 0.7);
+    //systemMap.current.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI);
     /*
     //trying to add angle to static system map
     curQuat.setFromEuler(systemMap.current.rotation);

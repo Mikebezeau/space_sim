@@ -1,50 +1,45 @@
 import * as THREE from "three";
 import { useRef } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
-//import { useThree, useLoader, useFrame } from "@react-three/fiber";
-//import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { servoShapes, weaponShapes } from "../data/equipShapes";
+//import { useLoader } from "@react-three/fiber";
+//import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader"; //const { nodes } = useLoader(GLTFLoader, "models/arwing.glb");
 import useStore from "../stores/store";
 import useEquipStore from "../stores/equipStore";
+import BuildMech from "./BuildMech";
 import { SCALE } from "../util/gameUtil";
 
-const laserGeometry = new THREE.BoxBufferGeometry(0.25, 0.25, 30);
+const position = new THREE.Vector3();
+const direction = new THREE.Vector3();
+
+const tempObjectDummy = new THREE.Object3D();
+const rotateQuat = new THREE.Quaternion(),
+  camQuat = new THREE.Quaternion(),
+  curQuat = new THREE.Quaternion(),
+  endQuat = new THREE.Quaternion();
 
 const lightgreen = new THREE.Color("lightgreen");
 const hotpink = new THREE.Color("hotpink");
-const laserMaterial = new THREE.MeshBasicMaterial({ color: lightgreen });
 const crossMaterial = new THREE.MeshBasicMaterial({
   color: hotpink,
   fog: false,
 });
-const position = new THREE.Vector3();
-const direction = new THREE.Vector3();
 
 export default function Ship() {
-  //const { nodes } = useLoader(GLTFLoader, "models/arwing.glb");
+  const { camera } = useThree();
   const mutation = useStore((state) => state.mutation);
   const { clock, mouse, ray } = mutation;
   const ship = useStore((state) => state.ship);
   const speed = useStore((state) => state.speed);
-  const sytemScale = useStore((state) => state.sytemScale);
   const lasers = useStore((state) => state.lasers);
-
-  const { setShipPosition } = useStore((state) => state.actions);
+  const setShipPosition = useStore((state) => state.actions.setShipPosition);
+  const playerMechBP = useEquipStore((state) => state.playerMechBP); //for rendering ship servo shapes
 
   const main = useRef();
-  const laserGroup = useRef();
   const laserLight = useRef();
   const exhaust = useRef();
   const engineLight = useRef();
   const cross = useRef();
   const target = useRef();
-  const { camera } = useThree();
-  const tempObjectDummy = new THREE.Object3D();
-  const rotateQuat = new THREE.Quaternion(),
-    camQuat = new THREE.Quaternion(),
-    curQuat = new THREE.Quaternion(),
-    endQuat = new THREE.Quaternion();
-  const { mechBP } = useEquipStore((state) => state); //for rendering ship servo shapes
 
   /*
   //not working
@@ -74,14 +69,18 @@ export default function Ship() {
     endQuat.multiplyQuaternions(curQuat, rotateQuat);
     main.current.rotation.setFromQuaternion(endQuat.normalize());
     //move ship forward
-    main.current.translateZ(-speed * SCALE * sytemScale);
+    main.current.translateZ(-speed * SCALE);
+    //save ship position / rotation to state
+    //ship.position.copy(main.current.position);
+    setShipPosition(main.current.position); //made this set to state in this way as to reflect updates to other components (SystemMap)
+    ship.rotation.copy(main.current.rotation);
 
     //CAMERA
     //set tempObjectDummy to be behind ship
     tempObjectDummy.position.copy(main.current.position);
     tempObjectDummy.rotation.copy(main.current.rotation);
-    tempObjectDummy.translateZ(8 * SCALE * mechBP.scale);
-    tempObjectDummy.translateY(2 * SCALE * mechBP.scale);
+    tempObjectDummy.translateZ(8 * SCALE * playerMechBP[0].scale);
+    tempObjectDummy.translateY(2 * SCALE * playerMechBP[0].scale);
 
     const lerpAmount = 0.95; //distance(state.camera.position, camDummy.position) / 0.8;
     camera.position.lerp(tempObjectDummy.position, lerpAmount);
@@ -102,20 +101,13 @@ export default function Ship() {
       : (exhaust.current.material.visible = 0);
     engineLight.current.intensity = speed > 0 ? speed * 0.05 : 0;
 
-    //laser movement update
-    for (let i = 0; i < lasers.length; i++) {
-      const group = laserGroup.current.children[i];
-      group.position.z -= 35000 * SCALE;
-    }
+    //weapon firing light blast
     laserLight.current.intensity +=
-      ((lasers.length && Date.now() - lasers[lasers.length - 1] < 100 ? 1 : 0) -
+      ((lasers.length && Date.now() - lasers[lasers.length - 1].time < 100
+        ? 1
+        : 0) -
         laserLight.current.intensity) *
       0.3;
-
-    //save ship position / rotation to state
-    //ship.position.copy(main.current.position);
-    setShipPosition(main.current.position); //made this set to state in this way as too reflect updates to other components (systemMap)
-    ship.rotation.copy(main.current.rotation);
 
     // Get ships orientation and save it to the stores ray (used for hit detection)
     main.current.getWorldPosition(position);
@@ -138,88 +130,54 @@ export default function Ship() {
         position={[ship.position.x, ship.position.y, ship.position.z]}
         rotation={[ship.rotation.x, ship.rotation.y, ship.rotation.z]}
       >
-        <group>
-          <group ref={cross} position={[0, 0, -300]} name="cross">
-            <mesh renderOrder={1000} material={crossMaterial}>
-              <boxBufferGeometry attach="geometry" args={[20, 1, 1]} />
-            </mesh>
-            <mesh renderOrder={1000} material={crossMaterial}>
-              <boxBufferGeometry attach="geometry" args={[1, 20, 1]} />
-            </mesh>
-          </group>
-          <group ref={target} position={[0, 0, -300]} name="target">
-            <mesh
-              position={[0, 20, 0]}
-              renderOrder={1000}
-              material={crossMaterial}
-            >
-              <boxBufferGeometry attach="geometry" args={[40, 1, 1]} />
-            </mesh>
-            <mesh
-              position={[0, -20, 0]}
-              renderOrder={1000}
-              material={crossMaterial}
-            >
-              <boxBufferGeometry attach="geometry" args={[40, 1, 1]} />
-            </mesh>
-            <mesh
-              position={[20, 0, 0]}
-              renderOrder={1000}
-              material={crossMaterial}
-            >
-              <boxBufferGeometry attach="geometry" args={[1, 40, 1]} />
-            </mesh>
-            <mesh
-              position={[-20, 0, 0]}
-              renderOrder={1000}
-              material={crossMaterial}
-            >
-              <boxBufferGeometry attach="geometry" args={[1, 40, 1]} />
-            </mesh>
-          </group>
-          <pointLight
-            ref={laserLight}
-            position={[0, 0.5, -1]}
-            distance={1}
-            intensity={0}
-            color="lightgreen"
-          />
-          <group ref={laserGroup}>
-            {lasers.map((t, i) => (
-              //PLACE ALL WEAPON FIRING POINTS HERE // DIFFERENT ref FOR DIFFERENT WEAPON GROUPS
-              <group key={i}>
-                <mesh
-                  position={[-0.7, -1.5, -0.2]}
-                  geometry={laserGeometry}
-                  material={laserMaterial}
-                  emissive="#fff"
-                />
-                <mesh
-                  position={[0.7, -1.5, -0.2]}
-                  geometry={laserGeometry}
-                  material={laserMaterial}
-                  emissive="#fff"
-                />
-              </group>
-            ))}
-          </group>
-          {mechBP.servoList.map((servo, index) => (
-            <group
-              key={index}
-              position={[servo.offset.x, servo.offset.y, servo.offset.z]}
-            >
-              {servoShapes(servo, mechBP.material)}
-              {mechBP.servoWeaponList(servo.id).map((weapon, j) => (
-                <group
-                  key={j}
-                  position={[weapon.offset.x, weapon.offset.y, weapon.offset.z]}
-                >
-                  {weaponShapes(weapon, mechBP.material)}
-                </group>
-              ))}
-            </group>
-          ))}
+        <group ref={cross} position={[0, 0, -300]} name="cross">
+          <mesh renderOrder={1000} material={crossMaterial}>
+            <boxBufferGeometry attach="geometry" args={[20, 1, 1]} />
+          </mesh>
+          <mesh renderOrder={1000} material={crossMaterial}>
+            <boxBufferGeometry attach="geometry" args={[1, 20, 1]} />
+          </mesh>
         </group>
+        <group ref={target} position={[0, 0, -300]} name="target">
+          <mesh
+            position={[0, 20, 0]}
+            renderOrder={1000}
+            material={crossMaterial}
+          >
+            <boxBufferGeometry attach="geometry" args={[40, 1, 1]} />
+          </mesh>
+          <mesh
+            position={[0, -20, 0]}
+            renderOrder={1000}
+            material={crossMaterial}
+          >
+            <boxBufferGeometry attach="geometry" args={[40, 1, 1]} />
+          </mesh>
+          <mesh
+            position={[20, 0, 0]}
+            renderOrder={1000}
+            material={crossMaterial}
+          >
+            <boxBufferGeometry attach="geometry" args={[1, 40, 1]} />
+          </mesh>
+          <mesh
+            position={[-20, 0, 0]}
+            renderOrder={1000}
+            material={crossMaterial}
+          >
+            <boxBufferGeometry attach="geometry" args={[1, 40, 1]} />
+          </mesh>
+        </group>
+
+        <BuildMech mechBP={playerMechBP[0]} />
+
+        <pointLight
+          ref={laserLight}
+          position={[0, 0, -0.2]}
+          distance={1}
+          intensity={0}
+          color="lightgreen"
+        />
         <mesh ref={exhaust} position={[0, 0.2, 0]}>
           <dodecahedronBufferGeometry attach="geometry" args={[0.05, 0]} />
           <meshStandardMaterial

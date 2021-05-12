@@ -14,6 +14,7 @@ import EnemyMechs from "./3d/EnemyMechs";
 import Rocks from "./3d/Rocks";
 import Explosions from "./3d/Explosions";
 import Ship from "./3d/Ship";
+import WeaponFire from "./3d/WeaponFire";
 import SystemMap from "./3d/SystemMap";
 
 import TouchControls from "./TouchControls";
@@ -22,6 +23,7 @@ import EquipmentMenu from "./EquipmentMenu";
 import EquipmentBlueprint from "./EquipmentBlueprint";
 
 import useStore from "./stores/store";
+
 import {
   useKBControls,
   useMouseMove,
@@ -29,13 +31,12 @@ import {
 } from "./hooks/useMouseKBControls";
 import {
   IS_MOBLIE,
-  SCALE,
   FLIGHT,
   MAIN_MENU,
   EQUIPMENT_SCREEN,
 } from "./util/gameUtil";
+
 function App() {
-  //const { fov } = useStore((state) => state.mutation);
   const actions = useStore((state) => state.actions);
   const playerScreen = useStore((state) => state.playerScreen);
 
@@ -78,7 +79,7 @@ function App() {
       <Canvas
         camera={{ position: [0, 0, 0], near: 0.001, far: 10000, fov: 50 }}
         onCreated={({ gl, camera, scene }) => {
-          actions.init(camera);
+          actions.init();
           //gl.gammaInput = true;
           //gl.toneMapping = THREE.Uncharted2ToneMapping;
           //gl.setClearColor(new THREE.Color("#020207"));
@@ -100,6 +101,7 @@ function App() {
               <EnemyMechs />
               {/*<Stations />*/}
               <Ship />
+              <WeaponFire />
               <SystemMap showPlayer={true} />
             </Suspense>
           </>

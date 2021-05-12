@@ -1,14 +1,11 @@
-import * as THREE from "three";
 import create from "zustand";
-import { equipList } from "../data/equipData";
-import { weaponList } from "../data/weaponData";
 import {
-  applyScaledCPMult,
-  servoUtil,
-  mech,
-  armorUtil,
-} from "../util/equipUtil";
-import { weaponUtil } from "../util/weaponUtil";
+  loadBlueprint,
+  initPlayerMechBP,
+  initMechBP,
+  initMechServo,
+  initWeaponBP,
+} from "../util/initEquipUtil";
 
 const guid = (A) => {
   //global unique ID
@@ -36,403 +33,6 @@ const guid = (A) => {
 };
 
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//                all MECH PROPERTIES and METHODS
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-const initEnemyMechBP = function (guid) {
-  let emenyMechBP = initMechBP(guid); //adding 3 servos and 2 weapons for testing
-
-  let beamWeapons = [initWeaponBP(1, "beam"), initWeaponBP(2, "beam")];
-  beamWeapons[0].locationServoId = 2;
-  beamWeapons[1].locationServoId = 3;
-  emenyMechBP.weaponList.beam = beamWeapons;
-
-  let servos = [
-    initMechServo(1, 2, 6, "Torso"),
-    initMechServo(2, 2, 6, "Wing"),
-    initMechServo(3, 2, 6, "Wing"),
-  ];
-  emenyMechBP.servoList = servos;
-
-  return emenyMechBP;
-};
-
-const initMechBP = function (guid) {
-  return {
-    id: guid, //will not need new id for reseting base design template blueprint
-    name: "New Blueprint",
-    scale: 2, //Mech, Light
-    generatorClass: 0,
-    generatorFragile: false,
-
-    servoList: [],
-    hydraulicsType: 2,
-
-    weightEff: 0,
-    weightIneff: 0,
-
-    crew: 1,
-    passengers: 0,
-    controlType: 1,
-    cockpitType: 0,
-    crewLocationServoId: [],
-    passengersLocationServoId: [],
-
-    propulsionList: [],
-    partList: [],
-    multSystemList: [],
-    weaponList: {
-      beam: [],
-      proj: [],
-      missile: [],
-      eMelee: [],
-      melee: [],
-    },
-
-    material: new THREE.MeshPhongMaterial({
-      color: new THREE.Color("#999"),
-      emissive: new THREE.Color("#999"),
-      emissiveIntensity: 0.01,
-      //roughness: station.roughness,
-      //metalness: station.metalness,
-    }),
-
-    scaleType: function () {
-      return equipList.scale.type[this.scale];
-    },
-
-    meleeBonus: function () {
-      return mech.meleeBonus(this.hydraulicsType);
-    },
-    scaledMeleeBonus: function () {
-      return mech.scaledMeleeBonus(this.scale, this.meleeBonus());
-    },
-
-    crewSP: function () {
-      return mech.crewSP(this.cockpitType, this.crew, this.passengers);
-    },
-    crewCP: function () {
-      return mech.crewCP(this.crew, this.passengers);
-    },
-    crewServoLocation: function () {
-      return servoUtil.servoLocation(this.crewLocationServoId[0], this.servos);
-    },
-    servoWeaponList: function (servoId) {
-      return mech.servoWeaponList(servoId, this.weaponList);
-    },
-    findWeaponId: function (weaponId) {
-      return mech.findWeaponId(weaponId, this.weaponList);
-    },
-    totalWeight: function () {
-      return mech.totalWeight(
-        this.servoList,
-        this.weaponList,
-        this.weightIneff,
-        this.weightEff
-      );
-    },
-
-    totalCP: function () {
-      return mech.totalCP(
-        this.crewCP(),
-        this.servoList,
-        this.weaponList,
-        this.partList,
-        this.hydraulicsType,
-        this.controlType,
-        this.weightIneff,
-        this.weightEff
-      );
-    },
-
-    totalKGWeight: function () {
-      return mech.KGWeight(this.totalWeight());
-    },
-
-    totalScaledCP: function () {
-      const crewCP = this.crewCP();
-      //don't apply crewCP to scaled cost
-      return applyScaledCPMult(this.scale, this.totalCP() - crewCP) + crewCP;
-    },
-
-    groundMA: function () {
-      return mech.groundMA(this.scale, this.totalWeight());
-    },
-
-    groundKMpH: function () {
-      return mech.groundKMpH(this.groundMA());
-    },
-
-    MV: function () {
-      return mech.MV(this.scale, this.totalWeight());
-    },
-
-    armMeleeBonus: function () {
-      return servoUtil.armMeleeBonus(this.servoList);
-    },
-
-    liftVal: function () {
-      return mech.liftVal(this.scale, this.servoList, this.hydraulicsType);
-    },
-
-    concatWeaponList: function () {
-      return this.weaponList.beam
-        .concat(this.weaponList.proj)
-        .concat(this.weaponList.missile)
-        .concat(this.weaponList.eMelee)
-        .concat(this.weaponList.melee);
-    },
-  };
-};
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//                all MECH SERVO PROPERTIES and METHODS
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-const initMechServo = function (guid, scale, classIndex = 0, type = "Torso") {
-  return {
-    id: guid,
-    offset: { x: 0, y: 0, z: 0 },
-    type: type,
-    class: classIndex,
-    scale: scale,
-    SPMod: 0,
-    wEff: 0,
-    armor: { class: 0, rating: 1 }, //rating 1 = standard armor
-
-    classType: function () {
-      return equipList.class.type[this.class];
-    }, //class name (i.e. striker)
-    classValue: function () {
-      return servoUtil.classValue(this.type, this.class);
-    },
-
-    structure: function () {
-      return servoUtil.structure(this.scale, this.classValue(), this.SPMod);
-    },
-
-    SP: function () {
-      //space points
-      return servoUtil.SP(this.scale, this.classValue(), this.SPMod);
-    },
-    usedSP: function (mechBP) {
-      //space points used by equipment in that location
-      return servoUtil.usedSP(this.id, mechBP);
-    },
-
-    CP: function () {
-      //cost points
-      return servoUtil.CP(this.classValue(), this.wEff, this.armor);
-    },
-
-    scaledCP: function () {
-      //scaled cost points
-      return servoUtil.scaledCP(this.scale, this.CP());
-    },
-    armorVal: function () {
-      return armorUtil.value(this.armor);
-    },
-    armorType: function () {
-      return armorUtil.type(this.armor);
-    },
-    armorThreshold: function () {
-      return armorUtil.threshold(this.armor);
-    },
-    armorCP: function () {
-      return armorUtil.CP(this.armor);
-    },
-
-    weight: function () {
-      return servoUtil.weight(this.classValue(), this.wEff, this.armor);
-    },
-    /*
-    cmdArmor = new cmdArmor();
-    getPosX = function(){return posX(this.posX)};//position label, right/left
-    getPosY = function(){return posY(this.posY)};//position label, front/back
-*/
-  };
-};
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//                BASE WEAPON METHODS
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-const initWeaponData = function (weaponType, scale = 1) {
-  switch (weaponType) {
-    case "beam":
-      return {
-        scale: scale,
-        weaponType: "beam",
-        title: "Beam",
-        name: "Enter Name",
-        damageRange: 6,
-        accuracy: 3,
-        shots: 5,
-        rangeMod: 3,
-        warmUp: 0,
-        wideAngle: 0,
-        burstValue: 0,
-        special: 0,
-        variable: 0,
-        fragile: 0,
-        longRange: 0,
-        megaBeam: 0,
-        disruptor: 0,
-
-        SPeff: 0,
-        wEff: 0,
-      };
-    case "proj":
-      return {
-        scale: scale,
-        weaponType: "proj",
-        title: "Projectile",
-        name: "Enter Name",
-        damageRange: 3,
-        accuracy: 2,
-        rangeMod: 4,
-        burstValue: 2,
-        multiFeed: 0,
-        longRange: 0,
-        hyperVelocity: 0,
-        ammoList: [{ type: 0, numAmmo: 10 }],
-
-        special: 0, //phalanx & anti-personnel
-        variable: 0,
-
-        SPeff: 0,
-        wEff: 0,
-      };
-    case "missile":
-      return {
-        scale: scale,
-        weaponType: "missile",
-        title: "Missile",
-        name: "Enter Name",
-        damageRange: 0,
-        accuracy: 2,
-        blastRadius: 0,
-        rangeMod: 4,
-        smart: 0,
-        skill: 0,
-        type: 0,
-        special: 0,
-        variable: 0,
-        longRange: 0,
-        hyperVelocity: 0,
-        numMissile: 10,
-
-        SPeff: 0,
-        wEff: 0,
-      };
-    case "eMelee":
-      return {
-        scale: scale,
-        weaponType: "eMelee",
-        title: "Energy Melee",
-        name: "Enter Name",
-        damageRange: 4,
-        accuracy: 2,
-        turnsUse: 2,
-        attackFactor: 0,
-        recharge: 0,
-        throw: 0,
-        quick: 1,
-        hyper: 0,
-        shield: 0,
-        variable: 0,
-
-        SPeff: 0,
-        wEff: 0,
-      };
-    case "melee":
-      return {
-        scale: scale,
-        weaponType: "melee",
-        title: "Melee",
-        name: "Enter Name",
-        damageRange: 1,
-        accuracy: 2,
-        handy: 0,
-        quick: 0,
-        clumsy: 0,
-        armorPiercing: 0,
-        entangle: 0,
-        throw: 0,
-        returning: 0,
-        disruptor: 0,
-        shockOnly: 0,
-        shockAdded: 0,
-
-        SPeff: 0,
-        wEff: 0,
-      };
-    default:
-      console.log("invalid weapon type");
-      return null;
-  }
-};
-
-const initWeaponBP = function (guid, weaponType, scale) {
-  return {
-    id: guid,
-    offset: { x: 0, y: 0, z: 0 },
-    locationServoId: null,
-    material: new THREE.MeshPhongMaterial({
-      color: new THREE.Color("#999"),
-      emissive: new THREE.Color("#999"),
-      emissiveIntensity: 0.01,
-      //roughness: station.roughness,
-      //metalness: station.metalness,
-    }),
-
-    data: initWeaponData(weaponType, scale),
-
-    servoLocation: function (servos) {
-      return servoUtil.servoLocation(this.locationServoId, servos);
-    },
-
-    weight: function () {
-      return weaponUtil.weight(this.data);
-    },
-
-    //needed for calculating space / space efficiency properly
-    baseCP: function () {
-      return weaponUtil.baseCP(this.data);
-    },
-
-    damage: function () {
-      return weaponUtil.damage(this.data);
-    },
-
-    structure: function () {
-      return weaponUtil.structure(this.damage());
-    },
-    accuracy: function () {
-      return weaponList[this.data.weaponType].accuracy.val[this.data.accuracy];
-    },
-    range: function (housingSservo) {
-      return weaponUtil.range(this.data, housingSservo);
-    },
-
-    burstValue: function () {
-      return weaponList[this.data.weaponType].burstValue.val[
-        this.data.burstValue
-      ];
-    },
-
-    SP: function () {
-      return weaponUtil.SP(this.baseCP(), this.data);
-    },
-
-    CP: function () {
-      return weaponUtil.CP(this.baseCP(), this.data);
-    },
-
-    scaledCP: function () {
-      return weaponUtil.scaledCP(this.data.scale, this.CP());
-    },
-  };
-};
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 //                GLOBAL VARIABLES
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 const [useEquipStore] = create((set, get) => {
@@ -446,9 +46,8 @@ const [useEquipStore] = create((set, get) => {
       blueprintMenu: {
         newBlueprint() {
           set((state) => ({
-            mechBP: initEnemyMechBP(0),
+            mechBP: initMechBP(0),
           }));
-          //set((state) => ({ mechBP: initMechBP(get().playerMechBP, true) }));
         },
         selectBlueprint(id) {
           set((state) => ({
@@ -474,50 +73,7 @@ const [useEquipStore] = create((set, get) => {
           }));
         },
         importBlueprint(importBP) {
-          function transferProperties(mergBP, parsedBP) {
-            Object.keys(parsedBP).forEach((key) => {
-              if (typeof parsedBP[key] !== "object") {
-                mergBP[key] =
-                  key === "name" || key === "type"
-                    ? parsedBP[key]
-                    : Number(parsedBP[key]);
-              } else if (key === "offset") {
-                mergBP[key] = transferProperties(mergBP[key], parsedBP[key]);
-              }
-            });
-
-            return mergBP;
-          }
-          const parsedBP = JSON.parse(importBP);
-          let mergBP = initMechBP();
-          mergBP = transferProperties(mergBP, parsedBP);
-
-          /*
-          crewLocationServoId: [],
-          passengersLocationServoId: [],
-          propulsionList: [],
-          partList: [],
-          multSystemList: [],
-          */
-
-          parsedBP.servoList.forEach((parsedServo) => {
-            const servoBP = initMechServo(0);
-            mergBP.servoList.push(transferProperties(servoBP, parsedServo));
-          });
-
-          //parsedBP.weaponList.forEach((list, key) => {
-          Object.keys(parsedBP.weaponList).forEach((key) => {
-            parsedBP.weaponList[key].forEach((parsedWeapon) => {
-              const weaponBP = initWeaponBP(0, key);
-              mergBP.weaponList[key].push(
-                transferProperties(weaponBP, parsedWeapon)
-              );
-            });
-          });
-
-          //console.log(mergBP.weaponList);
-          //console.log(mergBP.servoList);
-          set((state) => ({ mechBP: mergBP }));
+          set((state) => ({ mechBP: loadBlueprint(importBP) }));
         },
         exportBlueprint() {
           function replacer(key, value) {
@@ -546,9 +102,8 @@ const [useEquipStore] = create((set, get) => {
 
         setWeaponLocation(weaponType, id, locationServoId) {
           const weaponList = get().mechBP.weaponList;
-          weaponList[weaponType].find(
-            (w) => w.id === id
-          ).locationServoId = locationServoId;
+          weaponList[weaponType].find((w) => w.id === id).locationServoId =
+            locationServoId;
 
           set((state) => ({
             mechBP: { ...state.mechBP, weaponList: weaponList },
@@ -559,29 +114,20 @@ const [useEquipStore] = create((set, get) => {
       //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
       //                BASIC MECH: NAME, SCALE, CREW, PASSENGERS, HYDRAULICS
       basicMenu: {
-        setName(val) {
+        setProp(prop, val) {
           set((state) => ({
-            mechBP: { ...state.mechBP, name: val },
+            mechBP: { ...state.mechBP, [prop]: val },
           }));
         },
-        setScale(val) {
+        editShipRotation(axis, direction) {
+          let rotation = get().editShipRotation;
+          if (axis === "reset") rotation = { x: 0, y: 0, z: 0 };
+          else {
+            //rotate a fraction of a radian and use mod (%) to reset to 0 when full 360 reached
+            rotation[axis] = (rotation[axis] + direction * 0.25) % 3.25;
+          }
           set((state) => ({
-            mechBP: { ...state.mechBP, scale: val },
-          }));
-        },
-        setCrew(val) {
-          set((state) => ({
-            mechBP: { ...state.mechBP, crew: val },
-          }));
-        },
-        setPassengers(val) {
-          set((state) => ({
-            mechBP: { ...state.mechBP, passengers: val },
-          }));
-        },
-        setHydraulics(val) {
-          set((state) => ({
-            mechBP: { ...state.mechBP, hydraulicsType: val },
+            editShipRotation: rotation,
           }));
         },
       },
@@ -589,6 +135,26 @@ const [useEquipStore] = create((set, get) => {
       //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
       //                MECH SERVOS: SELECTION, DELETION, EDITING
       servoMenu: {
+        changeProp(index, prop, val) {
+          set((state) => ({
+            mechBP: {
+              ...state.mechBP,
+              servoList: state.mechBP.servoList.map((s, i) =>
+                i === index ? { ...s, [prop]: val } : s
+              ),
+            },
+          }));
+        },
+        changeType(index, typeVal) {
+          set((state) => ({
+            mechBP: {
+              ...state.mechBP,
+              servoList: state.mechBP.servoList.map((s, i) =>
+                i === index ? { ...s, type: typeVal } : s
+              ),
+            },
+          }));
+        },
         addServo() {
           let servos = get().mechBP.servoList;
           servos.push(
@@ -607,26 +173,6 @@ const [useEquipStore] = create((set, get) => {
           }));
           //remove equipment from this location
           //remove from weapons
-        },
-        changeClass(index, classVal) {
-          set((state) => ({
-            mechBP: {
-              ...state.mechBP,
-              servoList: state.mechBP.servoList.map((s, i) =>
-                i === index ? { ...s, class: classVal } : s
-              ),
-            },
-          }));
-        },
-        changeType(index, typeVal) {
-          set((state) => ({
-            mechBP: {
-              ...state.mechBP,
-              servoList: state.mechBP.servoList.map((s, i) =>
-                i === index ? { ...s, type: typeVal } : s
-              ),
-            },
-          }));
         },
         selectServoID(id) {
           set((state) => ({ editServoId: id }));
@@ -649,6 +195,83 @@ const [useEquipStore] = create((set, get) => {
               },
             }));
           }
+        },
+        adjustServoRotation(axis, direction) {
+          const servo = get().mechBP.servoList.find(
+            (s) => s.id === get().editServoId
+          );
+          //return;
+          if (servo) {
+            let rotation = servo.rotation;
+            if (axis === "reset") rotation = { x: 0, y: 0, z: 0 };
+            else {
+              rotation[axis] = (rotation[axis] + direction * 0.25) % 3.25;
+            }
+            set((state) => ({
+              mechBP: {
+                ...state.mechBP,
+                servoList: state.mechBP.servoList.map((s) =>
+                  s.id === get().editServoId ? { ...s, rotation: rotation } : s
+                ),
+              },
+            }));
+          }
+        },
+        adjustServoScale(axis, val) {
+          const servo = get().mechBP.servoList.find(
+            (s) => s.id === get().editServoId
+          );
+
+          //return;
+          if (servo) {
+            let scaleAdjust = {};
+            //reset to 0
+            if (axis === "reset") {
+              scaleAdjust = { x: 0, y: 0, z: 0 };
+
+              //alter scale
+            } else {
+              //make scale in other axis smaller to keep general size correct
+              /*
+              scaleAdjust.x = servo.scaleAdjust.x - val * 0.1;
+              scaleAdjust.y = servo.scaleAdjust.y - val * 0.1;
+              scaleAdjust.z = servo.scaleAdjust.z - val * 0.1;
+              scaleAdjust[axis] = scaleAdjust[axis] + val * 0.1 + val * 0.3;
+              */
+              scaleAdjust.x = servo.scaleAdjust.x;
+              scaleAdjust.y = servo.scaleAdjust.y;
+              scaleAdjust.z = servo.scaleAdjust.z;
+              scaleAdjust[axis] = scaleAdjust[axis] + val * 0.05 * servo.scale;
+            }
+            //if not getting to small in any axis
+            if (
+              scaleAdjust.x - val * 0.1 < -0.8 ||
+              scaleAdjust.y - val * 0.1 < -0.8 ||
+              scaleAdjust.z - val * 0.1 < -0.8
+            ) {
+              return;
+            }
+            set((state) => ({
+              mechBP: {
+                ...state.mechBP,
+                servoList: state.mechBP.servoList.map((s) =>
+                  s.id === get().editServoId
+                    ? { ...s, scaleAdjust: scaleAdjust }
+                    : s
+                ),
+              },
+            }));
+          }
+        },
+        selectServoShape(index, shapeIndex) {
+          set((state) => ({
+            mechBP: {
+              ...state.mechBP,
+              servoList: state.mechBP.servoList.map((s, i) =>
+                i === index ? { ...s, shape: shapeIndex } : s
+              ),
+            },
+          }));
         },
       },
 
@@ -762,8 +385,9 @@ const [useEquipStore] = create((set, get) => {
     mainMenuSelection: 0,
     editServoId: null, //used for any selection of servoId in menus
     editWeaponId: 1, //used for any selection of weaponId in menus
+    editShipRotation: { x: 0, y: 0, z: 0 }, //used for any selection of weaponId in menus
     //MECH blueprint TEMPLATE
-    mechBP: initEnemyMechBP(0),
+    mechBP: initMechBP(0),
     //weapon blueprints template
     beamBP: initWeaponBP(0, "beam"),
     projBP: initWeaponBP(0, "proj"),
@@ -771,9 +395,7 @@ const [useEquipStore] = create((set, get) => {
     eMeleeBP: initWeaponBP(0, "eMelee"),
     meleeBP: initWeaponBP(0, "melee"),
     //PLAYER MECH BLUEPRINT list
-    playerMechBP: [initMechBP(1)],
-    //ENEMY MECH BLUEPRINT list
-    enemyMechBP: initEnemyMechBP(1), //to load enemy model for test combat
+    playerMechBP: initPlayerMechBP(), //returns array of players mech blueprints
   };
 });
 
