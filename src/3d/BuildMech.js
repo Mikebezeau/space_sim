@@ -1,4 +1,4 @@
-import { servoShapes, weaponShapes } from "../data/equipShapes";
+import { ServoShapes, WeaponShapes } from "../data/equipShapes";
 
 export default function BuildMech({
   mechBP,
@@ -12,13 +12,13 @@ export default function BuildMech({
           key={index}
           position={[servo.offset.x, servo.offset.y, servo.offset.z]}
         >
-          {servoShapes(servo)}
+          <ServoShapes servo={servo} servoEditId={servoEditId} />
           {mechBP.servoWeaponList(servo.id).map((weapon, j) => (
             <group
               key={j}
               position={[weapon.offset.x, weapon.offset.y, weapon.offset.z]}
             >
-              {weaponShapes(weapon)}
+              <WeaponShapes weapon={weapon} weaponEditId={weaponEditId} />
             </group>
           ))}
         </group>

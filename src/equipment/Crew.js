@@ -4,16 +4,16 @@ import { ServoSpaceAssignButtons } from "./Servos";
 //CREW / PILOT
 
 export const CrewAssignSpaces = ({ heading }) => {
-  const { mechBP, actions } = useEquipStore((state) => state);
+  const { mechBP, equipActions } = useEquipStore((state) => state);
   const [servoSelectedId, setServoSelectedId] = useState(0);
   /*
   const handleCrewSelect = (weaponType, id) => {
-    actions.assignPartLocationMenu.setCrewLocation(servoSelectedId);
+    equipActions.assignPartLocationMenu.setCrewLocation(servoSelectedId);
   };
 */
   const handleServoSelect = (id) => {
     setServoSelectedId(id);
-    actions.assignPartLocationMenu.setCrewLocation(id);
+    equipActions.assignPartLocationMenu.setCrewLocation(id);
   };
 
   return (
@@ -35,14 +35,14 @@ export const CrewAssignSpaces = ({ heading }) => {
 };
 
 export const Crew = ({ heading }) => {
-  const { mechBP, actions } = useEquipStore((state) => state);
+  const { mechBP, equipActions } = useEquipStore((state) => state);
 
   const handleCrew = (e) => {
-    actions.basicMenu.setProp("crew", e.target.value);
+    equipActions.basicMenu.setProp("crew", e.target.value);
   };
 
   const handlePassengers = (e) => {
-    actions.basicMenu.setProp("passengers", e.target.value);
+    equipActions.basicMenu.setProp("passengers", e.target.value);
   };
 
   return (

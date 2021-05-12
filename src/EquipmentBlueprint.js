@@ -1,4 +1,3 @@
-import * as THREE from "three";
 import { useThree, useFrame } from "@react-three/fiber";
 //import { useThree, useLoader, useFrame } from "@react-three/fiber";
 //import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";

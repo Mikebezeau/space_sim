@@ -3,10 +3,10 @@ import { equipList } from "../data/equipData";
 
 //DISPLAY LIST OF SERVOS
 const ServoHydraulics = ({ heading }) => {
-  const { mechBP, actions } = useEquipStore((state) => state);
+  const { mechBP, equipActions } = useEquipStore((state) => state);
 
   const handleHydraulics = (e) => {
-    actions.basicMenu.setProp("hydraulicsType", e.target.value);
+    equipActions.basicMenu.setProp("hydraulicsType", e.target.value);
   };
 
   return (

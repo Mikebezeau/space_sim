@@ -115,6 +115,10 @@ const initMechBP = function (guid) {
       return equipList.scale.type[this.scale];
     },
 
+    scaleVal: function (val) {
+      return val * equipList.scale.weightMult[this.scale];
+    },
+
     meleeBonus: function () {
       return mech.meleeBonus(this.hydraulicsType);
     },

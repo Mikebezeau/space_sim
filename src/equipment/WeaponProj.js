@@ -12,9 +12,9 @@ export const WeaponProjList = () => {
 };
 
 export const WeaponProjItem = ({ projBP }) => {
-  const { actions } = useEquipStore((state) => state);
+  const { equipActions } = useEquipStore((state) => state);
   const handleChangeData = (weaponType, id, propName, val) => {
-    actions.weaponMenu.setDataValue(weaponType, id, propName, val);
+    equipActions.weaponMenu.setDataValue(weaponType, id, propName, val);
   };
 
   return (
@@ -105,10 +105,10 @@ export const WeaponProjItem = ({ projBP }) => {
 };
 
 export const WeaponProjCreate = () => {
-  const { projBP, actions } = useEquipStore((state) => state);
+  const { projBP, equipActions } = useEquipStore((state) => state);
 
   const handleAddWeapon = () => {
-    actions.weaponMenu.addProjWeapon();
+    equipActions.weaponMenu.addProjWeapon();
     alert("weapon added");
   };
   return (

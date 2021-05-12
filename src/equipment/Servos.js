@@ -5,18 +5,18 @@ import { geoList } from "../data/shapeGeometry";
 
 //DISPLAY LIST OF SERVOS
 const ServoList = () => {
-  const { mechBP, actions, editServoId } = useEquipStore((state) => state);
+  const { mechBP, equipActions, editServoId } = useEquipStore((state) => state);
 
   const handleDeleteServo = (id) => {
-    actions.servoMenu.deleteServo(id);
+    equipActions.servoMenu.deleteServo(id);
   };
 
   const handleChangeType = (index, { target }) => {
-    actions.servoMenu.changeProp(index, "type", target.value);
+    equipActions.servoMenu.changeProp(index, "type", target.value);
   };
 
   const handleChangeClass = (index, { target }) => {
-    actions.servoMenu.changeProp(index, "class", target.value);
+    equipActions.servoMenu.changeProp(index, "class", target.value);
   };
   //console.log(mechBP, mechBP.servoList);
 
@@ -89,79 +89,81 @@ export const ServoSpaceAssignButtons = ({
 
 export const ServoEditButtons = ({ heading }) => {
   //lust of servos, player clicks one of the buttons to select that servo, and then will be able to edit size/location
-  const { mechBP, actions, editServoId, editWeaponId } = useEquipStore(
+  const { mechBP, equipActions, editServoId, editWeaponId } = useEquipStore(
     (state) => state
   );
 
+  const partMoveOffsetVal = mechBP.scaleVal(0.25);
+
   const handleRotateShipView = (axis, direction) => {
-    actions.basicMenu.editShipRotation(axis, direction);
+    equipActions.basicMenu.editShipRotation(axis, direction);
   };
 
   //position up arow
   function handleMovePartUp() {
     editServoId
-      ? actions.servoMenu.adjustServoOffset(0, 0.5, 0)
-      : actions.weaponMenu.adjustWeaponOffset(0, 0.5, 0);
+      ? equipActions.servoMenu.adjustServoOffset(0, partMoveOffsetVal, 0)
+      : equipActions.weaponMenu.adjustWeaponOffset(0, partMoveOffsetVal, 0);
   }
   useKBControls("KeyQ", handleMovePartUp);
 
   //position down arow
   function handleMovePartDown() {
-    actions.servoMenu.adjustServoOffset(0, -0.5, 0);
-    actions.weaponMenu.adjustWeaponOffset(0, -0.5, 0);
+    equipActions.servoMenu.adjustServoOffset(0, -partMoveOffsetVal, 0);
+    equipActions.weaponMenu.adjustWeaponOffset(0, -partMoveOffsetVal, 0);
   }
   useKBControls("KeyA", handleMovePartDown);
 
   //position up arow
   function handleMovePartForward() {
     editServoId
-      ? actions.servoMenu.adjustServoOffset(0, 0, -1)
-      : actions.weaponMenu.adjustWeaponOffset(0, 0, -1);
+      ? equipActions.servoMenu.adjustServoOffset(0, 0, -partMoveOffsetVal)
+      : equipActions.weaponMenu.adjustWeaponOffset(0, 0, -partMoveOffsetVal);
   }
   useKBControls("ArrowUp", handleMovePartForward);
 
   //position down arow
   function handleMovePartBackward() {
-    actions.servoMenu.adjustServoOffset(0, 0, 1);
-    actions.weaponMenu.adjustWeaponOffset(0, 0, 1);
+    equipActions.servoMenu.adjustServoOffset(0, 0, partMoveOffsetVal);
+    equipActions.weaponMenu.adjustWeaponOffset(0, 0, partMoveOffsetVal);
   }
   useKBControls("ArrowDown", handleMovePartBackward);
 
   //position left arow
   function handleMovePartLeft() {
-    actions.servoMenu.adjustServoOffset(-0.5, 0, 0);
-    actions.weaponMenu.adjustWeaponOffset(-0.5, 0, 0);
+    equipActions.servoMenu.adjustServoOffset(-partMoveOffsetVal, 0, 0);
+    equipActions.weaponMenu.adjustWeaponOffset(-partMoveOffsetVal, 0, 0);
   }
   useKBControls("ArrowLeft", handleMovePartLeft);
 
   //position right arow
   function handleMovePartRight() {
-    actions.servoMenu.adjustServoOffset(0.5, 0, 0);
-    actions.weaponMenu.adjustWeaponOffset(0.5, 0, 0);
+    equipActions.servoMenu.adjustServoOffset(partMoveOffsetVal, 0, 0);
+    equipActions.weaponMenu.adjustWeaponOffset(partMoveOffsetVal, 0, 0);
   }
   useKBControls("ArrowRight", handleMovePartRight);
 
   const handleSelecteditServoId = (id) => {
-    actions.servoMenu.selectServoID(id);
-    actions.weaponMenu.selectWeaponID(null);
+    equipActions.servoMenu.selectServoID(id);
+    equipActions.weaponMenu.selectWeaponID(null);
   };
 
   const handleSelectEditWeaponId = (id) => {
-    actions.servoMenu.selectServoID(null);
-    actions.weaponMenu.selectWeaponID(id);
+    equipActions.servoMenu.selectServoID(null);
+    equipActions.weaponMenu.selectWeaponID(id);
   };
 
   const handleChangeServoShape = (index, shapeIndex) => {
-    actions.servoMenu.selectServoShape(index, Number(shapeIndex));
-    console.log(index, Number(shapeIndex));
+    equipActions.servoMenu.selectServoShape(index, Number(shapeIndex));
   };
 
   const handleRotateServoShape = (axis, direction) => {
-    actions.servoMenu.adjustServoRotation(axis, direction);
+    equipActions.servoMenu.adjustServoRotation(axis, direction);
   };
 
   const handleScaleServoShape = (axis, val) => {
-    actions.servoMenu.adjustServoScale(axis, val);
+    equipActions.servoMenu.adjustServoScale(axis, mechBP.scaleVal(val));
+    console.log(mechBP.scaleVal(val));
   };
 
   /*
@@ -246,10 +248,10 @@ export const ServoEditButtons = ({ heading }) => {
 
 //DISPLAY LIST OF SERVOS
 export const Servos = ({ heading }) => {
-  const { actions } = useEquipStore((state) => state);
+  const { equipActions } = useEquipStore((state) => state);
 
   const handleAddServo = () => {
-    actions.servoMenu.addServo();
+    equipActions.servoMenu.addServo();
   };
 
   return (

@@ -2,14 +2,14 @@ import useEquipStore from "../stores/equipStore";
 import { equipList } from "../data/equipData";
 
 const Mech = () => {
-  const { mechBP, actions } = useEquipStore((state) => state);
+  const { mechBP, equipActions } = useEquipStore((state) => state);
 
   const handleName = (e) => {
-    actions.basicMenu.setProp("name", e.target.value);
+    equipActions.basicMenu.setProp("name", e.target.value);
   };
 
   const handleScale = (e) => {
-    actions.basicMenu.setProp("scale", e.target.value);
+    equipActions.basicMenu.setProp("scale", e.target.value);
   };
 
   return (

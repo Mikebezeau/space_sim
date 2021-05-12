@@ -12,27 +12,27 @@ import { Weapons, WeaponsAssignSpaces } from "./equipment/Weapons";
 
 export default function EquipmentMenu() {
   //BLUEPRINT SELECTION MENU
-  const { playerMechBP, actions } = useEquipStore((state) => state);
+  const { playerMechBP, equipActions } = useEquipStore((state) => state);
 
   const [selectedBPid, setSelectedBPid] = useState(0); //top menu
   const [importExportText, setImportExportText] = useState("");
 
   const handleNewBP = () => {
-    actions.blueprintMenu.newBlueprint();
+    equipActions.blueprintMenu.newBlueprint();
     setSelectedBPid(0);
     setSubSelection(null);
   };
   const handleSelectBlueprint = (id) => {
-    actions.blueprintMenu.selectBlueprint(id);
+    equipActions.blueprintMenu.selectBlueprint(id);
     setSelectedBPid(id);
     setSubSelection(null);
   };
   const handleSaveBlueprint = () => {
-    const id = actions.blueprintMenu.saveBlueprint(selectedBPid); //returns id of saved Blueprint
+    const id = equipActions.blueprintMenu.saveBlueprint(selectedBPid); //returns id of saved Blueprint
     setSelectedBPid(id);
   };
   const handleDeleteBlueprint = (id) => {
-    actions.blueprintMenu.deleteBlueprint(id);
+    equipActions.blueprintMenu.deleteBlueprint(id);
     handleNewBP();
     setSubSelection(null);
   };
@@ -41,11 +41,11 @@ export default function EquipmentMenu() {
   };
   const handleImportBP = () => {
     //console.log(importExportText);
-    actions.blueprintMenu.importBlueprint(importExportText);
+    equipActions.blueprintMenu.importBlueprint(importExportText);
     setImportExportText("");
   };
   const handleExportBP = () => {
-    setImportExportText(actions.blueprintMenu.exportBlueprint());
+    setImportExportText(equipActions.blueprintMenu.exportBlueprint());
   };
 
   //MAIN DESIGN MENU
@@ -119,7 +119,7 @@ export default function EquipmentMenu() {
   ];
 
   const topSelectionHandler = (key) => {
-    actions.changeMainMenuSelection(key);
+    equipActions.changeMainMenuSelection(key);
   };
   const subSelectionHandler = (key) => {
     //console.log(key);

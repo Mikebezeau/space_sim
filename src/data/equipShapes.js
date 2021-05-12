@@ -120,16 +120,17 @@ export const weaponShapeData = {
 const constructionMaterial = new THREE.MeshStandardMaterial({
   color: new THREE.Color("#666"),
   emissive: new THREE.Color("#666"),
-  emissiveIntensity: 0.2,
+  emissiveIntensity: 0.1,
 });
 
 const selectMaterial = new THREE.MeshStandardMaterial({
   color: new THREE.Color("#669"),
   emissive: new THREE.Color("#669"),
-  emissiveIntensity: 0.3,
+  emissiveIntensity: 0.2,
 });
 
-export const servoShapes = function (servo, editing = false) {
+export const ServoShapes = function ({ servo, servoEditId }) {
+  const editing = servo.id === servoEditId ? true : false;
   const size = servo.SP() / 16;
   const useMaterial = editing ? selectMaterial : constructionMaterial; //servo.material;
   const scaleX =
@@ -158,7 +159,8 @@ export const servoShapes = function (servo, editing = false) {
   );
 };
 
-export const weaponShapes = function (weapon, editing = false) {
+export const WeaponShapes = function ({ weapon, weaponEditId }) {
+  const editing = weapon.id === weaponEditId ? true : false;
   const size = weapon.SP() / 16;
   const useMaterial = editing ? selectMaterial : constructionMaterial; //weapon.material;
   return (

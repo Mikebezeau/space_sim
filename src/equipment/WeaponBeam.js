@@ -12,9 +12,9 @@ export const WeaponBeamList = () => {
 };
 
 export const WeaponBeamItem = ({ beamBP }) => {
-  const { actions } = useEquipStore((state) => state);
+  const { equipActions } = useEquipStore((state) => state);
   const handleChangeData = (weaponType, id, propName, val) => {
-    actions.weaponMenu.setDataValue(weaponType, id, propName, val);
+    equipActions.weaponMenu.setDataValue(weaponType, id, propName, val);
   };
 
   return (
@@ -102,10 +102,10 @@ export const WeaponBeamItem = ({ beamBP }) => {
 };
 
 export const WeaponBeamCreate = () => {
-  const { beamBP, actions } = useEquipStore((state) => state);
+  const { beamBP, equipActions } = useEquipStore((state) => state);
 
   const handleAddWeapon = () => {
-    actions.weaponMenu.addBeamWeapon();
+    equipActions.weaponMenu.addBeamWeapon();
     alert("weapon added");
   };
 

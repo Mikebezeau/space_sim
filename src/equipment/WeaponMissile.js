@@ -13,9 +13,9 @@ export const WeaponMissileList = () => {
 };
 
 export const WeaponMissileItem = ({ missileBP }) => {
-  const { actions } = useEquipStore((state) => state);
+  const { equipActions } = useEquipStore((state) => state);
   const handleChangeData = (weaponType, id, propName, val) => {
-    actions.weaponMenu.setDataValue(weaponType, id, propName, val);
+    equipActions.weaponMenu.setDataValue(weaponType, id, propName, val);
   };
 
   return (
@@ -106,10 +106,10 @@ export const WeaponMissileItem = ({ missileBP }) => {
 };
 
 export const WeaponMissileCreate = () => {
-  const { missileBP, actions } = useEquipStore((state) => state);
+  const { missileBP, equipActions } = useEquipStore((state) => state);
 
   const handleAddWeapon = () => {
-    actions.weaponMenu.addMissileWeapon();
+    equipActions.weaponMenu.addMissileWeapon();
     alert("weapon added");
   };
   return (

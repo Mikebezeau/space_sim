@@ -43,7 +43,7 @@ const Planet = React.memo(({ planet }) => {
   //planet material
   const materialPlanet = new THREE.MeshLambertMaterial({
     map: textureMaps[planet.textureMap],
-    emissive: planet.type === "SUN" ? planet.color : "false",
+    emissive: planet.type === "SUN" ? planet.color : false,
     color: planet.color,
     opacity: planet.opacity,
     transparent: planet.transparent,

@@ -62,7 +62,7 @@ select desitation:
     else {
       destinationPosition = groupFollowPosition(
         enemy,
-        enemyLeader.object3d,
+        enemyLeader,
         enemies,
         clock
       );
@@ -72,32 +72,42 @@ select desitation:
     dummyObj.position.copy(enemy.object3d.position);
     //current enemy direction quat
     curQuat.setFromEuler(enemy.object3d.rotation);
+
+    //ONLY CHANGE DIRECTION IF a little distance away from target destination so that jittering deosnt happen
     //direction quat pointing to player location
-    dummyObj.lookAt(destinationPosition);
-    toTargetQuat.setFromEuler(dummyObj.rotation);
-
-    //rotate slowly towards target quaternion
-    enemy.object3d.rotation.setFromQuaternion(
-      curQuat.slerp(toTargetQuat, 0.3).normalize()
-    );
-
+    if (distance(dummyObj.position, destinationPosition) > 500 * SCALE) {
+      dummyObj.lookAt(destinationPosition);
+      toTargetQuat.setFromEuler(dummyObj.rotation);
+      //get difference of angles in radians // 360 degres = 6.28319 radians
+      const angleDiff = curQuat.angleTo(toTargetQuat);
+      /*
+      if (enemy.guid === 150 && clock.getElapsedTime() % 1 < 0.05) {
+        console.log(angleDiff);
+      }
+*/
+      //rotate slowly towards target quaternion
+      const manueverVal = 0.5 / Math.abs(enemy.mechBP.MV());
+      enemy.object3d.rotation.setFromQuaternion(
+        curQuat.slerp(toTargetQuat.normalize(), 0.2 * manueverVal)
+      );
+    }
     //speed equals same speed as leader
     //??speed depending on distance away
+    const distanceFromTargetLocation = distance(
+      enemy.object3d.position,
+      destinationPosition
+    );
     enemy.speed =
       enemy.guid === enemy.groupLeaderGuid
         ? //if ship is the leader
           enemy.speed
         : //else if ship is far away from target destination go faster
-        distance(enemy.object3d.position, destinationPosition) > 1000 * SCALE
-        ? enemyLeader.speed * 2
-        : enemyLeader.speed;
-
+        distanceFromTargetLocation > 1000 * enemy.mechBP.scale * SCALE
+        ? enemyLeader.speed + distanceFromTargetLocation
+        : enemyLeader.speed * 0.9;
+    enemy.speed = enemy.speed > 1000 ? 1000 : enemy.speed;
     //move toward target
     enemy.object3d.translateZ(enemy.speed * SCALE); //at this point a positive z moves toward player ship
-
-    /*if (enemy.guid === 150 && clock.getElapsedTime() % 1 < 0.05) {
-      console.log(enemy.formation);
-    } */
 
     /*
         enemy.guid,
@@ -119,12 +129,12 @@ function leaderDestinationPosition(playerShip) {
   return destinationPosition;
 }
 
-function groupFollowPosition(enemy, enemyLeaderObj, enemies, clock) {
+function groupFollowPosition(enemy, enemyLeader, enemies, clock) {
   let destinationObject = new Object3D();
-  //console.log(destinationObject.position, enemyLeaderObj);
+  //console.log(destinationObject.position, enemyLeader.object3d);
 
-  destinationObject.position.copy(enemyLeaderObj.position);
-  destinationObject.rotation.copy(enemyLeaderObj.rotation);
+  destinationObject.position.copy(enemyLeader.object3d.position);
+  destinationObject.rotation.copy(enemyLeader.object3d.rotation);
 
   //find position to follow leader in formation
   //if no group formation selected chose one
@@ -136,9 +146,15 @@ function groupFollowPosition(enemy, enemyLeaderObj, enemies, clock) {
     );
     group.forEach((eGroup, i) => {
       //assign a position to each group member
-      eGroup.formationPosition.x = (group.length * 250 - i * 500) * SCALE;
+      eGroup.formationPosition.x =
+        (group.length * 250 - i * 500) *
+        Math.pow(enemy.mechBP.scale + enemyLeader.mechBP.scale, 1.5) *
+        SCALE;
       eGroup.formationPosition.y = 0;
-      eGroup.formationPosition.z = -500 * SCALE;
+      eGroup.formationPosition.z =
+        -500 *
+        Math.pow(enemy.mechBP.scale + enemyLeader.mechBP.scale, 1.5) *
+        SCALE;
     });
   }
   /*

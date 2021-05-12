@@ -40,7 +40,7 @@ const [useEquipStore] = create((set, get) => {
   return {
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //                MECH DESIGN MENU ACTIONS
-    actions: {
+    equipActions: {
       //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
       //                MECH BLUEPRINT: SELECTION, SAVING, DELETION
       blueprintMenu: {
@@ -58,7 +58,7 @@ const [useEquipStore] = create((set, get) => {
           if (!get().playerMechBP.find((bp) => bp.id === id)) {
             id = guid(get().playerMechBP);
           } else {
-            get().actions.blueprintMenu.deleteBlueprint(id);
+            get().equipActions.blueprintMenu.deleteBlueprint(id);
           }
 
           set((state) => ({

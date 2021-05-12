@@ -9,11 +9,11 @@ import { WeaponMeleeList, WeaponMeleeCreate } from "./WeaponMelee";
 import { ServoSpaceAssignButtons } from "./Servos";
 
 export const WeaponsAssignSpaces = ({ heading }) => {
-  const { mechBP, actions } = useEquipStore((state) => state);
+  const { mechBP, equipActions } = useEquipStore((state) => state);
   const [servoSelectedId, setServoSelectedId] = useState(0);
 
   const handleWeapSelect = (weaponType, id) => {
-    actions.assignPartLocationMenu.setWeaponLocation(
+    equipActions.assignPartLocationMenu.setWeaponLocation(
       weaponType,
       id,
       servoSelectedId

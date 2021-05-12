@@ -21,7 +21,7 @@ export default function WeaponFire() {
   const setLasers = useStore((state) => state.actions.setLasers);
   const laserGroup = useRef();
 
-  const { clock } = useStore((state) => state.mutation);
+  //const { clock } = useStore((state) => state.mutation);
 
   useFrame(() => {
     if (!laserGroup.current) return null;

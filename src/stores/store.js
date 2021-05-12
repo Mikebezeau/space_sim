@@ -426,7 +426,7 @@ function randomData(count, track, radius, size, randomScale) {
 }
 function randomEnemies(track) {
   let enemies = randomData(50, track, 5 * SCALE, 500 * SCALE, 1);
-  enemies.map((enemy) => {
+  enemies.forEach((enemy) => {
     enemy.groupLeaderGuid = 0;
     enemy.formation = null;
     enemy.formationPosition = new Vector3();
