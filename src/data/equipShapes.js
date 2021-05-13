@@ -60,7 +60,7 @@ export const servoShapeData = {
   ],
   Torso: [
     { scale: [1, 1, 3], geometry: geoList.box },
-    { scale: [1, 1, 3], geometry: geoList.extrudeBox },
+    { scale: [0.6, 0.6, 4], geometry: geoList.extrudeBox },
     { scale: [1, 1, 3], geometry: geoList.circle },
     { scale: [1, 1, 3], geometry: geoList.cone },
     { scale: [1, 1, 3], geometry: geoList.cylinder },
@@ -70,47 +70,47 @@ export const servoShapeData = {
     { scale: [2, 8, 2], geometry: geoList.plane },
     { scale: [1, 1, 3], geometry: geoList.sphere },
     { scale: [1, 1, 3], geometry: geoList.tetrahedron },
-    { scale: [1, 1, 3], geometry: geoList.torus },
+    { scale: [0.8, 0.8, 2], geometry: geoList.torus },
   ],
 };
 
 export const weaponShapeData = {
   beam: [
     {
-      scale: [0.5, 8, 0.5],
-      position: [0, 0, -5],
+      scale: [0.15, 1, 0.15],
+      position: [0, 0, -0.5],
       rotation: [-Math.PI / 2, 0, 0],
       geometry: geoList.cone,
     },
   ],
   proj: [
     {
-      scale: [0.5, 6, 0.5],
-      position: [0, 0, -5],
+      scale: [0.15, 0.7, 0.15],
+      position: [0, 0, -0.35],
       rotation: [-Math.PI / 2, 0, 0],
       geometry: geoList.cone,
     },
   ],
   missile: [
     {
-      scale: [0.5, 2, 0.5],
-      position: [0, 0, -5],
+      scale: [0.15, 0.2, 0.15],
+      position: [0, 0, -0.1],
       rotation: [-Math.PI / 2, 0, 0],
       geometry: geoList.cone,
     },
   ],
   eMelee: [
     {
-      scale: [0.5, 0.5, 0.5],
-      position: [0, 0, -5],
+      scale: [0.15, 1, 0.15],
+      position: [0, 0, -0.5],
       rotation: [-Math.PI / 2, 0, 0],
       geometry: geoList.cone,
     },
   ],
   melee: [
     {
-      scale: [0.5, 0.5, 0.5],
-      position: [0, 0, -5],
+      scale: [0.15, 1, 0.15],
+      position: [0, 0, -0.5],
       rotation: [-Math.PI / 2, 0, 0],
       geometry: geoList.cone,
     },
@@ -131,7 +131,7 @@ const selectMaterial = new THREE.MeshStandardMaterial({
 
 export const ServoShapes = function ({ servo, servoEditId }) {
   const editing = servo.id === servoEditId ? true : false;
-  const size = servo.SP() / 16;
+  const size = servo.size();
   const useMaterial = editing ? selectMaterial : constructionMaterial; //servo.material;
   const scaleX =
     servo.scaleAdjust.x + servoShapeData[servo.type][servo.shape].scale[0]; //scale[0] is the scale of x axis
@@ -140,6 +140,14 @@ export const ServoShapes = function ({ servo, servoEditId }) {
   const scaleZ =
     servo.scaleAdjust.z + servoShapeData[servo.type][servo.shape].scale[2];
 
+  /*
+  const visibilityMaterial = new THREE.MeshStandardMaterial({
+    color: new THREE.Color("#669"),
+    emissive: new THREE.Color("#669"),
+    emissiveIntensity: 0.8,
+  });
+  const useMaterial = visibilityMaterial;
+  */
   return (
     <group scale={[size, size, size]}>
       <mesh
@@ -161,7 +169,7 @@ export const ServoShapes = function ({ servo, servoEditId }) {
 
 export const WeaponShapes = function ({ weapon, weaponEditId }) {
   const editing = weapon.id === weaponEditId ? true : false;
-  const size = weapon.SP() / 16;
+  const size = Math.cbrt(weapon.SP());
   const useMaterial = editing ? selectMaterial : constructionMaterial; //weapon.material;
   return (
     <group scale={[size, size, size]}>

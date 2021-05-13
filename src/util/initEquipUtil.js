@@ -85,6 +85,10 @@ const initMechBP = function (guid) {
     weightEff: 0,
     weightIneff: 0,
 
+    landingBay: 0,
+    landingBayServoLocationId: 0,
+    landingBayPosition: { x: 0, y: 0, z: 0 },
+
     crew: 1,
     passengers: 0,
     controlType: 1,
@@ -118,6 +122,9 @@ const initMechBP = function (guid) {
     scaleVal: function (val) {
       return val * equipList.scale.weightMult[this.scale];
     },
+    size: function () {
+      return mech.size(this.servoList);
+    },
 
     meleeBonus: function () {
       return mech.meleeBonus(this.hydraulicsType);
@@ -132,11 +139,8 @@ const initMechBP = function (guid) {
     crewCP: function () {
       return mech.crewCP(this.crew, this.passengers);
     },
-    crewServoLocation: function () {
-      return servoUtil.servoLocation(
-        this.crewLocationServoId[0],
-        this.servoList
-      );
+    getServoById: function (id) {
+      return servoUtil.servoLocation(id, this.servoList);
     },
     servoWeaponList: function (servoId) {
       return mech.servoWeaponList(servoId, this.weaponList);
@@ -237,6 +241,10 @@ const initMechServo = function (guid, scale, classIndex = 0, type = "Torso") {
 
     classValue: function () {
       return servoUtil.classValue(this.type, this.class);
+    },
+
+    size: function (scale, classValue) {
+      return servoUtil.size(this.scale, this.classValue());
     },
 
     structure: function () {

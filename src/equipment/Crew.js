@@ -27,8 +27,8 @@ export const CrewAssignSpaces = ({ heading }) => {
       <hr />
       <button>
         Crew/Passengers {mechBP.crewSP()}SP{" "}
-        {mechBP.crewServoLocation(mechBP.servoList) &&
-          ">>> " + mechBP.crewServoLocation(mechBP.servoList).type}
+        {mechBP.getServoById(mechBP.crewLocationServoId[0]) &&
+          ">>> " + mechBP.getServoById(mechBP.crewLocationServoId[0]).type}
       </button>
     </>
   );
@@ -51,12 +51,7 @@ export const Crew = ({ heading }) => {
       <h3>(does not scale)</h3>
       <div>
         <label htmlFor="crew">CREW MEMBERS (2 CP / each additional)</label>
-        <select
-          name="crew"
-          id="crew"
-          defaultValue={mechBP.crew}
-          onChange={handleCrew}
-        >
+        <select name="crew" id="crew" value={mechBP.crew} onChange={handleCrew}>
           <option value="1">1</option>
           <option value="2">2</option>
           <option value="3">3</option>

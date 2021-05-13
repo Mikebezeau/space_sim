@@ -89,11 +89,10 @@ export const ServoSpaceAssignButtons = ({
 
 export const ServoEditButtons = ({ heading }) => {
   //lust of servos, player clicks one of the buttons to select that servo, and then will be able to edit size/location
-  const { mechBP, equipActions, editServoId, editWeaponId } = useEquipStore(
-    (state) => state
-  );
+  const { mechBP, equipActions, editServoId, editWeaponId, editLandingBayId } =
+    useEquipStore((state) => state);
 
-  const partMoveOffsetVal = mechBP.scaleVal(0.25);
+  const partMoveOffsetVal = mechBP.size() / 20;
 
   const handleRotateShipView = (axis, direction) => {
     equipActions.basicMenu.editShipRotation(axis, direction);
@@ -101,14 +100,31 @@ export const ServoEditButtons = ({ heading }) => {
 
   //position up arow
   function handleMovePartUp() {
-    editServoId
-      ? equipActions.servoMenu.adjustServoOffset(0, partMoveOffsetVal, 0)
-      : equipActions.weaponMenu.adjustWeaponOffset(0, partMoveOffsetVal, 0);
+    if (editLandingBayId) {
+      let bayPosition = mechBP.landingBayPosition;
+      bayPosition = {
+        x: mechBP.landingBayPosition.x,
+        y: mechBP.landingBayPosition.y + partMoveOffsetVal,
+        z: mechBP.landingBayPosition.z,
+      };
+      equipActions.basicMenu.setProp("landingBayPosition", bayPosition);
+    }
+    equipActions.servoMenu.adjustServoOffset(0, partMoveOffsetVal, 0);
+    equipActions.weaponMenu.adjustWeaponOffset(0, partMoveOffsetVal, 0);
   }
   useKBControls("KeyQ", handleMovePartUp);
 
   //position down arow
   function handleMovePartDown() {
+    if (editLandingBayId) {
+      let bayPosition = mechBP.landingBayPosition;
+      bayPosition = {
+        x: mechBP.landingBayPosition.x,
+        y: mechBP.landingBayPosition.y - partMoveOffsetVal,
+        z: mechBP.landingBayPosition.z,
+      };
+      equipActions.basicMenu.setProp("landingBayPosition", bayPosition);
+    }
     equipActions.servoMenu.adjustServoOffset(0, -partMoveOffsetVal, 0);
     equipActions.weaponMenu.adjustWeaponOffset(0, -partMoveOffsetVal, 0);
   }
@@ -116,14 +132,31 @@ export const ServoEditButtons = ({ heading }) => {
 
   //position up arow
   function handleMovePartForward() {
-    editServoId
-      ? equipActions.servoMenu.adjustServoOffset(0, 0, -partMoveOffsetVal)
-      : equipActions.weaponMenu.adjustWeaponOffset(0, 0, -partMoveOffsetVal);
+    if (editLandingBayId) {
+      let bayPosition = mechBP.landingBayPosition;
+      bayPosition = {
+        x: mechBP.landingBayPosition.x,
+        y: mechBP.landingBayPosition.y,
+        z: mechBP.landingBayPosition.z - partMoveOffsetVal,
+      };
+      equipActions.basicMenu.setProp("landingBayPosition", bayPosition);
+    }
+    equipActions.servoMenu.adjustServoOffset(0, 0, -partMoveOffsetVal);
+    equipActions.weaponMenu.adjustWeaponOffset(0, 0, -partMoveOffsetVal);
   }
   useKBControls("ArrowUp", handleMovePartForward);
 
   //position down arow
   function handleMovePartBackward() {
+    if (editLandingBayId) {
+      let bayPosition = mechBP.landingBayPosition;
+      bayPosition = {
+        x: mechBP.landingBayPosition.x,
+        y: mechBP.landingBayPosition.y,
+        z: mechBP.landingBayPosition.z + partMoveOffsetVal,
+      };
+      equipActions.basicMenu.setProp("landingBayPosition", bayPosition);
+    }
     equipActions.servoMenu.adjustServoOffset(0, 0, partMoveOffsetVal);
     equipActions.weaponMenu.adjustWeaponOffset(0, 0, partMoveOffsetVal);
   }
@@ -131,6 +164,15 @@ export const ServoEditButtons = ({ heading }) => {
 
   //position left arow
   function handleMovePartLeft() {
+    if (editLandingBayId) {
+      let bayPosition = mechBP.landingBayPosition;
+      bayPosition = {
+        x: mechBP.landingBayPosition.x - partMoveOffsetVal,
+        y: mechBP.landingBayPosition.y,
+        z: mechBP.landingBayPosition.z,
+      };
+      equipActions.basicMenu.setProp("landingBayPosition", bayPosition);
+    }
     equipActions.servoMenu.adjustServoOffset(-partMoveOffsetVal, 0, 0);
     equipActions.weaponMenu.adjustWeaponOffset(-partMoveOffsetVal, 0, 0);
   }
@@ -138,6 +180,15 @@ export const ServoEditButtons = ({ heading }) => {
 
   //position right arow
   function handleMovePartRight() {
+    if (editLandingBayId) {
+      let bayPosition = mechBP.landingBayPosition;
+      bayPosition = {
+        x: mechBP.landingBayPosition.x + partMoveOffsetVal,
+        y: mechBP.landingBayPosition.y,
+        z: mechBP.landingBayPosition.z,
+      };
+      equipActions.basicMenu.setProp("landingBayPosition", bayPosition);
+    }
     equipActions.servoMenu.adjustServoOffset(partMoveOffsetVal, 0, 0);
     equipActions.weaponMenu.adjustWeaponOffset(partMoveOffsetVal, 0, 0);
   }
@@ -146,11 +197,19 @@ export const ServoEditButtons = ({ heading }) => {
   const handleSelecteditServoId = (id) => {
     equipActions.servoMenu.selectServoID(id);
     equipActions.weaponMenu.selectWeaponID(null);
+    equipActions.servoMenu.selectLandingBayID(null);
   };
 
   const handleSelectEditWeaponId = (id) => {
     equipActions.servoMenu.selectServoID(null);
     equipActions.weaponMenu.selectWeaponID(id);
+    equipActions.servoMenu.selectLandingBayID(null);
+  };
+
+  const handleSelectEditLandingBay = () => {
+    equipActions.servoMenu.selectServoID(null);
+    equipActions.weaponMenu.selectWeaponID(null);
+    equipActions.servoMenu.selectLandingBayID(1);
   };
 
   const handleChangeServoShape = (index, shapeIndex) => {
@@ -162,8 +221,7 @@ export const ServoEditButtons = ({ heading }) => {
   };
 
   const handleScaleServoShape = (axis, val) => {
-    equipActions.servoMenu.adjustServoScale(axis, mechBP.scaleVal(val));
-    console.log(mechBP.scaleVal(val));
+    equipActions.servoMenu.adjustServoScale(axis, val);
   };
 
   /*
@@ -218,6 +276,20 @@ export const ServoEditButtons = ({ heading }) => {
                 </button>
               </span>
             ))}
+          </div>
+          <div>
+            {mechBP.landingBayServoLocationId === servo.id && (
+              <span
+                key={"bay"} // + index}
+                className={
+                  editLandingBayId ? "selectedItem" : "nonSelectedItem"
+                }
+              >
+                <button onClick={() => handleSelectEditLandingBay()}>
+                  Landing Bay
+                </button>
+              </span>
+            )}
           </div>
         </span>
       ))}

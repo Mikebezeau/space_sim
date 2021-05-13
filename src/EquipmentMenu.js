@@ -9,6 +9,7 @@ import { Crew, CrewAssignSpaces } from "./equipment/Crew";
 import { Servos, ServoEditButtons } from "./equipment/Servos";
 import ServoHydraulics from "./equipment/ServoHydraulics";
 import { Weapons, WeaponsAssignSpaces } from "./equipment/Weapons";
+import { LandingBay, LandingBayAssignSpaces } from "./equipment/LandingBay";
 
 export default function EquipmentMenu() {
   //BLUEPRINT SELECTION MENU
@@ -66,23 +67,16 @@ export default function EquipmentMenu() {
     {
       //******************************************** */
       //design parts
-      crew: {
-        buttonLable: "Crew / Controls / Passengers",
-        component: (
-          <Crew
-            heading={"Assign number of crew, control type, and passenger space"}
-          />
-        ),
-      },
+
       servos: {
         buttonLable: "Servos",
         component: <Servos heading="Mech parts: Size and Armor" />,
       },
+      /*
       hydraulics: {
         buttonLable: "Servo Hydraulics",
         component: <ServoHydraulics heading="Servo Hydraulics Power Rating" />,
       },
-      /*
     propulsion: { buttonLable: "Propulsion" },
     tech: { buttonLable: "Tech" },
     parts: { buttonLable: "Parts" },
@@ -91,16 +85,22 @@ export default function EquipmentMenu() {
         buttonLable: "Weapons / Shields",
         component: <Weapons heading={"View Weapon List, add weaponry"} />,
       },
+      landingBay: {
+        buttonLable: "Landing Bay",
+        component: <LandingBay heading={"Select Landing Bays"} />,
+      },
+      crew: {
+        buttonLable: "Crew / Controls / Passengers",
+        component: (
+          <Crew
+            heading={"Assign number of crew, control type, and passenger space"}
+          />
+        ),
+      },
     },
     {
       //********************************* */
       //asign spaces
-      crew: {
-        buttonLable: "Crew / Controls / Passengers",
-        component: (
-          <CrewAssignSpaces heading={"Choose servo to hold compartment"} />
-        ),
-      },
 
       /*
     propulsion: { buttonLable: "Propulsion" },
@@ -113,6 +113,18 @@ export default function EquipmentMenu() {
           <WeaponsAssignSpaces
             heading={"Select Servo, then select weapon to place"}
           />
+        ),
+      },
+      landingBay: {
+        buttonLable: "Landing Bay",
+        component: (
+          <LandingBayAssignSpaces heading={"Select Landing Bay Location"} />
+        ),
+      },
+      crew: {
+        buttonLable: "Crew / Controls / Passengers",
+        component: (
+          <CrewAssignSpaces heading={"Choose servo to hold compartment"} />
         ),
       },
     },

@@ -12,8 +12,8 @@ export const equipList = {
       "Battleship / Space Station",
       "Mega",
     ],
-    weightMult: [0.5, 1, 1.5, 2, 5, 10, 50, 100],
-    costMult: [0.6, 1, 1.75, 3, 7.5, 15, 75, 200],
+    weightMult: [0.5, 1, 3, 10, 50, 500, 10000, 100000],
+    costMult: [0.6, 1, 4, 15, 100, 1500, 40000, 500000],
   },
 
   servo: {

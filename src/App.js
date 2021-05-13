@@ -14,6 +14,7 @@ import EnemyMechs from "./3d/EnemyMechs";
 import Rocks from "./3d/Rocks";
 import Explosions from "./3d/Explosions";
 import Ship from "./3d/Ship";
+import TestMech from "./3d/TestMech";
 import WeaponFire from "./3d/WeaponFire";
 import SystemMap from "./3d/SystemMap";
 
@@ -100,6 +101,7 @@ function App() {
               <Planets />
               <EnemyMechs />
               {/*<Stations />*/}
+              <TestMech />
               <Ship />
               <WeaponFire />
               <SystemMap showPlayer={true} />

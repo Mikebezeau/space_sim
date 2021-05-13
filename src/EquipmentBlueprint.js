@@ -18,10 +18,10 @@ export default function MainMenu() {
   const { camera } = useThree();
   const { clock } = useStore((state) => state.mutation);
   const ref = useRef();
-
+  //console.log(mechBP.size());
   useFrame(() => {
     //move camera away to look at larger mech
-    camera.position.set(0, 0, 5 * equipList.scale.weightMult[mechBP.scale]);
+    camera.position.set(0, 0, mechBP.size() * 4);
     camera.lookAt(0, 0, 0);
 
     //ship rotating in menu while not being modified

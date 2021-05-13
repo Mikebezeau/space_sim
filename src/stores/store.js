@@ -260,11 +260,13 @@ const [useStore] = create((set, get) => {
       },
       //player ship speed up
       speedUp() {
-        set((state) => ({ speed: state.speed + 10 }));
+        set((state) => ({
+          speed: state.speed === 0 ? state.speed + 1 : state.speed + 10,
+        }));
       },
       //player ship speed down
       speedDown() {
-        set((state) => ({ speed: state.speed - 10 }));
+        set((state) => ({ speed: state.speed === 0 ? state.speed - 10 : 0 }));
       },
       //dock at spacestation
       stationDoc() {
@@ -425,13 +427,14 @@ function randomData(count, track, radius, size, randomScale) {
   });
 }
 function randomEnemies(track) {
-  let enemies = randomData(50, track, 5 * SCALE, 500 * SCALE, 1);
+  let enemies = randomData(150, track, 5 * SCALE, 0, 1);
   enemies.forEach((enemy) => {
     enemy.groupLeaderGuid = 0;
     enemy.formation = null;
     enemy.formationPosition = new Vector3();
     enemy.speed = 10 + Math.random() * 10;
-    enemy.mechBP = initEnemyMechBP(Math.floor(Math.random() * 2));
+    enemy.mechBP = initEnemyMechBP(2); //Math.floor(Math.random() * 3));
+    enemy.size = 1000 * enemy.mechBP.scaleVal(enemy.mechBP.scale) * SCALE;
   });
 
   //group enemies into squads

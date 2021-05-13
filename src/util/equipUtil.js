@@ -66,6 +66,11 @@ const servoUtil = {
     return servoVal;
   },
 
+  size: function (scale, classValue) {
+    let size = applyScaledWeightMult(scale, classValue);
+    return Math.sqrt(size); //reflecting volume change when dimensions change
+  },
+
   structure: function (scale, classValue, SPMod) {
     return applyScaledWeightMult(scale, classValue) - SPMod; //space modifier (bonus space reduces structure points)
   },
@@ -126,6 +131,16 @@ const servoUtil = {
 };
 
 const mech = {
+  size(servoList) {
+    let size = 0;
+    //find largest servo and set size to this value
+    servoList.forEach((s, i) => {
+      //servo & armor weight
+      size = s.size() > size ? s.size() : size;
+    });
+    return size;
+  },
+
   meleeBonus(hydraulicsType) {
     return equipList.hydraulics.melee[hydraulicsType];
   },
@@ -145,13 +160,6 @@ const mech = {
   },
 
   crewCP: function (crew, passengers) {
-    let CP = 0;
-    CP = (crew - 1) * 2;
-    CP += passengers * 1;
-    return CP;
-  },
-
-  crewServoLocation: function (crew, passengers) {
     let CP = 0;
     CP = (crew - 1) * 2;
     CP += passengers * 1;

@@ -169,7 +169,7 @@ export default function Ship() {
           </mesh>
         </group>
 
-        <BuildMech mechBP={playerMechBP[0]} />
+        <BuildMech mechBP={playerMechBP[0]} showAxisLines={false} />
 
         <pointLight
           ref={laserLight}

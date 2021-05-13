@@ -99,7 +99,14 @@ const [useEquipStore] = create((set, get) => {
             mechBP: { ...state.mechBP, crewLocationServoId: [locationServoId] },
           }));
         },
-
+        setLandingBayLocation(locationServoId) {
+          set((state) => ({
+            mechBP: {
+              ...state.mechBP,
+              landingBayServoLocation: [locationServoId],
+            },
+          }));
+        },
         setWeaponLocation(weaponType, id, locationServoId) {
           const weaponList = get().mechBP.weaponList;
           weaponList[weaponType].find((w) => w.id === id).locationServoId =
@@ -177,6 +184,9 @@ const [useEquipStore] = create((set, get) => {
         selectServoID(id) {
           set((state) => ({ editServoId: id }));
         },
+        selectLandingBayID(id) {
+          set((state) => ({ editLandingBayId: id }));
+        },
         adjustServoOffset(x, y, z) {
           const servo = get().mechBP.servoList.find(
             (s) => s.id === get().editServoId
@@ -222,8 +232,8 @@ const [useEquipStore] = create((set, get) => {
             (s) => s.id === get().editServoId
           );
 
-          //return;
           if (servo) {
+            val = 0.1 * val;
             let scaleAdjust = {};
             //reset to 0
             if (axis === "reset") {
@@ -241,9 +251,10 @@ const [useEquipStore] = create((set, get) => {
               scaleAdjust.x = servo.scaleAdjust.x;
               scaleAdjust.y = servo.scaleAdjust.y;
               scaleAdjust.z = servo.scaleAdjust.z;
-              scaleAdjust[axis] = scaleAdjust[axis] + val * 0.05 * servo.scale;
+              scaleAdjust[axis] = scaleAdjust[axis] + val;
             }
             //if not getting to small in any axis
+            /*
             if (
               scaleAdjust.x - val * 0.1 < -0.8 ||
               scaleAdjust.y - val * 0.1 < -0.8 ||
@@ -251,6 +262,7 @@ const [useEquipStore] = create((set, get) => {
             ) {
               return;
             }
+            */
             set((state) => ({
               mechBP: {
                 ...state.mechBP,
@@ -384,7 +396,8 @@ const [useEquipStore] = create((set, get) => {
     //these for the 3d ship editor, because they are in the 3d canvas instead of the HTML EquipmentMenu (need global)
     mainMenuSelection: 0,
     editServoId: null, //used for any selection of servoId in menus
-    editWeaponId: 1, //used for any selection of weaponId in menus
+    editWeaponId: null, //used for any selection of weaponId in menus
+    editLandingBayId: null,
     editShipRotation: { x: 0, y: 0, z: 0 }, //used for any selection of weaponId in menus
     //MECH blueprint TEMPLATE
     mechBP: initMechBP(0),
