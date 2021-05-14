@@ -99,6 +99,10 @@ export const ServoEditButtons = ({ heading }) => {
     equipActions.basicMenu.editShipRotation(axis, direction);
   };
 
+  const handleZoomShipView = (direction) => {
+    equipActions.basicMenu.editShipZoom((direction * mechBP.size()) / 20);
+  };
+
   //position up arow
   function handleMovePartUp() {
     if (editLandingBayId) {
@@ -237,6 +241,10 @@ export const ServoEditButtons = ({ heading }) => {
         Rotate Ship View:{" "}
         <button onClick={() => handleRotateShipView("y", -1)}>+</button>
         <button onClick={() => handleRotateShipView("y", 1)}>-</button>
+      </h3>
+      <h3>
+        Zoom Level: <button onClick={() => handleZoomShipView(-1)}>+</button>
+        <button onClick={() => handleZoomShipView(1)}>-</button>
       </h3>
       <h2>Select Servo to Position</h2>
       {mechBP.servoList.map((servo, index) => (

@@ -3,8 +3,9 @@ import React, { useState } from "react";
 import styled, { css } from "styled-components";
 import useStore from "./stores/store";
 import useEquipStore from "./stores/equipStore";
-import Mech from "./equipment/Mech";
+import mechDesigns from "./data/mechDesigns";
 
+import Mech from "./equipment/Mech";
 import { Crew, CrewAssignSpaces } from "./equipment/Crew";
 import { Servos, ServoEditButtons } from "./equipment/Servos";
 import ServoHydraulics from "./equipment/ServoHydraulics";
@@ -22,11 +23,13 @@ export default function EquipmentMenu() {
     equipActions.blueprintMenu.newBlueprint();
     setSelectedBPid(0);
     setSubSelection(null);
+    equipActions.basicMenu.editShipZoom(0);
   };
   const handleSelectBlueprint = (id) => {
     equipActions.blueprintMenu.selectBlueprint(id);
     setSelectedBPid(id);
     setSubSelection(null);
+    equipActions.basicMenu.editShipZoom(0);
   };
   const handleSaveBlueprint = () => {
     const id = equipActions.blueprintMenu.saveBlueprint(selectedBPid); //returns id of saved Blueprint
@@ -41,9 +44,14 @@ export default function EquipmentMenu() {
     setImportExportText(e.target.value);
   };
   const handleImportBP = () => {
-    //console.log(importExportText);
-    equipActions.blueprintMenu.importBlueprint(importExportText);
     setImportExportText("");
+    equipActions.basicMenu.editShipZoom(0);
+  };
+  const handleSelectBP = (i) => {
+    equipActions.blueprintMenu.importBlueprint(
+      JSON.stringify(mechDesigns.enemy[i])
+    );
+    equipActions.basicMenu.editShipZoom(0);
   };
   const handleExportBP = () => {
     setImportExportText(equipActions.blueprintMenu.exportBlueprint());
@@ -180,6 +188,17 @@ export default function EquipmentMenu() {
               onChange={(e) => handleImportChange(e)}
               value={importExportText}
             />
+            <select
+              onChange={(e) => {
+                handleSelectBP(e.target.value);
+              }}
+            >
+              {mechDesigns.enemy.map((bp, i) => (
+                <option key={i} value={i}>
+                  {bp.name}
+                </option>
+              ))}
+            </select>
             <span>
               <button onClick={handleImportBP}>Import BP</button>
             </span>

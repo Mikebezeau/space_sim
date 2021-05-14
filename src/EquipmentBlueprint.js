@@ -14,6 +14,7 @@ export default function MainMenu() {
     editServoId,
     editWeaponId,
     editShipRotation,
+    editShipZoom,
     mechBP,
   } = useEquipStore((state) => state);
   const { camera } = useThree();
@@ -23,7 +24,7 @@ export default function MainMenu() {
   //console.log(mechBP.size());
   useFrame(() => {
     //move camera away to look at larger mech
-    camera.position.set(0, 0, mechBP.size() / 2); // design build is at smaller size, so as able to display largest mech size without flicker
+    camera.position.set(0, 0, mechBP.size() / 2 + editShipZoom); // design build is at smaller size, so as able to display largest mech size without flicker
     camera.lookAt(0, 0, 0);
     //set light position at camera
     //light.current.position.copy(camera.position);

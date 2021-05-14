@@ -439,7 +439,7 @@ function randomData(count, track, radius, size, randomScale) {
   });
 }
 function randomEnemies(track) {
-  let enemies = randomData(150, track, 5 * SCALE, 0, 1);
+  let enemies = randomData(10, track, 5 * SCALE, 0, 1);
   enemies.forEach((enemy) => {
     enemy.groupLeaderGuid = 0;
     enemy.formation = null;

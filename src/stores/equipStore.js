@@ -137,6 +137,11 @@ const [useEquipStore] = create((set, get) => {
             editShipRotation: rotation,
           }));
         },
+        editShipZoom(direction) {
+          set((state) => ({
+            editShipZoom: direction === 0 ? 0 : state.editShipZoom + direction,
+          }));
+        },
       },
 
       //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -399,6 +404,7 @@ const [useEquipStore] = create((set, get) => {
     editWeaponId: null, //used for any selection of weaponId in menus
     editLandingBayId: null,
     editShipRotation: { x: 0, y: 0, z: 0 }, //used for any selection of weaponId in menus
+    editShipZoom: 0,
     //MECH blueprint TEMPLATE
     mechBP: initMechBP(0),
     //weapon blueprints template
