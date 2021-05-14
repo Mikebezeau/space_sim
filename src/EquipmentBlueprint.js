@@ -1,3 +1,4 @@
+import React from "react";
 import { useThree, useFrame } from "@react-three/fiber";
 //import { useThree, useLoader, useFrame } from "@react-three/fiber";
 //import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
@@ -18,11 +19,14 @@ export default function MainMenu() {
   const { camera } = useThree();
   const { clock } = useStore((state) => state.mutation);
   const ref = useRef();
+  const light = useRef();
   //console.log(mechBP.size());
   useFrame(() => {
     //move camera away to look at larger mech
-    camera.position.set(0, 0, mechBP.size() * 4);
+    camera.position.set(0, 0, mechBP.size() / 2); // design build is at smaller size, so as able to display largest mech size without flicker
     camera.lookAt(0, 0, 0);
+    //set light position at camera
+    //light.current.position.copy(camera.position);
 
     //ship rotating in menu while not being modified
     if (ref.current) {
@@ -47,14 +51,18 @@ export default function MainMenu() {
       }
     }
   });
+  //<pointLight ref={light} intensity={0.6} />
 
   return (
-    <group ref={ref} position={[0, 0, -10]} rotation={[Math.PI / 4, 0, 0]}>
-      <BuildMech
-        mechBP={mechBP}
-        servoEditId={editServoId}
-        weaponEditId={editWeaponId}
-      />
-    </group>
+    <>
+      <group ref={ref} position={[0, 0, -10]} rotation={[Math.PI / 4, 0, 0]}>
+        <BuildMech
+          mechBP={mechBP}
+          servoEditId={editServoId}
+          weaponEditId={editWeaponId}
+          editMode={true}
+        />
+      </group>
+    </>
   );
 }

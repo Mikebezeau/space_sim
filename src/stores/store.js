@@ -261,12 +261,24 @@ const [useStore] = create((set, get) => {
       //player ship speed up
       speedUp() {
         set((state) => ({
-          speed: state.speed === 0 ? state.speed + 1 : state.speed + 10,
+          speed:
+            state.speed < 0
+              ? 0
+              : state.speed < 5
+              ? state.speed + 1
+              : state.speed + 10,
         }));
       },
       //player ship speed down
       speedDown() {
-        set((state) => ({ speed: state.speed === 0 ? state.speed - 10 : 0 }));
+        set((state) => ({
+          speed:
+            state.speed > 0
+              ? 0
+              : state.speed > -5
+              ? state.speed - 1
+              : state.speed - 10,
+        }));
       },
       //dock at spacestation
       stationDoc() {

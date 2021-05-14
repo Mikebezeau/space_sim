@@ -1,3 +1,4 @@
+import React from "react";
 import useEquipStore from "../stores/equipStore";
 
 export const WeaponProjList = () => {

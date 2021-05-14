@@ -1,4 +1,4 @@
-//import { weaponList } from "../data/weaponData";
+import React from "react"; //import { weaponList } from "../data/weaponData";
 import useEquipStore from "../stores/equipStore";
 
 export const WeaponEMeleeList = () => {

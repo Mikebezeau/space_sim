@@ -1,3 +1,4 @@
+import React from "react";
 import * as THREE from "three";
 import { geoList } from "./shapeGeometry";
 
@@ -129,7 +130,13 @@ const selectMaterial = new THREE.MeshStandardMaterial({
   emissiveIntensity: 0.2,
 });
 
-export const ServoShapes = function ({ servo, servoEditId }) {
+export const ServoShapes = function ({
+  servo,
+  servoEditId,
+  landingBay,
+  landingBayServoLocationId,
+  landingBayPosition,
+}) {
   const editing = servo.id === servoEditId ? true : false;
   const size = servo.size();
   const useMaterial = editing ? selectMaterial : constructionMaterial; //servo.material;
@@ -139,6 +146,45 @@ export const ServoShapes = function ({ servo, servoEditId }) {
     servo.scaleAdjust.y + servoShapeData[servo.type][servo.shape].scale[1];
   const scaleZ =
     servo.scaleAdjust.z + servoShapeData[servo.type][servo.shape].scale[2];
+
+  let servoGeometry = servoShapeData[servo.type][servo.shape].geometry;
+
+  if (landingBayServoLocationId === servo.id) {
+    const length = 0.75,
+      width = 0.75;
+
+    const extrudeShape = new THREE.Shape();
+    extrudeShape.moveTo(-length, -width);
+    extrudeShape.lineTo(-length, width);
+    extrudeShape.lineTo(length, width);
+    extrudeShape.lineTo(length, -width);
+    extrudeShape.lineTo(-length, -width);
+
+    const extrudeSettings = {
+      steps: 2,
+      depth: 0.3,
+      bevelEnabled: true,
+      bevelThickness: 0.2,
+      bevelSize: 0.2,
+      bevelOffset: 0,
+      bevelSegments: 1,
+    };
+    //const landingBayGeometry = servoShapeData.Pod[0]; //box shape
+
+    servoGeometry = new THREE.ExtrudeGeometry(extrudeShape, extrudeSettings);
+
+    /*
+    shapes = path1.toShapes();
+    shape1 = shapes[0];
+
+    holes = hole1.toShapes();
+    shape1.holes = holes;
+
+    shape1.holes.push(hole1);
+
+    var geometry1 = new THREE.ExtrudeGeometry(shape1, extrusionSettings);
+    */
+  }
 
   /*
   const visibilityMaterial = new THREE.MeshStandardMaterial({
@@ -160,7 +206,7 @@ export const ServoShapes = function ({ servo, servoEditId }) {
             (Math.PI / 1 + Math.abs(servo.rotation.z)),
         ]}
         scale={[scaleX, scaleY, scaleZ]}
-        geometry={servoShapeData[servo.type][servo.shape].geometry}
+        geometry={servoGeometry}
         material={useMaterial}
       ></mesh>
     </group>

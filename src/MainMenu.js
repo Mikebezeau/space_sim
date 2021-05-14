@@ -1,3 +1,4 @@
+import React from "react";
 import * as THREE from "three";
 import { useThree, useFrame } from "@react-three/fiber";
 import { useRef } from "react";

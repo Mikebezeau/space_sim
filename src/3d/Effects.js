@@ -1,3 +1,4 @@
+import React from "react";
 import { useRef, useEffect } from "react";
 import { extend, useThree, useFrame } from "@react-three/fiber";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
@@ -22,9 +23,10 @@ export default function Effects() {
   const glitch = useRef();
   const health = useStore((state) => state.health);
   const { scene, gl, size, camera } = useThree();
-  useEffect(() => void composer.current.setSize(size.width, size.height), [
-    size,
-  ]);
+  useEffect(
+    () => void composer.current.setSize(size.width, size.height),
+    [size]
+  );
   useFrame(() => {
     glitch.current.factor += (1 - health / 100 - glitch.current.factor) * 0.1;
     composer.current.render();

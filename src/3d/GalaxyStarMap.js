@@ -1,3 +1,4 @@
+import React from "react";
 import { SCALE } from "../util/gameUtil";
 import useStore from "../stores/store";
 import SystemMap from "./SystemMap";

@@ -67,8 +67,9 @@ const servoUtil = {
   },
 
   size: function (scale, classValue) {
+    //used to calculate size of servo parts 3d rendering
     let size = applyScaledWeightMult(scale, classValue);
-    return Math.sqrt(size); //reflecting volume change when dimensions change
+    return size / 4; //slight reflection of volume change when dimensions change
   },
 
   structure: function (scale, classValue, SPMod) {
@@ -132,13 +133,17 @@ const servoUtil = {
 
 const mech = {
   size(servoList) {
-    let size = 0;
+    let mechSize = 0;
+    let largestOffset = 0;
     //find largest servo and set size to this value
     servoList.forEach((s, i) => {
-      //servo & armor weight
-      size = s.size() > size ? s.size() : size;
+      //servo & offset
+      mechSize = s.size() > mechSize ? s.size() : mechSize;
+      const offsetVal =
+        Math.abs(s.offset.x) + Math.abs(s.offset.y) + Math.abs(s.offset.z);
+      largestOffset = offsetVal > largestOffset ? offsetVal : largestOffset;
     });
-    return size;
+    return mechSize + largestOffset;
   },
 
   meleeBonus(hydraulicsType) {

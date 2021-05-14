@@ -1,3 +1,4 @@
+import React from "react";
 import { weaponList } from "../data/weaponData";
 import useEquipStore from "../stores/equipStore";
 
