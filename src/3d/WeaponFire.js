@@ -6,59 +6,64 @@ import useStore from "../stores/store";
 import { SCALE } from "../util/gameUtil";
 
 const lightgreen = new THREE.Color("lightgreen");
-const laserGeometry = new THREE.BoxBufferGeometry(
-  50 * SCALE,
-  50 * SCALE,
-  5000 * SCALE
-);
-const laserMaterial = new THREE.MeshStandardMaterial({
-  color: lightgreen,
-  emissive: lightgreen,
-  emissiveIntensity: 1,
-});
+
+const weaponFireGeometry = {
+  beam: new THREE.BoxBufferGeometry(0.1 * SCALE, 0.1 * SCALE, 200 * SCALE),
+  proj: new THREE.BoxBufferGeometry(0.2 * SCALE, 0.2 * SCALE, 50 * SCALE),
+  missile: new THREE.BoxBufferGeometry(0.5 * SCALE, 0.5 * SCALE, 5 * SCALE),
+};
+
+const weaponFireMaterial = {
+  beam: new THREE.MeshStandardMaterial({
+    color: lightgreen,
+    emissive: lightgreen,
+    emissiveIntensity: 1,
+  }),
+};
 
 export default function WeaponFire() {
-  const lasers = useStore((state) => state.lasers);
-  const setLasers = useStore((state) => state.actions.setLasers);
-  const laserGroup = useRef();
+  const weaponFireList = useStore((state) => state.weaponFireList);
+  const removeWeaponFire = useStore((state) => state.actions.removeWeaponFire);
+  const weaponFireGroup = useRef();
 
   //const { clock } = useStore((state) => state.mutation);
 
   useFrame(() => {
-    if (!laserGroup.current) return null;
+    if (!weaponFireGroup.current) return null;
+    //weaponFire movement update
 
-    //laser movement update
-    for (let i = 0; i < lasers.length; i++) {
-      const group = laserGroup.current.children[i];
-      lasers[i].object3d.translateZ(-5000 * SCALE);
-      group.position.copy(lasers[i].object3d.position);
-      group.rotation.copy(lasers[i].object3d.rotation);
-    }
+    weaponFireList.forEach((weaponFire, i) => {
+      const group = weaponFireGroup.current.children[i];
+      if (weaponFire.firstFrameSpeed !== false) {
+        //show the weapons firing out of the guns before moving the bullets the first time
+        //move them up to where the ship is now
+        weaponFire.object3d.translateZ(weaponFire.firstFrameSpeed * SCALE);
+        weaponFire.firstFrameSpeed = false;
+        //move the bullet to it's position on the weapon to to show accuratly what weapon its coming from
+      } else weaponFire.object3d.translateZ(weaponFire.velocity * SCALE);
 
-    setLasers(lasers);
+      group.position.copy(weaponFire.object3d.position);
+      group.rotation.copy(weaponFire.object3d.rotation);
+    });
 
+    removeWeaponFire();
     /*
-      if (
-        //laserGroup.current.children[laserGroup.current.children.length - 1] &&
-        laserGroup.current.children[0] &&
-        Math.abs(Math.sin(clock.getElapsedTime())) < 0.01
-      )
-        console.log(
-          laserGroup.current.children[0].position,
-          ship.position
-        );
-*/
+    if (
+      //weaponFireGroup.current.children[weaponFireGroup.current.children.length - 1] &&
+      weaponFireGroup.current.children[0] &&
+      Math.abs(Math.sin(clock.getElapsedTime())) < 0.03
+    )
+      console.log(weaponFireGroup.current.children[0].position);*/
   });
   return (
     <>
-      <group ref={laserGroup}>
-        {lasers.map((laser, i) => (
+      <group ref={weaponFireGroup}>
+        {weaponFireList.map((weaponFire) => (
           //PLACE ALL WEAPON FIRING POINTS HERE // DIFFERENT ref FOR DIFFERENT WEAPON GROUPS
-          <group key={i}>
+          <group key={weaponFire.id}>
             <mesh
-              geometry={laserGeometry}
-              material={laserMaterial}
-              emissive="#fff"
+              geometry={weaponFireGeometry[weaponFire.weaponType]}
+              material={weaponFireMaterial.beam}
             />
           </group>
         ))}

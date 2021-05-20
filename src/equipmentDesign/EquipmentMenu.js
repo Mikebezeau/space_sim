@@ -1,16 +1,18 @@
 //import React, { useMemo, useRef, useEffect } from "react";
 import React, { useState } from "react";
 import styled, { css } from "styled-components";
-import useStore from "./stores/store";
-import useEquipStore from "./stores/equipStore";
-import mechDesigns from "./data/mechDesigns";
+import useStore from "../stores/store";
+import useEquipStore from "../stores/equipStore";
+import mechDesigns from "../data/mechDesigns";
 
-import Mech from "./equipment/Mech";
-import { Crew, CrewAssignSpaces } from "./equipment/Crew";
-import { Servos, ServoEditButtons } from "./equipment/Servos";
-import ServoHydraulics from "./equipment/ServoHydraulics";
-import { Weapons, WeaponsAssignSpaces } from "./equipment/Weapons";
-import { LandingBay, LandingBayAssignSpaces } from "./equipment/LandingBay";
+import { equipList } from "../data/equipData";
+import Mech from "../equipment/Mech";
+import { Crew, CrewAssignSpaces } from "../equipment/Crew";
+import { Servos } from "../equipment/Servos";
+import ServoEditButtons from "../equipmentDesign/ServoEditButtons";
+//import ServoHydraulics from "./equipment/ServoHydraulics";
+import { Weapons, WeaponsAssignSpaces } from "../equipment/Weapons";
+import { LandingBay, LandingBayAssignSpaces } from "../equipment/LandingBay";
 
 export default function EquipmentMenu() {
   //BLUEPRINT SELECTION MENU

@@ -1,30 +1,34 @@
-import React from "react";
+import React, { useRef } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
 //import { useThree, useLoader, useFrame } from "@react-three/fiber";
 //import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { useRef } from "react";
-import useStore from "./stores/store";
-import useEquipStore from "./stores/equipStore";
-import BuildMech from "./3d/BuildMech";
-import { equipList } from "./data/equipData";
+import useStore from "../stores/store";
+import useEquipStore from "../stores/equipStore";
+import BuildMech from "../3d/BuildMech";
+import { equipList } from "../data/equipData";
 
-export default function MainMenu() {
+export default function EquipmentBlueprint() {
   const {
     mainMenuSelection,
     editServoId,
     editWeaponId,
-    editShipRotation,
+    editShipRotationVal,
     editShipZoom,
     mechBP,
   } = useEquipStore((state) => state);
   const { camera } = useThree();
-  const { clock } = useStore((state) => state.mutation);
+  const { clock, mouse } = useStore((state) => state.mutation);
   const ref = useRef();
-  const light = useRef();
-  //console.log(mechBP.size());
+  //const light = useRef();
+
   useFrame(() => {
     //move camera away to look at larger mech
-    camera.position.set(0, 0, mechBP.size() / 2 + editShipZoom); // design build is at smaller size, so as able to display largest mech size without flicker
+    camera.position.set(
+      0,
+      0,
+      (mechBP.size() * 4) / equipList.scale.weightMult[mechBP.scale] +
+        editShipZoom
+    ); // design build is at smaller size (not scaled), so as able to display largest mech size without flicker
     camera.lookAt(0, 0, 0);
     //set light position at camera
     //light.current.position.copy(camera.position);
@@ -41,10 +45,12 @@ export default function MainMenu() {
         //modify by player selected rotation
 
         const rotation = {
-          x: Math.PI / 4,
+          x:
+            Math.sign(editShipRotationVal.y) *
+            (Math.PI / 1 + Math.abs(editShipRotationVal.y)),
           y:
-            Math.sign(editShipRotation.y) *
-            (Math.PI / 1 + Math.abs(editShipRotation.y)),
+            Math.sign(editShipRotationVal.x) *
+            (Math.PI / 1 + Math.abs(editShipRotationVal.x)),
           z: 0,
         };
 

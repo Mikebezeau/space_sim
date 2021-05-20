@@ -175,7 +175,9 @@ const mech = {
     let servoWeapons = [];
     Object.values(weaponList).forEach((weapons, key) => {
       weapons.forEach((weapon) => {
-        if (weapon.locationServoId === servoId) servoWeapons.push(weapon);
+        if (weapon.locationServoId === servoId) {
+          servoWeapons.push(weapon);
+        }
       });
     });
     return servoWeapons;
@@ -189,6 +191,20 @@ const mech = {
       });
     });
     return found;
+  },
+
+  WeaponListWithServoOffset: function (servos, weaponList) {
+    let weaponListWithOffset = [];
+    Object.values(weaponList).forEach((weapons) => {
+      weapons.forEach((weapon) => {
+        weapon.servoOffset = servoUtil.servoLocation(
+          weapon.locationServoId,
+          servos
+        ).offset;
+        weaponListWithOffset.push(weapon);
+      });
+    });
+    return weaponListWithOffset;
   },
 
   totalWeight: function (servoList, weaponList, weightIneff, weightEff) {

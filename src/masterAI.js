@@ -3,45 +3,10 @@ import { Object3D, Vector3 } from "three";
 import { distance, SCALE } from "./util/gameUtil";
 
 export function loopAI(playerShip, enemies, clock) {
-  //const gltf = useLoader(GLTFLoader, "/gltf/drone.gltf");
   const dummyObj = new THREE.Object3D();
   const toTargetQuat = new THREE.Quaternion(),
     curQuat = new THREE.Quaternion();
 
-  /*
-fleet / ship groups
-    group large ships together based on distance to form fleets
-    each large ship will be assigned nearby smaller ships to form a support sub group
-    remaining small ships that have not been assigned will for rogue attack groups
-    each group of smaller ships will be divided into further sub groups according to max # of ships / group
-
-enemy ship properties:
-    guid //global ship id
-    groupLeaderGuid //global ship id of who is the group leader (or this ships own id if it is the group leader)
-    groupId // id of group this ship is assigned to
-
-methods:
-    detect targets (scanning)
-    choose target / protect:self, group, leader
-    select desitation
-    turn to target
-    select speed
-    attack
-    run away / hide
-
-choose target:
-    coordinate attacks with allies
-    power level of target, effect whether should attack / run
-
-select desitation:
-    leader patrol
-    depending if target, move around blocking objects
-    stay within certain distance of leader
-    move to turn weapons toward target if attacking
-
-
-
-*/
   enemies.forEach((enemy, i) => {
     //select target
     //make sure the group leader is alive
@@ -74,13 +39,17 @@ select desitation:
     curQuat.setFromEuler(enemy.object3d.rotation);
 
     //ONLY CHANGE DIRECTION IF a little distance away from target destination so that jittering deosnt happen
+    const distanceFromTargetLocation = distance(
+      enemy.object3d.position,
+      destinationPosition
+    );
     //direction quat pointing to player location
-    if (distance(dummyObj.position, destinationPosition) > 500 * SCALE) {
+    if (distanceFromTargetLocation > 500 * SCALE) {
       dummyObj.lookAt(destinationPosition);
       toTargetQuat.setFromEuler(dummyObj.rotation);
       //get difference of angles in radians // 360 degres = 6.28319 radians
-      const angleDiff = curQuat.angleTo(toTargetQuat);
       /*
+      const angleDiff = curQuat.angleTo(toTargetQuat);
       if (enemy.guid === 150 && clock.getElapsedTime() % 1 < 0.05) {
         console.log(angleDiff);
       }
@@ -89,14 +58,11 @@ select desitation:
       const manueverVal = 0.5 / Math.abs(enemy.mechBP.MV());
       enemy.object3d.rotation.setFromQuaternion(
         curQuat.slerp(toTargetQuat.normalize(), 0.2 * manueverVal)
-      );
+      ); // .rotateTowards for a static rotation value
     }
     //speed equals same speed as leader
     //??speed depending on distance away
-    const distanceFromTargetLocation = distance(
-      enemy.object3d.position,
-      destinationPosition
-    );
+
     enemy.speed =
       enemy.guid === enemy.groupLeaderGuid
         ? //if ship is the leader
@@ -168,3 +134,38 @@ function groupFollowPosition(enemy, enemyLeader, enemies, clock) {
 
   return destinationObject.position;
 }
+
+/*
+fleet / ship groups
+    group large ships together based on distance to form fleets
+    each large ship will be assigned nearby smaller ships to form a support sub group
+    remaining small ships that have not been assigned will for rogue attack groups
+    each group of smaller ships will be divided into further sub groups according to max # of ships / group
+
+enemy ship properties:
+    guid //global ship id
+    groupLeaderGuid //global ship id of who is the group leader (or this ships own id if it is the group leader)
+    groupId // id of group this ship is assigned to
+
+methods:
+    detect targets (scanning)
+    choose target / protect:self, group, leader
+    select desitation
+    turn to target
+    select speed
+    attack
+    run away / hide
+
+choose target:
+    coordinate attacks with allies
+    power level of target, effect whether should attack / run
+
+select desitation:
+    leader patrol
+    depending if target, move around blocking objects
+    stay within certain distance of leader
+    move to turn weapons toward target if attacking
+
+
+
+*/

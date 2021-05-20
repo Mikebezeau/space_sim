@@ -2,15 +2,11 @@ import React from "react";
 import { SCALE } from "../util/gameUtil";
 import useStore from "../stores/store";
 import SystemMap from "./SystemMap";
-import { useSetPlanets } from "../hooks/usePlanets";
-
-const seedrandom = require("seedrandom");
 
 export default function GalaxyStarMap() {
   const galaxyStarPositions = useStore((state) => state.galaxyStarPositions);
   const selectedStar = useStore((state) => state.selectedStar);
-
-  const planets = useSetPlanets(seedrandom(selectedStar), 2, 2);
+  const planets = useStore((state) => state.planets);
 
   //get star positions from store
   return (

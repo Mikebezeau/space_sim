@@ -1,36 +1,12 @@
 import create from "zustand";
 import {
+  guid,
   loadBlueprint,
   initPlayerMechBP,
   initMechBP,
   initMechServo,
   initWeaponBP,
 } from "../util/initEquipUtil";
-
-const guid = (A) => {
-  //global unique ID
-  //return lowest number possible from array.guid
-  let n = A.length;
-  // To mark the occurrence of elements
-  let present = new Array(n + 1);
-
-  for (let i = 0; i < n + 1; i++) {
-    present[i] = false;
-  }
-  // Mark the occurrences
-  for (let i = 0; i < n; i++) {
-    if (A[i].id > 0 && A[i].id <= n) {
-      present[A[i].id] = true;
-    }
-  }
-  // Find the first element which didn't appear in the original array
-  for (let i = 1; i <= n; i++) {
-    if (!present[i]) {
-      return i;
-    }
-  }
-  return n + 1;
-};
 
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 //                GLOBAL VARIABLES
@@ -126,15 +102,33 @@ const [useEquipStore] = create((set, get) => {
             mechBP: { ...state.mechBP, [prop]: val },
           }));
         },
+        editSetMouseDown(bool) {
+          set((state) => ({
+            editMouseDown: bool,
+          }));
+        },
+        editShipMouseRotation({ clientX: x, clientY: y }) {
+          if (get().editMouseDown) {
+            const mouseX = (x - window.innerWidth / 2) / window.innerWidth;
+            const mouseY = (y - window.innerHeight / 2) / window.innerHeight;
+
+            let rotation = get().editShipRotationVal;
+            rotation.x = rotation.x + mouseX / 10;
+            rotation.y = rotation.y + mouseY / 10;
+            set((state) => ({
+              editShipRotationValVal: { rotation },
+            }));
+          }
+        },
         editShipRotation(axis, direction) {
-          let rotation = get().editShipRotation;
+          let rotation = get().editShipRotationVal;
           if (axis === "reset") rotation = { x: 0, y: 0, z: 0 };
           else {
             //rotate a fraction of a radian and use mod (%) to reset to 0 when full 360 reached
-            rotation[axis] = (rotation[axis] + direction * 0.25) % 3.25;
+            rotation[axis] = (rotation[axis] + direction * 0.25) % Math.PI;
           }
           set((state) => ({
-            editShipRotation: rotation,
+            editShipRotationVal: rotation,
           }));
         },
         editShipZoom(direction) {
@@ -403,7 +397,8 @@ const [useEquipStore] = create((set, get) => {
     editServoId: null, //used for any selection of servoId in menus
     editWeaponId: null, //used for any selection of weaponId in menus
     editLandingBayId: null,
-    editShipRotation: { x: 0, y: 0, z: 0 }, //used for any selection of weaponId in menus
+    editShipRotationVal: { x: Math.PI / 4, y: 0, z: 0 }, //used for any selection of weaponId in menus
+    editMouseDown: false,
     editShipZoom: 0,
     //MECH blueprint TEMPLATE
     mechBP: initMechBP(0),

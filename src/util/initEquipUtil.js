@@ -5,6 +5,32 @@ import { applyScaledCPMult, servoUtil, mech, armorUtil } from "./equipUtil";
 import { weaponUtil } from "./weaponUtil";
 import mechDesigns from "../data/mechDesigns";
 
+//CREATING UNIQUE IDS
+const guid = (A) => {
+  //global unique ID
+  //return lowest number possible from array.guid
+  let n = A.length;
+  // To mark the occurrence of elements
+  let present = new Array(n + 1);
+
+  for (let i = 0; i < n + 1; i++) {
+    present[i] = false;
+  }
+  // Mark the occurrences
+  for (let i = 0; i < n; i++) {
+    if (A[i].id > 0 && A[i].id <= n) {
+      present[A[i].id] = true;
+    }
+  }
+  // Find the first element which didn't appear in the original array
+  for (let i = 1; i <= n; i++) {
+    if (!present[i]) {
+      return i;
+    }
+  }
+  return n + 1;
+};
+
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 //                all MECH PROPERTIES and METHODS
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -476,6 +502,7 @@ const initWeaponBP = function (guid, weaponType, scale) {
 };
 
 export {
+  guid,
   loadBlueprint,
   initPlayerMechBP,
   initEnemyMechBP,

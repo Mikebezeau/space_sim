@@ -30,13 +30,13 @@ export default function Ship() {
   const mutation = useStore((state) => state.mutation);
   const { clock, mouse, ray } = mutation;
   const ship = useStore((state) => state.ship);
+  const weaponFireLightTimer = useStore((state) => state.weaponFireLightTimer);
   const speed = useStore((state) => state.speed);
-  const lasers = useStore((state) => state.lasers);
   const setShipPosition = useStore((state) => state.actions.setShipPosition);
   const playerMechBP = useEquipStore((state) => state.playerMechBP); //for rendering ship servo shapes
 
   const main = useRef();
-  const laserLight = useRef();
+  const weaponFireLight = useRef();
   const exhaust = useRef();
   const engineLight = useRef();
   const cross = useRef();
@@ -103,11 +103,11 @@ export default function Ship() {
     engineLight.current.intensity = speed > 0 ? speed * 0.05 : 0;
 
     //weapon firing light blast
-    laserLight.current.intensity +=
-      ((lasers.length && Date.now() - lasers[lasers.length - 1].time < 100
+    weaponFireLight.current.intensity +=
+      ((weaponFireLightTimer && Date.now() - weaponFireLightTimer < 100
         ? 1
         : 0) -
-        laserLight.current.intensity) *
+        weaponFireLight.current.intensity) *
       0.3;
 
     // Get ships orientation and save it to the stores ray (used for hit detection)
@@ -173,7 +173,7 @@ export default function Ship() {
         <BuildMech mechBP={playerMechBP[0]} showAxisLines={false} />
 
         <pointLight
-          ref={laserLight}
+          ref={weaponFireLight}
           position={[0, 0, -0.2]}
           distance={1}
           intensity={0}

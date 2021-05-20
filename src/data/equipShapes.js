@@ -133,8 +133,9 @@ const selectMaterial = new THREE.MeshStandardMaterial({
 
 export const ServoShapes = function ({
   servo,
+  drawDistanceLevel,
   servoEditId,
-  landingBay,
+  //landingBay,
   landingBayServoLocationId,
   landingBayPosition,
 }) {
@@ -156,13 +157,18 @@ export const ServoShapes = function ({
   const scaleZ =
     servo.scaleAdjust.z + servoShapeData[servo.type][servo.shape].scale[2];
 
-  const servoGeometry = servoShapeData[servo.type][servo.shape].geometry;
+  //if there is a simpler version of this shape created to be shown at further distance brackets, show that version instead of detailed version
+  let servoGeometry = servoShapeData[servo.type][servo.shape].geometry[0]; /*
+  servoGeometry = servoGeometry[drawDistanceLevel]
+    ? servoGeometry[drawDistanceLevel]
+    : servoGeometry[0];*/
 
   let ServoMesh = new THREE.Mesh(servoGeometry, useMaterial);
 
-  if (landingBayServoLocationId === servo.id) {
+  //only draw landing bay if within a certain distance
+  if (drawDistanceLevel === 0 && landingBayServoLocationId === servo.id) {
     // shape to cut from servo shape
-    const landingBayHole = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1));
+    const landingBayHole = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 1));
     // Offset box by half its width
     landingBayHole.position.set(
       landingBayPosition.x,
@@ -178,6 +184,7 @@ export const ServoShapes = function ({
     ServoMesh = CSG.subtract(ServoMesh, landingBayHole);
 
     //add a translucent forcefield type shape on hole
+    /*
     const landingBayGlowMaterial = new THREE.MeshStandardMaterial({
       color: new THREE.Color("#669"),
       emissive: new THREE.Color("#669"),
@@ -189,7 +196,7 @@ export const ServoShapes = function ({
       landingBayHole.geometry,
       landingBayGlowMaterial
     );
-
+*/
     // Add landingBayHoleForceField to ServoMesh
     //ServoMesh = CSG.union(ServoMesh, landingBayHoleForceField);
   }
@@ -223,7 +230,7 @@ export const WeaponShapes = function ({ weapon, weaponEditId }) {
         rotation={weaponShapeData[weapon.data.weaponType][0].rotation}
         position={weaponShapeData[weapon.data.weaponType][0].position}
         scale={weaponShapeData[weapon.data.weaponType][0].scale}
-        geometry={weaponShapeData[weapon.data.weaponType][0].geometry}
+        geometry={weaponShapeData[weapon.data.weaponType][0].geometry[0]}
         material={useMaterial}
       ></mesh>
     </group>

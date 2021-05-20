@@ -12,7 +12,7 @@ const ringMaterial = new THREE.MeshBasicMaterial({
 });
 const planetGeometry = new THREE.DodecahedronBufferGeometry(0.5, 0);
 const shipGeometry = new THREE.DodecahedronBufferGeometry(0.2, 0);
-const maxMapSize = 15;
+const maxMapSize = 10;
 
 export default function SystemMap({ showPlayer = false }) {
   const systemMap = useRef();

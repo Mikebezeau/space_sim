@@ -7,29 +7,33 @@ import { Canvas } from "@react-three/fiber";
 import MainMenu from "./MainMenu";
 import Stars from "./3d/Stars";
 import Planets from "./3d/Planets";
-import Stations from "./3d/Stations";
+//import Stations from "./3d/Stations";
 import Effects from "./3d/Effects";
 import Particles from "./3d/Particles";
 import EnemyMechs from "./3d/EnemyMechs";
 import Rocks from "./3d/Rocks";
 import Explosions from "./3d/Explosions";
 import Ship from "./3d/Ship";
-import TestMech from "./3d/TestMech";
+import ScannerReadout from "./3d/ScannerReadout";
+//import TestMech from "./3d/TestMech"; <TestMech />
 import WeaponFire from "./3d/WeaponFire";
 import SystemMap from "./3d/SystemMap";
 
 import TouchControls from "./TouchControls";
 import Hud from "./Hud";
-import EquipmentMenu from "./EquipmentMenu";
-import EquipmentBlueprint from "./EquipmentBlueprint";
+import EquipmentMenu from "./equipmentDesign/EquipmentMenu";
+import EquipmentBlueprint from "./equipmentDesign/EquipmentBlueprint";
 
 import useStore from "./stores/store";
+import useEquipStore from "./stores/equipStore";
 
 import {
   useKBControls,
   useMouseMove,
   useMouseClick,
-} from "./hooks/useMouseKBControls";
+  useMouseUp,
+  useMouseDown,
+} from "./controlHooks/useMouseKBControls";
 import {
   IS_MOBLIE,
   FLIGHT,
@@ -38,14 +42,26 @@ import {
 } from "./util/gameUtil";
 
 function App() {
-  const actions = useStore((state) => state.actions);
-  const playerScreen = useStore((state) => state.playerScreen);
+  const { actions, playerScreen } = useStore((state) => state);
+  const { basicMenu } = useEquipStore((state) => state.equipActions);
 
   //mouse move
   function handleMouseMove(e) {
-    if (!IS_MOBLIE) actions.updateMouse(e);
+    if (!IS_MOBLIE && playerScreen !== EQUIPMENT_SCREEN) actions.updateMouse(e);
+    else basicMenu.editShipMouseRotation(e);
   }
   useMouseMove(handleMouseMove);
+
+  //mouse down
+  function handleMouseDown(e) {
+    if (playerScreen === EQUIPMENT_SCREEN) basicMenu.editSetMouseDown(true);
+  }
+  useMouseDown(handleMouseDown);
+  //mouse up
+  function handleMouseUp(e) {
+    if (playerScreen === EQUIPMENT_SCREEN) basicMenu.editSetMouseDown(false);
+  }
+  useMouseUp(handleMouseUp);
 
   //mouse click
   function handleMouseClick(e) {
@@ -101,8 +117,8 @@ function App() {
               <Planets />
               <EnemyMechs />
               {/*<Stations />*/}
-              <TestMech />
               <Ship />
+              <ScannerReadout />
               <WeaponFire />
               <SystemMap showPlayer={true} />
             </Suspense>

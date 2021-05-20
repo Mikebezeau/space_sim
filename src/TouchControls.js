@@ -5,7 +5,7 @@ import {
   useTouchStartControls,
   useTouchMoveControls,
   useTouchEndControls,
-} from "./hooks/useTouchControls";
+} from "./controlHooks/useTouchControls";
 
 export default function Hud() {
   const actions = useStore((state) => state.actions);

@@ -1,9 +1,11 @@
 import React from "react";
-import * as THREE from "three";
+import { MeshStandardMaterial, Color } from "three";
 import { ServoShapes, WeaponShapes } from "../data/equipShapes";
+import { equipList } from "../data/equipData";
 
 export default function BuildMech({
   mechBP,
+  drawDistanceLevel = 0,
   servoEditId = null,
   weaponEditId = null,
   editMode = false,
@@ -11,20 +13,20 @@ export default function BuildMech({
 }) {
   //place edit axis lines
 
-  const glowMaterial = new THREE.MeshStandardMaterial({
-    color: new THREE.Color("lightblue"),
-    emissive: new THREE.Color("lightblue"),
+  const glowMaterial = new MeshStandardMaterial({
+    color: new Color("lightblue"),
+    emissive: new Color("lightblue"),
     emissiveIntensity: 0.5,
   });
 
-  const redGlowMaterial = new THREE.MeshStandardMaterial({
-    color: new THREE.Color("red"),
-    emissive: new THREE.Color("red"),
+  const redGlowMaterial = new MeshStandardMaterial({
+    color: new Color("red"),
+    emissive: new Color("red"),
     emissiveIntensity: 0.5,
   });
 
   return (
-    <group scale={editMode ? 1 / Math.cbrt(mechBP.size()) : 1}>
+    <group scale={editMode ? 2 / equipList.scale.weightMult[mechBP.scale] : 1}>
       {mechBP.servoList.map((servo, index) => (
         <group
           key={index}
@@ -32,6 +34,7 @@ export default function BuildMech({
         >
           <ServoShapes
             servo={servo}
+            drawDistanceLevel={drawDistanceLevel}
             landingBay={mechBP.landingBay}
             landingBayServoLocationId={mechBP.landingBayServoLocationId}
             landingBayPosition={mechBP.landingBayPosition}
@@ -42,7 +45,11 @@ export default function BuildMech({
               key={j}
               position={[weapon.offset.x, weapon.offset.y, weapon.offset.z]}
             >
-              <WeaponShapes weapon={weapon} weaponEditId={weaponEditId} />
+              <WeaponShapes
+                weapon={weapon}
+                drawDistanceLevel={drawDistanceLevel}
+                weaponEditId={weaponEditId}
+              />
             </group>
           ))}
         </group>

@@ -1,27 +1,29 @@
+import create from "zustand";
 import * as THREE from "three";
+
+import { Object3D, Vector3 } from "three";
 import { Curves } from "three/examples/jsm/curves/CurveExtras";
 import { addEffect } from "@react-three/fiber";
-import create from "zustand";
-//import * as audio from "./audio";
-import { distance, SCALE, FLIGHT, NUM_SCREEN_OPTIONS } from "../util/gameUtil";
-import { useSetPlanets } from "../hooks/usePlanets";
-import { loopAI } from "../masterAI";
-import { Object3D, Vector3 } from "three";
 
-import { initEnemyMechBP } from "../util/initEquipUtil";
+//import * as audio from "./audio";
+import { loopAI } from "../masterAI";
+
+import { mech } from "../util/equipUtil";
+import { guid, initPlayerMechBP, initEnemyMechBP } from "../util/initEquipUtil";
+import { distance, SCALE, FLIGHT, NUM_SCREEN_OPTIONS } from "../util/gameUtil";
 
 const seedrandom = require("seedrandom");
-const systemScale = 1,
-  planetScale = 4;
+const systemScale = 4, //5,
+  planetScale = 1; //8;
 
-let guid = 1; //global unique ID
+let guidCounter = 1; //global unique ID
 
 //const [useStore, api] = create((set, get) => {
 const [useStore] = create((set, get) => {
   //change spline and track to change where the space debrie and asteroids are located
   let spline = new Curves.GrannyKnot();
   let track = new THREE.TubeBufferGeometry(spline, 250, 15 * SCALE, 10, true);
-  //these used for laser hits
+  //these used for weaponFire hits
   let cancelExplosionTO = undefined;
   const box = new THREE.Box3();
 
@@ -40,10 +42,12 @@ const [useStore] = create((set, get) => {
     points: 0,
     health: 100,
     ship: initShip(),
+    playerMechBP: initPlayerMechBP(),
     playerScreen: FLIGHT,
+    weaponFireLightTimer: 0,
     speed: 1,
     stationDock: { stationIndex: 0, portIndex: 0 },
-    lasers: [], // {postion, time}
+    weaponFireList: [], //
     explosions: [],
     rocks: randomData(
       120,
@@ -53,7 +57,7 @@ const [useStore] = create((set, get) => {
       () => 1 + Math.random() * 2.5
     ),
     enemies: randomEnemies(track),
-    planets: useSetPlanets(seedrandom(0), systemScale, planetScale),
+    planets: initSolarSystem(seedrandom(0), systemScale, planetScale),
     stations: randomStations(seedrandom(0), 1),
     mutation: {
       t: 0,
@@ -81,7 +85,7 @@ const [useStore] = create((set, get) => {
 
       // Re-usable objects
       dummy: new THREE.Object3D(),
-      ray: new THREE.Ray(), //USED FOR RAY FROM SHIP for laser hit detection
+      ray: new THREE.Ray(), //USED FOR RAY FROM SHIP for weaponFire hit detection
       box: new THREE.Box3(), //also used for ray hit detection
     },
 
@@ -108,11 +112,11 @@ const [useStore] = create((set, get) => {
         addEffect(() => {
           if (get().playerScreen !== FLIGHT) return;
 
-          const { ship, rocks, enemies } = get();
+          const { ship, weaponFireList, rocks, enemies, planets } = get();
           //run enemy AI routine
           loopAI(ship, enemies, get().mutation.clock);
 
-          const time = Date.now();
+          const timeNow = Date.now();
           /*
           //interseting code for moving along a geometric path
           const t = (mutation.t =
@@ -121,6 +125,53 @@ const [useStore] = create((set, get) => {
           mutation.position = track.parameters.path.getPointAt(t);
           mutation.position.multiplyScalar(mutation.scale);
 */
+          // test for distance to planets and enemies, set drawDistanceLevel accordingly
+
+          //drawDistanceLevel will be updated when an appropriate distance is reached to reduce quality of enemy render model
+          planets.forEach((planet, index) => {
+            const drawDistanceLevel = Math.floor(
+              (distance(planet.position, ship.position) - planet.radius) /
+                (25000 * SCALE)
+            );
+
+            if (
+              planet.drawDistanceLevel !== drawDistanceLevel &&
+              drawDistanceLevel < 2
+            ) {
+              /*console.log(
+                drawDistanceLevel
+                //distance(planet.position, ship.position),
+                //planet.radius
+              );*/
+
+              set((state) => ({
+                planets: state.planets.map((p, i) =>
+                  i === index
+                    ? { ...p, drawDistanceLevel: drawDistanceLevel }
+                    : p
+                ),
+              }));
+            }
+          });
+
+          //drawDistanceLevel will be updated when an appropriate distance is reached to reduce quality of enemy render model
+          enemies.forEach((enemy, index) => {
+            const drawDistanceLevel =
+              distance(enemy.object3d.position, ship.position) < 300000 * SCALE
+                ? 0
+                : 1;
+
+            if (enemy.drawDistanceLevel !== drawDistanceLevel) {
+              set((state) => ({
+                enemies: state.enemies.map((e, i) =>
+                  i === index
+                    ? { ...e, drawDistanceLevel: drawDistanceLevel }
+                    : e
+                ),
+              }));
+            }
+          });
+
           // test for hits
           const r = rocks.filter(actions.test);
           const e = enemies.filter(actions.test);
@@ -130,20 +181,15 @@ const [useStore] = create((set, get) => {
           //const previous = mutation.hits;
           mutation.hits = a.length;
           //if (previous === 0 && mutation.hits) playAudio(audio.click);
-          const lasers = get().lasers;
-          if (
-            mutation.hits &&
-            lasers.length &&
-            time - lasers[lasers.length - 1].time < 100
-          ) {
-            const updates = a.map((data) => ({ time: Date.now(), ...data }));
+          if (mutation.hits && weaponFireList.length) {
+            const updates = a.map((data) => ({ time: timeNow, ...data }));
             set((state) => ({ explosions: [...state.explosions, ...updates] }));
             clearTimeout(cancelExplosionTO);
             cancelExplosionTO = setTimeout(
               () =>
                 set((state) => ({
                   explosions: state.explosions.filter(
-                    ({ time }) => Date.now() - time <= 1000
+                    ({ time }) => timeNow - time <= 1000
                   ),
                 })),
               1000
@@ -161,7 +207,7 @@ const [useStore] = create((set, get) => {
           //if (a.some(data => data.distance < 15)) set(state => ({ health: state.health - 1 }))
         });
       },
-      //testing for laser hits using ray (ray from spaceship)
+      //testing for weaponFire hits using ray (ray from spaceship)
       test(data) {
         box.min.copy(data.object3d.position);
         box.max.copy(data.object3d.position);
@@ -223,33 +269,88 @@ const [useStore] = create((set, get) => {
         }
         set(() => ({ selectedStar: closest }));
         set(() => ({
-          planets: useSetPlanets(seedrandom(closest), systemScale, planetScale),
+          planets: initSolarSystem(
+            seedrandom(closest),
+            systemScale,
+            planetScale
+          ),
         }));
       },
-      //player ship shoot laser
+      //player ship shoot weapons
       shoot() {
-        let newLasers = [];
-        //for each weapon on the ship, find location and create a laser to be shot from there
-        let laserObj = new Object3D();
-        laserObj.position.copy(get().ship.position);
-        laserObj.rotation.copy(get().ship.rotation);
-        laserObj.translateY(-500 * SCALE);
+        const weaponListWithServoOffset = mech.WeaponListWithServoOffset(
+          get().playerMechBP[0].servoList,
+          get().playerMechBP[0].weaponList
+        );
+        let weaponFireUpdate = get().weaponFireList;
+        //for each weapon on the ship, find location and create a weaponFire to be shot from there
+        weaponListWithServoOffset.forEach((weapon) => {
+          let weaponFireObj = new Object3D();
+          weaponFireObj.position.copy(get().ship.position);
+          weaponFireObj.rotation.copy(get().ship.rotation);
 
-        newLasers.push({
-          object3d: laserObj,
-          time: Date.now(),
+          let weaponFireSpeed = 0;
+          let weaponFireOffsetZ = 0;
+          switch (weapon.data.weaponType) {
+            case "beam":
+              weaponFireSpeed = -200;
+              weaponFireOffsetZ = -100;
+              break;
+            case "proj":
+              weaponFireSpeed = -40;
+              weaponFireOffsetZ = -25;
+              break;
+            case "missile":
+              weaponFireSpeed = -20;
+              weaponFireOffsetZ = -2;
+              break;
+            default:
+              console.log("invalid weapon type");
+          }
+
+          weaponFireObj.translateX(
+            (weapon.offset.x + weapon.servoOffset.x) * SCALE
+          );
+          weaponFireObj.translateY(
+            (weapon.offset.y + weapon.servoOffset.y) * SCALE
+          );
+
+          weaponFireObj.translateZ(
+            (weapon.offset.z + weapon.servoOffset.z + weaponFireOffsetZ) * SCALE
+          );
+
+          let weaponFire = {
+            id: guid(weaponFireUpdate),
+            weaponType: weapon.data.weaponType,
+            object3d: weaponFireObj,
+            time: Date.now(),
+            firstFrameSpeed: -JSON.parse(JSON.stringify(get().speed)),
+            offset: { x: 0, y: 0, z: 0 },
+            velocity: weaponFireSpeed - JSON.parse(JSON.stringify(get().speed)),
+          };
+          weaponFireUpdate.push(weaponFire);
         });
-
+        //console.log(weaponFireUpdate);
         set((state) => ({
-          lasers: [...state.lasers.concat(newLasers)],
+          weaponFireList: weaponFireUpdate,
+          weaponFireLightTimer: Date.now(),
         }));
         //playAudio(audio.zap, 0.5);
       },
-      //lasers
-      setLasers(lasers) {
+      //
+      removeWeaponFire() {
+        //this was not working in a normal way
+        //would remove most elements and I don't know why
+        let updateWeaponFire = [];
+        get().weaponFireList.forEach((weaponFire) => {
+          if (Date.now() - weaponFire.time < 1000)
+            updateWeaponFire.push(weaponFire);
+        });
         set((state) => ({
-          lasers: lasers.filter((laser) => Date.now() - laser.time <= 1000),
+          weaponFireList: updateWeaponFire,
+          //weaponFireList: weaponFireList.filter((weaponFire) => Date.now() - weaponFire.time <= 1000),
         }));
+        //console.log(get().weaponFireList.length);
       },
 
       //player ship
@@ -422,7 +523,7 @@ function randomData(count, track, radius, size, randomScale) {
     const object3d = new Object3D();
     object3d.position.copy(offset);
     return {
-      guid: guid++,
+      guid: guidCounter++,
       groupLeaderGuid: 0,
       groupId: 0,
       scale: typeof randomScale === "function" ? randomScale() : randomScale,
@@ -438,15 +539,19 @@ function randomData(count, track, radius, size, randomScale) {
     };
   });
 }
+
 function randomEnemies(track) {
-  let enemies = randomData(10, track, 5 * SCALE, 0, 1);
-  enemies.forEach((enemy) => {
+  let enemies = randomData(1, track, 5 * SCALE, 0, 1);
+  enemies.forEach((enemy, index) => {
     enemy.groupLeaderGuid = 0;
     enemy.formation = null;
     enemy.formationPosition = new Vector3();
     enemy.speed = 10 + Math.random() * 10;
-    enemy.mechBP = initEnemyMechBP(2); //Math.floor(Math.random() * 3));
-    enemy.size = 1000 * enemy.mechBP.scaleVal(enemy.mechBP.scale) * SCALE;
+    enemy.mechBP = initEnemyMechBP(
+      index === 0 ? 3 : Math.floor(Math.random() * 2)
+    );
+    enemy.size = enemy.mechBP.size() * SCALE;
+    enemy.drawDistanceLevel = 0;
   });
 
   //group enemies into squads
@@ -496,6 +601,76 @@ function randomStations(rng, num) {
       //metalness: station.metalness,
     }),
   });
+  return temp;
+}
+
+function initSolarSystem(rng, systemScale = 1, planetScale = 1) {
+  let numPlanets = Math.floor(rng() * 7) + 4;
+  let temp = [];
+  //create sun
+  temp.push({
+    type: "SUN",
+    roughness: 0,
+    metalness: 1,
+    color: new THREE.Color(0xffffff),
+    radius: (600 + 10 * numPlanets) * SCALE * planetScale * numPlanets,
+    opacity: 1,
+    textureMap: 0,
+    drawDistanceLevel: 10,
+    transparent: false,
+    position: { x: 0, y: 0, z: 0 },
+    rotation: { x: 0, y: 0, z: 0 },
+    /*
+    Sun
+    age: millions - billions
+    mass: 
+      low (average)
+        13 jupiter = 1 sol
+
+    types:
+      cloud: hydrogen / helium
+      few million years gererate yellow/red main sequense star last billions using almost all hydrogen
+      rest of hyrdogen used star expands becomes red giant a few billion years
+      helium flash occurs start pulsats becaomes smaller and bluer
+      white dwarf
+      
+
+    */
+  });
+
+  //add moons around planets
+  for (let i = 1; i <= numPlanets; i++) {
+    const colors = [
+      new THREE.Color(0x173f5f),
+      new THREE.Color(0x173f5f),
+      new THREE.Color(0x20639b),
+      new THREE.Color(0x3caea3),
+      new THREE.Color(0xf6d55c),
+      new THREE.Color(0xed553b),
+    ];
+    const radius =
+      SCALE * i * 20 * (Math.floor(rng() * 5) + i * 2) * planetScale;
+    const a = 1 * systemScale;
+    //const b = (Math.floor(rng() * 250) + 875) * SCALE * systemScale;
+    const b = Math.floor(rng() * 500) * SCALE * systemScale;
+    const angle = 20 * i * systemScale;
+    const x = (a + b * angle) * Math.cos(angle) + temp[0].radius / 3;
+    const z = (a + b * angle) * Math.sin(angle) + temp[0].radius / 3;
+    temp.push({
+      type: "PLANET",
+      roughness: 1,
+      metalness: 0,
+      //color: colors[getRandomInt(4) + 1],
+      color: colors[Math.floor(rng() * 4) + 1],
+      radius: radius,
+      opacity: 1,
+      drawDistanceLevel: 0,
+      textureMap: Math.floor(rng() * 6) + 1,
+      transparent: false,
+      position: { x, y: 0, z },
+      rotation: { x: 0, y: 0, z: 0 },
+    });
+  }
   return temp;
 }
 

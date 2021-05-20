@@ -35,21 +35,21 @@ const extrudeSettings = {
 };
 
 export const geoList = {
-  box: new THREE.BoxBufferGeometry(1, 1, 1),
+  box: [new THREE.BoxBufferGeometry(1, 1, 1)],
   //BoxGeometry(width : Float, height : Float, depth : Float, widthSegments : Integer, heightSegments : Integer, depthSegments : Integer)
 
-  extrudeBox: new THREE.ExtrudeGeometry(extrudeShape, extrudeSettings),
+  extrudeBox: [new THREE.ExtrudeGeometry(extrudeShape, extrudeSettings)],
 
-  circle: new THREE.CircleGeometry(1, 8),
+  circle: [new THREE.CircleGeometry(1, 8)],
   //CircleGeometry(radius : Float, segments : Integer, thetaStart : Float, thetaLength : Float)
 
-  cone: new THREE.ConeGeometry(1, 1, 8),
+  cone: [new THREE.ConeGeometry(1, 1, 8)],
   //ConeGeometry(radius : Float, height : Float, radialSegments : Integer, heightSegments : Integer, openEnded : Boolean, thetaStart : Float, thetaLength : Float)
 
-  cylinder: new THREE.CylinderGeometry(1, 1, 1, 8),
+  cylinder: [new THREE.CylinderGeometry(1, 1, 1, 8)],
   //CylinderGeometry(radiusTop : Float, radiusBottom : Float, height : Float, radialSegments : Integer, heightSegments : Integer, openEnded : Boolean, thetaStart : Float, thetaLength : Float)
 
-  dodecahedron: new THREE.DodecahedronGeometry(1, 0),
+  dodecahedron: [new THREE.DodecahedronGeometry(1, 0)],
   //DodecahedronGeometry(radius : Float, detail : Integer) //20
   /*
   edges : new THREE.EdgesGeometry(geometryBox),
@@ -58,19 +58,19 @@ export const geoList = {
     new THREE.LineBasicMaterial({ color: 0xffffff })
   ),
   */
-  icosahedron: new THREE.IcosahedronGeometry(1, 0),
+  icosahedron: [new THREE.IcosahedronGeometry(1, 0)],
   //IcosahedronGeometry(radius : Float, detail : Integer) //12
 
   //LatheGeometry
   //https://threejs.org/docs/?q=geomet#api/en/geometries/LatheGeometry
 
-  octahedron: new THREE.OctahedronGeometry(1, 0),
+  octahedron: [new THREE.OctahedronGeometry(1, 0)],
   //OctahedronGeometry(radius : Float, detail : Integer) //8
 
   //ParametricGeometry
   //https://threejs.org/docs/?q=geomet#api/en/geometries/ParametricGeometry
 
-  plane: new THREE.PlaneGeometry(1, 1, 1),
+  plane: [new THREE.PlaneGeometry(1, 1, 1)],
   /*
     ring: {
       geo: new THREE.RingBufferGeometry(1, 1.01, 12),
@@ -82,12 +82,15 @@ export const geoList = {
     */
   //RingGeometry(innerRadius : Float, outerRadius : Float, thetaSegments : Integer, phiSegments : Integer, thetaStart : Float, thetaLength : Float)
 
-  sphere: new THREE.SphereGeometry(1, 32, 32),
+  sphere: [new THREE.SphereGeometry(1, 32, 32)],
 
-  tetrahedron: new THREE.TetrahedronGeometry(1, 0),
+  tetrahedron: [new THREE.TetrahedronGeometry(1, 0)],
   //TetrahedronGeometry(radius : Float, detail : Integer) //4
 
-  torus: new THREE.TorusGeometry(1, 0.2, 4, 100),
+  torus: [
+    new THREE.TorusGeometry(1, 0.2, 4, 34),
+    new THREE.TorusGeometry(1, 0.2, 0, 0),
+  ],
   //const geometry = new THREE.TorusGeometry( 10, 3, 16, 100 ); //3d ring
   //TorusGeometry(radius : Float, tube : Float, radialSegments : Integer, tubularSegments : Integer, arc : Float)
 
