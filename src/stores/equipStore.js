@@ -102,15 +102,26 @@ const [useEquipStore] = create((set, get) => {
             mechBP: { ...state.mechBP, [prop]: val },
           }));
         },
-        editSetMouseDown(bool) {
+        editSetMouseDown(buttonState, e = 0) {
           set((state) => ({
-            editMouseDown: bool,
+            editMouseDown: buttonState,
           }));
+          if (e)
+            set((state) => ({
+              editMouseDownPosition: {
+                x: (e.clientX - window.innerWidth / 2) / window.innerWidth,
+                y: (e.clientY - window.innerHeight / 2) / window.innerHeight,
+              },
+            }));
         },
         editShipMouseRotation({ clientX: x, clientY: y }) {
           if (get().editMouseDown) {
-            const mouseX = (x - window.innerWidth / 2) / window.innerWidth;
-            const mouseY = (y - window.innerHeight / 2) / window.innerHeight;
+            const mouseX =
+              (x - window.innerWidth / 2) / window.innerWidth -
+              get().editMouseDownPosition.x;
+            const mouseY =
+              (y - window.innerHeight / 2) / window.innerHeight -
+              get().editMouseDownPosition.y;
 
             let rotation = get().editShipRotationVal;
             rotation.x = rotation.x + mouseX / 10;
@@ -125,7 +136,8 @@ const [useEquipStore] = create((set, get) => {
           if (axis === "reset") rotation = { x: 0, y: 0, z: 0 };
           else {
             //rotate a fraction of a radian and use mod (%) to reset to 0 when full 360 reached
-            rotation[axis] = (rotation[axis] + direction * 0.25) % Math.PI;
+            rotation[axis] =
+              (rotation[axis] + (direction * Math.PI) / 8) % (Math.PI * 2);
           }
           set((state) => ({
             editShipRotationVal: rotation,
@@ -214,7 +226,8 @@ const [useEquipStore] = create((set, get) => {
             let rotation = servo.rotation;
             if (axis === "reset") rotation = { x: 0, y: 0, z: 0 };
             else {
-              rotation[axis] = (rotation[axis] + direction * 0.25) % 3.25;
+              rotation[axis] =
+                (rotation[axis] + (direction * Math.PI) / 8) % (Math.PI * 2);
             }
             set((state) => ({
               mechBP: {
@@ -399,6 +412,7 @@ const [useEquipStore] = create((set, get) => {
     editLandingBayId: null,
     editShipRotationVal: { x: Math.PI / 4, y: 0, z: 0 }, //used for any selection of weaponId in menus
     editMouseDown: false,
+    editMouseDownPosition: { x: 0, y: 0 },
     editShipZoom: 0,
     //MECH blueprint TEMPLATE
     mechBP: initMechBP(0),

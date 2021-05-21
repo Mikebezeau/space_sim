@@ -54,7 +54,7 @@ function App() {
 
   //mouse down
   function handleMouseDown(e) {
-    if (playerScreen === EQUIPMENT_SCREEN) basicMenu.editSetMouseDown(true);
+    if (playerScreen === EQUIPMENT_SCREEN) basicMenu.editSetMouseDown(true, e);
   }
   useMouseDown(handleMouseDown);
   //mouse up
@@ -66,7 +66,9 @@ function App() {
   //mouse click
   function handleMouseClick(e) {
     if (!IS_MOBLIE) {
-      playerScreen === FLIGHT ? actions.shoot() : actions.detectTargetStar();
+      playerScreen === FLIGHT
+        ? actions.setSelectedTargetIndex() // selects an enemy target then triggers store: actions.shoot()
+        : actions.detectTargetStar();
     }
   }
   useMouseClick(handleMouseClick);

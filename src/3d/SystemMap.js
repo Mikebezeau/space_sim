@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import React, { useRef } from "react";
+import React, { useRef } from "react"; //useMemo
 import { useThree, useFrame } from "@react-three/fiber";
 import { distance } from "../util/gameUtil";
 import useStore from "../stores/store";
@@ -10,11 +10,26 @@ const ringMaterial = new THREE.MeshBasicMaterial({
   color: new THREE.Color("lightgreen"),
   side: THREE.DoubleSide,
 });
-const planetGeometry = new THREE.DodecahedronBufferGeometry(0.5, 0);
+
+const planetGeometry = new THREE.DodecahedronBufferGeometry(0.3, 0);
 const shipGeometry = new THREE.DodecahedronBufferGeometry(0.2, 0);
-const maxMapSize = 10;
+const planetMaterial = new THREE.MeshBasicMaterial({
+  color: new THREE.Color("purple"),
+  emissive: "purple",
+  emissiveIntensity: "0.5",
+  wireframe: true,
+});
+const shipMaterial = new THREE.MeshBasicMaterial({
+  color: new THREE.Color("lightskyblue"),
+  emissive: "lightskyblue",
+  emissiveIntensity: "0.5",
+  wireframe: true,
+});
+
+const maxMapSize = 25;
 
 export default function SystemMap({ showPlayer = false }) {
+  const { ship } = useStore((state) => state);
   const systemMap = useRef();
   const { camera } = useThree();
   const camQuat = new THREE.Quaternion();
@@ -34,32 +49,27 @@ export default function SystemMap({ showPlayer = false }) {
     );
 
     systemMap.current.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI * 0.7);
-    //systemMap.current.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI);
-    /*
-    //trying to add angle to static system map
-    curQuat.setFromEuler(systemMap.current.rotation);
-    endQuat.setFromAxisAngle(Math.PI / 1.5, 0, 0);
-    systemMap.current.rotation.setFromQuaternion(curQuat.multiply(endQuat));
-    
-      <group ref={systemMap} rotation={[Math.PI / 1.5, 0, 0]} scale={SCALE}>
-        <SystemMap planets={planets} playerPos={ship.position} />
-      </group>
-*/
+
+    //could make the detected enemies show up on map and only update once per 5 seconds
   });
 
   const planets = useStore((state) => state.planets);
   //planet at end of array has largest orbit
-  const maxRadius = distance(planets[planets.length - 1].position, {
-    x: 0,
-    y: 0,
-    z: 0,
+  let maxRadius = 0;
+  planets.forEach((planets) => {
+    const distanceToSun = distance(planets.position, {
+      x: 0,
+      y: 0,
+      z: 0,
+    });
+    maxRadius = distanceToSun > maxRadius ? distanceToSun : maxRadius;
   });
-  const mapScale = maxMapSize / maxRadius;
-
+  const mapScale = showPlayer ? maxMapSize / maxRadius : 0.03;
+  console.log(mapScale, maxMapSize, maxRadius);
   return (
     <group ref={systemMap} scale={showPlayer ? SCALE : 1}>
       <System planets={planets} mapScale={mapScale} />
-      {showPlayer && <ShipPositions mapScale={mapScale} />}
+      {showPlayer && <ShipPositions mapScale={mapScale} ship={ship} />}
     </group>
   );
 }
@@ -79,61 +89,66 @@ function System({ planets, mapScale }) {
           material={ringMaterial}
         />
         <mesh
+          scale={1 + 0.25 * planet.radius}
           position={[
-            mapScale * planet.position.x,
-            mapScale * planet.position.z,
+            planet.position.x * mapScale,
+            planet.position.z * mapScale,
             0,
           ]}
           geometry={planetGeometry}
-        >
-          <meshStandardMaterial
-            attach="material"
-            emissive={planet.type === "SUN" ? "white" : "lightgreen"}
-            emissiveIntensity="0.5"
-            wireframe
-          />
-        </mesh>
+          material={planetMaterial}
+        ></mesh>
       </group>
     );
   });
 }
 
-function ShipPositions({ mapScale }) {
-  const { ship, enemies } = useStore((state) => state);
-
+function ShipPositions({ mapScale, ship }) {
+  //, enemies }) {
   return (
     <group>
       <mesh
         position={[mapScale * ship.position.x, mapScale * ship.position.z, 0]}
         geometry={shipGeometry}
-      >
-        <meshStandardMaterial
-          attach="material"
-          color="green"
-          emissive="green"
-          emissiveIntensity="0.5"
-          wireframe
-        />
-      </mesh>
-      {enemies.map((e, i) => (
-        <mesh
-          key={i}
-          position={[
-            mapScale * e.object3d.position.x,
-            mapScale * e.object3d.position.z,
-            0,
-          ]}
-          geometry={shipGeometry}
-        >
-          <meshStandardMaterial
-            attach="material"
-            color="red"
-            emissive="red"
-            emissiveIntensity="0.5"
-            wireframe
-          />
-        </mesh>
-      ))}
+        material={shipMaterial}
+      ></mesh>
     </group>
   );
 }
+//NOT MOVING ALONG WITH EMENY LOCATIONS / BUT DONT NEED THIS PART ANYWAYS
+//<EnemyPoints mapScale={mapScale} enemies={enemies} />
+/*
+function EnemyPoints({ mapScale }) {
+  const { enemies } = useStore((state) => state);
+
+  const positions = useMemo(() => {
+    let positions = [];
+    enemies.forEach((e) => {
+      positions.push(e.object3d.position.x * mapScale);
+      positions.push(e.object3d.position.z * mapScale);
+      positions.push(0);
+    });
+    return new Float32Array(positions);
+  }, [enemies]);
+
+  return (
+    <points>
+      <bufferGeometry attach="geometry">
+        <bufferAttribute
+          attachObject={["attributes", "position"]}
+          count={positions.length / 3}
+          array={positions}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        attach="material"
+        size={0.025 * mapScale}
+        sizeAttenuation
+        color="red"
+        fog={false}
+      />
+    </points>
+  );
+}
+*/

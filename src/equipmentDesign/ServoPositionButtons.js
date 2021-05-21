@@ -9,7 +9,7 @@ import {
   //useMouseClick,
 } from "../controlHooks/useMouseKBControls";
 
-const ServoEditButtons = ({ heading }) => {
+const ServoPositionButtons = ({ heading }) => {
   //lust of servos, player clicks one of the buttons to select that servo, and then will be able to edit size/location
   const { mechBP, equipActions, editServoId, editWeaponId, editLandingBayId } =
     useEquipStore((state) => state);
@@ -172,7 +172,8 @@ const ServoEditButtons = ({ heading }) => {
         <span
           key={index}
           className={
-            editServoId === servo.id ? "selectedItem" : "nonSelectedItem"
+            (editServoId === servo.id ? "selectedItem" : "nonSelectedItem") +
+            " servoPositionSelect"
           }
           style={{ display: "block", clear: "both" }}
         >
@@ -248,4 +249,4 @@ const ServoEditButtons = ({ heading }) => {
   );
 };
 
-export default ServoEditButtons;
+export default ServoPositionButtons;

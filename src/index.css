@@ -30,7 +30,7 @@ body {
 }
 
 .selectedItem {
-  color: green;
+  background-color: lightskyblue;
   border: 1px solid white;
   margin: 4px 6px;
 }
@@ -40,4 +40,8 @@ button {
 }
 select {
   margin: 4px 6px;
+}
+
+.servoPositionSelect {
+  width: fit-content;
 }

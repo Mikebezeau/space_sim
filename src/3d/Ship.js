@@ -122,7 +122,15 @@ export default function Ship() {
     cross.current.visible = !mutation.hits;
     target.current.visible = !!mutation.hits;
   });
+  /*
+const pointLight = new THREE.PointLight( 0xff0000, 1, 100 );
+pointLight.position.set( 10, 10, 10 );
+scene.add( pointLight );
 
+const sphereSize = 1;
+const pointLightHelper = new THREE.PointLightHelper( pointLight, sphereSize );
+scene.add( pointLightHelper );
+*/
   return (
     <>
       <group

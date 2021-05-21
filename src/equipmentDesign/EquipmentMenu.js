@@ -9,7 +9,7 @@ import { equipList } from "../data/equipData";
 import Mech from "../equipment/Mech";
 import { Crew, CrewAssignSpaces } from "../equipment/Crew";
 import { Servos } from "../equipment/Servos";
-import ServoEditButtons from "../equipmentDesign/ServoEditButtons";
+import ServoPositionButtons from "../equipmentDesign/ServoPositionButtons";
 //import ServoHydraulics from "./equipment/ServoHydraulics";
 import { Weapons, WeaponsAssignSpaces } from "../equipment/Weapons";
 import { LandingBay, LandingBayAssignSpaces } from "../equipment/LandingBay";
@@ -223,7 +223,7 @@ export default function EquipmentMenu() {
           ))}
           <hr />
           {mainMenuSelection === 2 ? (
-            <ServoEditButtons />
+            <ServoPositionButtons />
           ) : (
             //edit servo/weapon graphical locations
             //will also load the blueprint design 3d interface

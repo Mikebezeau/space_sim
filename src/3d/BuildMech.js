@@ -9,7 +9,7 @@ export default function BuildMech({
   servoEditId = null,
   weaponEditId = null,
   editMode = false,
-  showAxisLines = true,
+  showAxisLines = false,
 }) {
   //place edit axis lines
 
@@ -24,7 +24,7 @@ export default function BuildMech({
     emissive: new Color("red"),
     emissiveIntensity: 0.5,
   });
-
+  //const axesHelper = new THREE.AxesHelper( 5 );
   return (
     <group scale={editMode ? 2 / equipList.scale.weightMult[mechBP.scale] : 1}>
       {mechBP.servoList.map((servo, index) => (
