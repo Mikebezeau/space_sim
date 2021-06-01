@@ -29,12 +29,10 @@ const Enemy = React.memo(({ enemy, index }) => {
   });
   return (
     <group ref={ref} scale={SCALE}>
-      <group rotation={[0, Math.PI, 0]}>
-        <BuildMech
-          mechBP={enemy.mechBP}
-          drawDistanceLevel={enemy.drawDistanceLevel}
-        />
-      </group>
+      <BuildMech
+        mechBP={enemy.mechBP}
+        drawDistanceLevel={enemy.drawDistanceLevel}
+      />
     </group>
   );
 });

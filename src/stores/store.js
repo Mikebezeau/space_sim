@@ -138,7 +138,7 @@ const [useStore] = create((set, get) => {
               get().selectedTargetIndex !== null
             ) {
               const dummyObj = new THREE.Object3D(),
-                flipRotation = new THREE.Quaternion(),
+                //flipRotation = new THREE.Quaternion(),
                 targetQuat = new THREE.Quaternion();
               dummyObj.position.copy(weaponFire.object3d.position);
               dummyObj.lookAt(
@@ -146,12 +146,13 @@ const [useStore] = create((set, get) => {
               );
               dummyObj.getWorldQuaternion(targetQuat);
               //flip the opposite direction
+              /*
               flipRotation.setFromAxisAngle(
                 new THREE.Vector3(0, 1, 0),
                 Math.PI
               );
               targetQuat.multiplyQuaternions(targetQuat, flipRotation);
-
+*/
               weaponFire.object3d.rotation.setFromQuaternion(
                 weaponFire.object3d.quaternion.slerp(
                   targetQuat.normalize(),
@@ -288,19 +289,14 @@ const [useStore] = create((set, get) => {
           const weaponFireObj = new Object3D();
           weaponFireObj.position.copy(get().ship.position);
           //autofire target provided, get rotation direction towards target
+          //if not a missile, only fire if within certain angle in front of ship
           if (autoAim && weapon.data.weaponType !== "missile") {
             weaponFireObj.lookAt(
               get().enemies[get().selectedTargetIndex].object3d.position
             );
 
-            const weaponRotation = new THREE.Quaternion(),
-              flipRotation = new THREE.Quaternion();
+            const weaponRotation = new THREE.Quaternion();
             weaponFireObj.getWorldQuaternion(weaponRotation);
-            //flip the opposite direction
-            flipRotation.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
-            weaponRotation.multiplyQuaternions(weaponRotation, flipRotation);
-            //
-            weaponFireObj.rotation.setFromQuaternion(weaponRotation);
             //optional setting z angle to match roll of ship
             weaponFireObj.rotation.set(
               weaponFireObj.rotation.x,
@@ -308,12 +304,8 @@ const [useStore] = create((set, get) => {
               get().ship.rotation.z
             );
             weaponFireObj.getWorldQuaternion(weaponRotation);
-            //only fire if within certain angle, missile will always fire straight and then follow target as it flies
-            //const shipRotation = new THREE.Quaternion();
-            //get().ship.getWorldQuaternion(shipRotation);
             angleDiff = weaponRotation.angleTo(get().ship.quaternion);
             //console.log(angleDiff);
-            //weaponFireObj.rotation
           }
           //fire straight ahead
           else {
@@ -327,16 +319,16 @@ const [useStore] = create((set, get) => {
           let weaponFireOffsetZ = 0;
           switch (weapon.data.weaponType) {
             case "beam":
-              weaponFireSpeed = -200;
-              weaponFireOffsetZ = -100;
+              weaponFireSpeed = 200;
+              weaponFireOffsetZ = 100;
               break;
             case "proj":
-              weaponFireSpeed = -40;
-              weaponFireOffsetZ = -25;
+              weaponFireSpeed = 40;
+              weaponFireOffsetZ = 25;
               break;
             case "missile":
-              weaponFireSpeed = -20;
-              weaponFireOffsetZ = -2;
+              weaponFireSpeed = 20;
+              weaponFireOffsetZ = 2;
               break;
             default:
               console.log("invalid weapon type");
@@ -358,9 +350,9 @@ const [useStore] = create((set, get) => {
             weaponType: weapon.data.weaponType,
             object3d: weaponFireObj,
             time: Date.now(),
-            firstFrameSpeed: -JSON.parse(JSON.stringify(get().speed)),
+            firstFrameSpeed: JSON.parse(JSON.stringify(get().speed)),
             offset: { x: 0, y: 0, z: 0 },
-            velocity: weaponFireSpeed - JSON.parse(JSON.stringify(get().speed)),
+            velocity: weaponFireSpeed + JSON.parse(JSON.stringify(get().speed)),
           };
           weaponFireUpdate.push(weaponFire);
         });
@@ -593,7 +585,7 @@ function initShip() {
   let ship = new THREE.Object3D();
   ship.position.setX(0);
   ship.position.setY(25000 * SCALE * systemScale);
-  ship.position.setZ(150000 * SCALE * systemScale);
+  ship.position.setZ(-150000 * SCALE * systemScale);
   return ship;
 }
 //set camera to view galaxy in main menu

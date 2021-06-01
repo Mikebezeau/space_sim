@@ -7,7 +7,7 @@ import { useThree, useFrame } from "@react-three/fiber";
 import useStore from "../stores/store";
 import useEquipStore from "../stores/equipStore";
 import BuildMech from "./BuildMech";
-import { SCALE } from "../util/gameUtil";
+import { SCALE, flipRotation } from "../util/gameUtil";
 
 const position = new THREE.Vector3();
 const direction = new THREE.Vector3();
@@ -61,7 +61,7 @@ export default function Ship() {
     //rotate ship based on mouse position
     //new rotation
     rotateQuat.setFromAxisAngle(
-      direction.set(mouse.y * 0.25, -mouse.x * 0.3, -mouse.x * 0.4),
+      direction.set(-mouse.y * 0.25, -mouse.x * 0.3, mouse.x * 0.4),
       Math.PI / 10
     );
     //current ship rotation
@@ -70,7 +70,7 @@ export default function Ship() {
     endQuat.multiplyQuaternions(curQuat, rotateQuat);
     main.current.rotation.setFromQuaternion(endQuat.normalize());
     //move ship forward
-    main.current.translateZ(-speed * SCALE);
+    main.current.translateZ(speed * SCALE);
     //save ship position / rotation to state
     //ship.position.copy(main.current.position);
     setShipPosition(main.current.position); //made this set to state in this way as to reflect updates to other components (SystemMap)
@@ -80,20 +80,23 @@ export default function Ship() {
     //set tempObjectDummy to be behind ship
     tempObjectDummy.position.copy(main.current.position);
     tempObjectDummy.rotation.copy(main.current.rotation);
-    tempObjectDummy.translateZ(8 * SCALE * playerMechBP[0].scale);
+
+    tempObjectDummy.translateZ(-8 * SCALE * playerMechBP[0].scale);
     tempObjectDummy.translateY(2 * SCALE * playerMechBP[0].scale);
 
     const lerpAmount = 0.95; //distance(state.camera.position, camDummy.position) / 0.8;
     camera.position.lerp(tempObjectDummy.position, lerpAmount);
     //get end rotation angle for camera for smooth follow
     camQuat.setFromEuler(camera.rotation);
+    //flip the position the camera should be facing so that the ship moves "forward" using a change in positive Z axis
+    endQuat.copy(flipRotation(endQuat));
     // rotate towards target quaternion
     camera.rotation.setFromQuaternion(camQuat.slerp(endQuat, 0.2).normalize());
 
     //engine flicker
     let flickerVal = Math.sin(clock.getElapsedTime() * 500);
     let speedRoof = speed > 25 ? 25 : speed;
-    exhaust.current.position.z = speedRoof / 8;
+    exhaust.current.position.z = speedRoof / -8;
     exhaust.current.scale.x = speedRoof / 10 + flickerVal * 5;
     exhaust.current.scale.y = speedRoof / 10 + flickerVal * 5;
     exhaust.current.scale.z = speedRoof + 1.5 + flickerVal * 5;
@@ -115,7 +118,7 @@ export default function Ship() {
     main.current.getWorldDirection(direction);
     //ray.origin.copy(main.current.position);//this works too
     ray.origin.copy(position);
-    ray.direction.copy(direction.negate()); //negate inverts the vector direction (x=-x,y=-y...)
+    ray.direction.copy(direction); //negate inverts the vector direction (x=-x,y=-y...)
 
     //update crosshair / target box switch if weapon hit possible
     crossMaterial.color = mutation.hits ? lightgreen : hotpink;
@@ -139,7 +142,7 @@ scene.add( pointLightHelper );
         position={[ship.position.x, ship.position.y, ship.position.z]}
         rotation={[ship.rotation.x, ship.rotation.y, ship.rotation.z]}
       >
-        <group ref={cross} position={[0, 0, -300]} name="cross">
+        <group ref={cross} position={[0, 0, 300]} name="cross">
           <mesh renderOrder={1000} material={crossMaterial}>
             <boxBufferGeometry attach="geometry" args={[20, 1, 1]} />
           </mesh>
@@ -147,7 +150,7 @@ scene.add( pointLightHelper );
             <boxBufferGeometry attach="geometry" args={[1, 20, 1]} />
           </mesh>
         </group>
-        <group ref={target} position={[0, 0, -300]} name="target">
+        <group ref={target} position={[0, 0, 300]} name="target">
           <mesh
             position={[0, 20, 0]}
             renderOrder={1000}
@@ -182,7 +185,7 @@ scene.add( pointLightHelper );
 
         <pointLight
           ref={weaponFireLight}
-          position={[0, 0, -0.2]}
+          position={[0, 0, 0.2]}
           distance={1}
           intensity={0}
           color="lightgreen"
@@ -200,7 +203,7 @@ scene.add( pointLightHelper );
         </mesh>
         <pointLight
           ref={engineLight}
-          position={[0, 0.2, 0.75]}
+          position={[0, 0.2, -0.75]}
           distance={1}
           intensity={0}
           color="lightblue"
@@ -209,17 +212,3 @@ scene.add( pointLightHelper );
     </>
   );
 }
-
-/*
-<group rotation={[0, 0, 0]}>
-            <mesh visible geometry={nodes.Default.geometry} scale={[1, 1, 1]}>
-              <meshStandardMaterial
-                attach="material"
-                color="grey"
-                roughness={1}
-                metalness={0}
-                emissive="#333"
-              />
-            </mesh>
-          </group>
-          */

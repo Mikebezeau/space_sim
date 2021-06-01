@@ -57,7 +57,7 @@ export default function BuildMech({
       {(showAxisLines || editMode) && (
         <group scale={mechBP.size() * 0.01}>
           <mesh
-            position={[0, 0, -150]}
+            position={[0, 0, 150]}
             rotation={[Math.PI / 2, 0, 0]}
             material={redGlowMaterial}
           >

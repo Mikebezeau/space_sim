@@ -67,8 +67,8 @@ const ServoPositionButtons = ({ heading }) => {
       };
       equipActions.basicMenu.setProp("landingBayPosition", bayPosition);
     }
-    equipActions.servoMenu.adjustServoOffset(0, 0, -partMoveOffsetVal);
-    equipActions.weaponMenu.adjustWeaponOffset(0, 0, -partMoveOffsetVal);
+    equipActions.servoMenu.adjustServoOffset(0, 0, partMoveOffsetVal);
+    equipActions.weaponMenu.adjustWeaponOffset(0, 0, partMoveOffsetVal);
   }
   useKBControls("ArrowUp", handleMovePartForward);
 
@@ -83,8 +83,8 @@ const ServoPositionButtons = ({ heading }) => {
       };
       equipActions.basicMenu.setProp("landingBayPosition", bayPosition);
     }
-    equipActions.servoMenu.adjustServoOffset(0, 0, partMoveOffsetVal);
-    equipActions.weaponMenu.adjustWeaponOffset(0, 0, partMoveOffsetVal);
+    equipActions.servoMenu.adjustServoOffset(0, 0, -partMoveOffsetVal);
+    equipActions.weaponMenu.adjustWeaponOffset(0, 0, -partMoveOffsetVal);
   }
   useKBControls("ArrowDown", handleMovePartBackward);
 

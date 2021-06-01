@@ -9,7 +9,7 @@ const mechDesigns = {
       servoList: [
         {
           id: 1,
-          offset: { x: 0, y: 0, z: -3.7 },
+          offset: { x: 0, y: 0, z: 0.5894724732767491 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: -0.2, y: 0, z: 3.2000000000000015 },
           type: "Torso",
@@ -82,7 +82,7 @@ const mechDesigns = {
         },
         {
           id: 6,
-          offset: { x: -0.5, y: 1, z: -0.9400000000000004 },
+          offset: { x: -0.5, y: 1, z: -0.16000000000000048 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: {
             x: -0.30000000000000004,
@@ -99,7 +99,7 @@ const mechDesigns = {
         },
         {
           id: 7,
-          offset: { x: 0.5, y: 1, z: -0.9400000000000004 },
+          offset: { x: 0.5, y: 1, z: -0.16000000000000048 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: {
             x: -0.30000000000000004,
@@ -116,7 +116,7 @@ const mechDesigns = {
         },
         {
           id: 8,
-          offset: { x: -2.8, y: 0, z: -2.7189449465535 },
+          offset: { x: -2.8, y: 0, z: 0.7338371404346762 },
           rotation: { x: 0, y: 0, z: -0.25 },
           scaleAdjust: { x: -0.5, y: -0.2, z: 0 },
           type: "Torso",
@@ -129,7 +129,7 @@ const mechDesigns = {
         },
         {
           id: 9,
-          offset: { x: 2.7992125, y: 0, z: -2.59375381035667 },
+          offset: { x: 2.7992125, y: 0, z: 0.7922488629054842 },
           rotation: { x: 0, y: 0, z: 0.25 },
           scaleAdjust: { x: -0.5, y: -0.2, z: 0 },
           type: "Torso",
@@ -142,7 +142,7 @@ const mechDesigns = {
         },
         {
           id: 10,
-          offset: { x: 0, y: 0.08499999999999996, z: -1.352841741983025 },
+          offset: { x: 0, y: 0.08499999999999996, z: 1.507158258016975 },
           rotation: { x: -1.5, y: 0, z: 0 },
           scaleAdjust: { x: -0.4, y: 0.8999999999999999, z: 0.7 },
           type: "Torso",
@@ -155,7 +155,7 @@ const mechDesigns = {
         },
         {
           id: 11,
-          offset: { x: -1.815, y: 0, z: 0.37000000000000005 },
+          offset: { x: -1.815, y: 0, z: -0.9299999999999997 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: -0.2, y: -0.2, z: 1.8000000000000005 },
           type: "Wing",
@@ -168,7 +168,7 @@ const mechDesigns = {
         },
         {
           id: 12,
-          offset: { x: 1.815, y: 0, z: 0.685 },
+          offset: { x: 1.815, y: 0, z: -0.8749999999999998 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: -0.2, y: -0.2, z: 1.8000000000000005 },
           type: "Wing",
@@ -181,7 +181,7 @@ const mechDesigns = {
         },
         {
           id: 13,
-          offset: { x: -1.815, y: 0, z: 0.9850000000000001 },
+          offset: { x: -1.815, y: 0, z: -1.3549999999999998 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: -0.5, y: -0.5, z: -0.5 },
           type: "Wing",
@@ -194,7 +194,7 @@ const mechDesigns = {
         },
         {
           id: 14,
-          offset: { x: 1.815, y: 0, z: 0.9850000000000001 },
+          offset: { x: 1.815, y: 0, z: -1.3549999999999998 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: -0.5, y: -0.5, z: -0.5 },
           type: "Wing",
@@ -207,7 +207,7 @@ const mechDesigns = {
         },
         {
           id: 15,
-          offset: { x: 0, y: 0, z: 2.2 },
+          offset: { x: 0, y: 0, z: -1.6999999999999997 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: -0.5, y: -0.5, z: 0.19999999999999998 },
           type: "Wing",
@@ -220,7 +220,7 @@ const mechDesigns = {
         },
         {
           id: 16,
-          offset: { x: 0, y: 0, z: 1.37 },
+          offset: { x: 0, y: 0, z: -0.9699999999999998 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: 0, y: 0, z: 4.799999999999999 },
           type: "Wing",
@@ -254,7 +254,7 @@ const mechDesigns = {
             offset: {
               x: -0.350947247327675,
               y: -0.14905275267232498,
-              z: -0.60189449465535,
+              z: 0.43810550534464976,
             },
             locationServoId: 2,
             data: {
@@ -284,7 +284,7 @@ const mechDesigns = {
             offset: {
               x: 0.350947247327675,
               y: -0.14905275267232498,
-              z: -0.60189449465535,
+              z: 0.43810550534464976,
             },
             locationServoId: 3,
             data: {
@@ -313,7 +313,7 @@ const mechDesigns = {
         proj: [
           {
             id: 3,
-            offset: { x: 0, y: 0, z: -1.4037889893107 },
+            offset: { x: 0, y: 0, z: 4.9132614625874504 },
             locationServoId: 1,
             data: {
               scale: 1,
@@ -338,7 +338,7 @@ const mechDesigns = {
         missile: [
           {
             id: 4,
-            offset: { x: 0, y: 0, z: -1.4037889893107 },
+            offset: { x: 0, y: 0, z: 3.276211010689299 },
             locationServoId: 6,
             data: {
               scale: 1,
@@ -363,7 +363,7 @@ const mechDesigns = {
           },
           {
             id: 5,
-            offset: { x: 0, y: 0, z: -1.4037889893107 },
+            offset: { x: 0, y: 0, z: 3.276211010689299 },
             locationServoId: 7,
             data: {
               scale: 1,
@@ -403,7 +403,7 @@ const mechDesigns = {
       servoList: [
         {
           id: 1,
-          offset: { x: 0, y: 0, z: -3.7 },
+          offset: { x: 0, y: 0, z: 0.5894724732767491 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: -0.2, y: 0, z: 3.2000000000000015 },
           type: "Torso",
@@ -476,7 +476,7 @@ const mechDesigns = {
         },
         {
           id: 6,
-          offset: { x: -0.5, y: 1, z: -0.9400000000000004 },
+          offset: { x: -0.5, y: 1, z: -0.16000000000000048 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: {
             x: -0.30000000000000004,
@@ -493,7 +493,7 @@ const mechDesigns = {
         },
         {
           id: 7,
-          offset: { x: 0.5, y: 1, z: -0.9400000000000004 },
+          offset: { x: 0.5, y: 1, z: -0.16000000000000048 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: {
             x: -0.30000000000000004,
@@ -510,7 +510,7 @@ const mechDesigns = {
         },
         {
           id: 8,
-          offset: { x: -2.8, y: 0, z: -2.7189449465535 },
+          offset: { x: -2.8, y: 0, z: 0.7338371404346762 },
           rotation: { x: 0, y: 0, z: -0.25 },
           scaleAdjust: { x: -0.5, y: -0.2, z: 0 },
           type: "Torso",
@@ -523,7 +523,7 @@ const mechDesigns = {
         },
         {
           id: 9,
-          offset: { x: 2.7992125, y: 0, z: -2.59375381035667 },
+          offset: { x: 2.7992125, y: 0, z: 0.7922488629054842 },
           rotation: { x: 0, y: 0, z: 0.25 },
           scaleAdjust: { x: -0.5, y: -0.2, z: 0 },
           type: "Torso",
@@ -536,7 +536,7 @@ const mechDesigns = {
         },
         {
           id: 10,
-          offset: { x: 0, y: 0.08499999999999996, z: -1.352841741983025 },
+          offset: { x: 0, y: 0.08499999999999996, z: 1.507158258016975 },
           rotation: { x: -1.5, y: 0, z: 0 },
           scaleAdjust: { x: -0.4, y: 0.8999999999999999, z: 0.7 },
           type: "Torso",
@@ -549,7 +549,7 @@ const mechDesigns = {
         },
         {
           id: 11,
-          offset: { x: -1.815, y: 0, z: 0.37000000000000005 },
+          offset: { x: -1.815, y: 0, z: -0.9299999999999997 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: -0.2, y: -0.2, z: 1.8000000000000005 },
           type: "Wing",
@@ -562,7 +562,7 @@ const mechDesigns = {
         },
         {
           id: 12,
-          offset: { x: 1.815, y: 0, z: 0.685 },
+          offset: { x: 1.815, y: 0, z: -0.8749999999999998 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: -0.2, y: -0.2, z: 1.8000000000000005 },
           type: "Wing",
@@ -575,7 +575,7 @@ const mechDesigns = {
         },
         {
           id: 13,
-          offset: { x: -1.815, y: 0, z: 0.9850000000000001 },
+          offset: { x: -1.815, y: 0, z: -1.3549999999999998 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: -0.5, y: -0.5, z: -0.5 },
           type: "Wing",
@@ -588,7 +588,7 @@ const mechDesigns = {
         },
         {
           id: 14,
-          offset: { x: 1.815, y: 0, z: 0.9850000000000001 },
+          offset: { x: 1.815, y: 0, z: -1.3549999999999998 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: -0.5, y: -0.5, z: -0.5 },
           type: "Wing",
@@ -601,7 +601,7 @@ const mechDesigns = {
         },
         {
           id: 15,
-          offset: { x: 0, y: 0, z: 2.2 },
+          offset: { x: 0, y: 0, z: -1.6999999999999997 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: -0.5, y: -0.5, z: 0.19999999999999998 },
           type: "Wing",
@@ -614,7 +614,7 @@ const mechDesigns = {
         },
         {
           id: 16,
-          offset: { x: 0, y: 0, z: 1.37 },
+          offset: { x: 0, y: 0, z: -0.9699999999999998 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: 0, y: 0, z: 4.799999999999999 },
           type: "Wing",
@@ -648,7 +648,7 @@ const mechDesigns = {
             offset: {
               x: -0.350947247327675,
               y: -0.14905275267232498,
-              z: -0.60189449465535,
+              z: 0.43810550534464976,
             },
             locationServoId: 2,
             data: {
@@ -678,7 +678,7 @@ const mechDesigns = {
             offset: {
               x: 0.350947247327675,
               y: -0.14905275267232498,
-              z: -0.60189449465535,
+              z: 0.43810550534464976,
             },
             locationServoId: 3,
             data: {
@@ -707,7 +707,7 @@ const mechDesigns = {
         proj: [
           {
             id: 3,
-            offset: { x: 0, y: 0, z: -1.4037889893107 },
+            offset: { x: 0, y: 0, z: 4.9132614625874504 },
             locationServoId: 1,
             data: {
               scale: 1,
@@ -729,7 +729,58 @@ const mechDesigns = {
             },
           },
         ],
-        missile: [],
+        missile: [
+          {
+            id: 4,
+            offset: { x: 0, y: 0, z: 3.276211010689299 },
+            locationServoId: 6,
+            data: {
+              scale: 1,
+              weaponType: "missile",
+              title: "Missile",
+              name: "Missile",
+              damageRange: 0,
+              accuracy: 2,
+              blastRadius: 0,
+              rangeMod: 4,
+              smart: 0,
+              skill: 0,
+              type: 0,
+              special: 0,
+              variable: 0,
+              longRange: 0,
+              hyperVelocity: 0,
+              numMissile: 10,
+              SPeff: 0,
+              wEff: 0,
+            },
+          },
+          {
+            id: 5,
+            offset: { x: 0, y: 0, z: 3.276211010689299 },
+            locationServoId: 7,
+            data: {
+              scale: 1,
+              weaponType: "missile",
+              title: "Missile",
+              name: "Missile",
+              damageRange: 0,
+              accuracy: 2,
+              blastRadius: 0,
+              rangeMod: 4,
+              smart: 0,
+              skill: 0,
+              type: 0,
+              special: 0,
+              variable: 0,
+              longRange: 0,
+              hyperVelocity: 0,
+              numMissile: 10,
+              SPeff: 0,
+              wEff: 0,
+            },
+          },
+        ],
         eMelee: [],
         melee: [],
       },
@@ -743,7 +794,7 @@ const mechDesigns = {
       servoList: [
         {
           id: 1,
-          offset: { x: 0, y: -4.86612001555471, z: 112.47164681409907 },
+          offset: { x: 0, y: -4.86612001555471, z: -90.37395266943082 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: {
             x: 0.8999999999999999,
@@ -760,7 +811,7 @@ const mechDesigns = {
         },
         {
           id: 2,
-          offset: { x: 0, y: 0, z: 28.256928273923553 },
+          offset: { x: 0, y: 0, z: -16.076285892928176 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: -0.4, y: -0.2, z: 2.7755575615628914e-17 },
           type: "Torso",
@@ -773,7 +824,7 @@ const mechDesigns = {
         },
         {
           id: 3,
-          offset: { x: 0, y: -10.485567507245536, z: -110.73210938835462 },
+          offset: { x: 0, y: -10.485567507245536, z: 77.68405082076524 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: -0.2, y: 0.10000000000000003, z: -0.6 },
           type: "Torso",
@@ -788,8 +839,8 @@ const mechDesigns = {
           id: 6,
           offset: {
             x: 10.48556750724554,
-            y: -49.91183543755403,
-            z: -79.275406866618,
+            y: -63.574194915605574,
+            z: 108.69298389276408,
           },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: {
@@ -809,8 +860,8 @@ const mechDesigns = {
           id: 7,
           offset: {
             x: -10.48556750724554,
-            y: -49.91183543755403,
-            z: -78.85171420507332,
+            y: -63.574194915605574,
+            z: 109.56444600404653,
           },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: {
@@ -827,48 +878,14 @@ const mechDesigns = {
           armor: { class: 0, rating: 1 },
         },
         {
-          id: 4,
-          offset: {
-            x: -10.48556750724554,
-            y: -71.65424477754287,
-            z: -68.74829661981035,
-          },
-          rotation: { x: -0.5, y: 0, z: 0 },
-          scaleAdjust: { x: -0.8999999999999999, y: 0, z: 0.8999999999999999 },
-          type: "Leg",
-          class: 6,
-          scale: 4,
-          shape: 0,
-          SPMod: 0,
-          wEff: 0,
-          armor: { class: 0, rating: 1 },
-        },
-        {
-          id: 5,
-          offset: {
-            x: 9.917291299721533,
-            y: -76.96143701921184,
-            z: -70.81629584325913,
-          },
-          rotation: { x: -0.5, y: 0, z: 0 },
-          scaleAdjust: {
-            x: -0.8999999999999999,
-            y: 2.7755575615628914e-17,
-            z: 0.8999999999999999,
-          },
-          type: "Leg",
-          class: 6,
-          scale: 4,
-          shape: 0,
-          SPMod: 0,
-          wEff: 0,
-          armor: { class: 0, rating: 1 },
-        },
-        {
           id: 8,
-          offset: { x: 0, y: -56.30647039177193, z: -63.36845036974162 },
+          offset: { x: 0, y: -56.306470391771924, z: 102.88110275595236 },
           rotation: { x: 0, y: 0, z: 0 },
-          scaleAdjust: { x: -0.6, y: -0.1, z: 1.0999999999999999 },
+          scaleAdjust: {
+            x: -0.6,
+            y: -0.30000000000000004,
+            z: 1.0999999999999999,
+          },
           type: "Torso",
           class: 2,
           scale: 4,
@@ -879,13 +896,9 @@ const mechDesigns = {
         },
         {
           id: 9,
-          offset: { x: 0, y: -66.88548194724537, z: -71.22933462673004 },
+          offset: { x: 0, y: -66.88548194724537, z: 104.27373073592402 },
           rotation: { x: 0, y: 0, z: 0 },
-          scaleAdjust: {
-            x: -0.4,
-            y: -0.30000000000000004,
-            z: 2.0000000000000004,
-          },
+          scaleAdjust: { x: -0.4, y: -0.5, z: 2.0000000000000004 },
           type: "Torso",
           class: 2,
           scale: 4,
@@ -896,7 +909,7 @@ const mechDesigns = {
         },
         {
           id: 10,
-          offset: { x: 0, y: -76.81792940468321, z: -78.09028638177013 },
+          offset: { x: 0, y: -76.81792940468321, z: 108.63038095215262 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: -0.5, y: -0.6, z: -0.20000000000000004 },
           type: "Torso",
@@ -909,7 +922,7 @@ const mechDesigns = {
         },
         {
           id: 11,
-          offset: { x: 0, y: -93.6970102596881, z: -65.77869830923194 },
+          offset: { x: 0, y: -80.03465078163656, z: 111.17172540056521 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: 0, y: 0, z: 0 },
           type: "Torso",
@@ -922,7 +935,7 @@ const mechDesigns = {
         },
         {
           id: 12,
-          offset: { x: 0, y: -108.11840564232352, z: -63.54766519193508 },
+          offset: { x: 0, y: -94.45604616427198, z: 115.12878391870724 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: 0, y: 0, z: 0 },
           type: "Torso",
@@ -935,7 +948,7 @@ const mechDesigns = {
         },
         {
           id: 13,
-          offset: { x: 0, y: -12.759755462694752, z: -131.0039362138502 },
+          offset: { x: 0, y: -12.759755462694752, z: 142.2432533471806 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: {
             x: -0.5,
@@ -1135,7 +1148,7 @@ const mechDesigns = {
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: 0, y: 0, z: 2.1000000000000005 },
           type: "Torso",
-          class: "6",
+          class: 6,
           scale: 7,
           shape: 11,
           SPMod: 0,
@@ -1144,11 +1157,11 @@ const mechDesigns = {
         },
         {
           id: 2,
-          offset: { x: 10061.005085922758, y: 0, z: -14725.888233791879 },
+          offset: { x: 10061.005085922758, y: 0, z: -7654.922664653493 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: 0, y: -0.4, z: 1.6000000000000003 },
           type: "Torso",
-          class: "10",
+          class: 10,
           scale: 7,
           shape: 1,
           SPMod: 0,
@@ -1157,11 +1170,11 @@ const mechDesigns = {
         },
         {
           id: 3,
-          offset: { x: -10504.125012218748, y: 0, z: -13439.713724036943 },
+          offset: { x: -10504.125012218748, y: 0, z: -6957.850037453614 },
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: 0, y: -0.4, z: 1.6000000000000003 },
           type: "Torso",
-          class: "10",
+          class: 10,
           scale: 7,
           shape: 1,
           SPMod: 0,
@@ -1174,7 +1187,7 @@ const mechDesigns = {
           rotation: { x: 0, y: 0, z: 0 },
           scaleAdjust: { x: 0, y: 0, z: 2.700000000000001 },
           type: "Torso",
-          class: "4",
+          class: 4,
           scale: 7,
           shape: 11,
           SPMod: 0,

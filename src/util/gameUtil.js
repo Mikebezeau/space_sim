@@ -1,3 +1,5 @@
+import * as THREE from "three";
+
 export const SCALE = 0.001; //MAX=? MIN=0.001
 
 export const IS_MOBLIE = /Mobi|Android/i.test(navigator.userAgent);
@@ -18,6 +20,21 @@ export const distance = (p1, p2) => {
 
 export const getRandomInt = (max) => {
   return Math.floor(Math.random() * max);
+};
+
+export const flipRotation = (quat) => {
+  //const tempObject = new THREE.Object3D();
+  const flipQuat = new THREE.Quaternion(),
+    newQuat = new THREE.Quaternion();
+
+  //object.getWorldQuaternion(newQuat);
+  //newQuat.setFromQuaternion(quat);
+  //flip the opposite direction
+  flipQuat.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+  newQuat.multiplyQuaternions(quat, flipQuat);
+  //
+  //tempObject.rotation.setFromQuaternion(newQuat);
+  return newQuat;
 };
 
 /*

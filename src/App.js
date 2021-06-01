@@ -96,7 +96,12 @@ function App() {
   return (
     <>
       <Canvas
-        camera={{ position: [0, 0, 0], near: 0.001, far: 10000, fov: 50 }}
+        camera={{
+          position: [0, 0, 0],
+          near: 0.001,
+          far: 10000,
+          fov: 50,
+        }}
         onCreated={({ gl, camera, scene }) => {
           actions.init();
           //gl.gammaInput = true;

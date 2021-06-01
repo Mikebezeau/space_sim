@@ -11,7 +11,7 @@ const ringMaterial = new THREE.MeshBasicMaterial({
   side: THREE.DoubleSide,
 });
 
-const planetGeometry = new THREE.DodecahedronBufferGeometry(0.3, 0);
+const planetGeometry = new THREE.DodecahedronBufferGeometry(0.25, 0);
 const shipGeometry = new THREE.DodecahedronBufferGeometry(0.2, 0);
 const planetMaterial = new THREE.MeshBasicMaterial({
   color: new THREE.Color("purple"),
@@ -32,7 +32,6 @@ export default function SystemMap({ showPlayer = false }) {
   const { ship } = useStore((state) => state);
   const systemMap = useRef();
   const { camera } = useThree();
-  const camQuat = new THREE.Quaternion();
 
   useFrame(() => {
     if (!systemMap.current) return null;
@@ -41,15 +40,14 @@ export default function SystemMap({ showPlayer = false }) {
     systemMap.current.rotation.copy(camera.rotation);
     systemMap.current.translateY(30 * SCALE);
     systemMap.current.translateZ(-80 * SCALE);
-    //give map opposite & inverted rotation of camera to stop it from rotating while camera rotates
-    camQuat.setFromEuler(camera.rotation);
 
-    systemMap.current.rotation.setFromQuaternion(
-      camQuat.conjugate().invert().normalize()
-    );
-
-    systemMap.current.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI * 0.7);
-
+    if (showPlayer) {
+      systemMap.current.rotateOnAxis(
+        new THREE.Vector3(1, 0, 0),
+        -Math.PI * 0.3
+      );
+      systemMap.current.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI);
+    }
     //could make the detected enemies show up on map and only update once per 5 seconds
   });
 
@@ -64,8 +62,8 @@ export default function SystemMap({ showPlayer = false }) {
     });
     maxRadius = distanceToSun > maxRadius ? distanceToSun : maxRadius;
   });
-  const mapScale = showPlayer ? maxMapSize / maxRadius : 0.03;
-  console.log(mapScale, maxMapSize, maxRadius);
+  const mapScale = showPlayer ? maxMapSize / maxRadius : 0.015;
+  //console.log(mapScale, maxMapSize, maxRadius);
   return (
     <group ref={systemMap} scale={showPlayer ? SCALE : 1}>
       <System planets={planets} mapScale={mapScale} />

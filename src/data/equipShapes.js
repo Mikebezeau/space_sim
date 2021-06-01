@@ -80,40 +80,40 @@ export const weaponShapeData = {
   beam: [
     {
       scale: [0.15, 1, 0.15],
-      position: [0, 0, -0.5],
-      rotation: [-Math.PI / 2, 0, 0],
+      position: [0, 0, 0.5],
+      rotation: [Math.PI / 2, 0, 0],
       geometry: geoList.cone,
     },
   ],
   proj: [
     {
       scale: [0.15, 0.7, 0.15],
-      position: [0, 0, -0.35],
-      rotation: [-Math.PI / 2, 0, 0],
+      position: [0, 0, 0.35],
+      rotation: [Math.PI / 2, 0, 0],
       geometry: geoList.cone,
     },
   ],
   missile: [
     {
       scale: [0.15, 0.2, 0.15],
-      position: [0, 0, -0.1],
-      rotation: [-Math.PI / 2, 0, 0],
+      position: [0, 0, 0.1],
+      rotation: [Math.PI / 2, 0, 0],
       geometry: geoList.cone,
     },
   ],
   eMelee: [
     {
       scale: [0.15, 1, 0.15],
-      position: [0, 0, -0.5],
-      rotation: [-Math.PI / 2, 0, 0],
+      position: [0, 0, 0.5],
+      rotation: [Math.PI / 2, 0, 0],
       geometry: geoList.cone,
     },
   ],
   melee: [
     {
       scale: [0.15, 1, 0.15],
-      position: [0, 0, -0.5],
-      rotation: [-Math.PI / 2, 0, 0],
+      position: [0, 0, 0.5],
+      rotation: [Math.PI / 2, 0, 0],
       geometry: geoList.cone,
     },
   ],

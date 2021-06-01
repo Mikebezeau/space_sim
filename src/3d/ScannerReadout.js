@@ -96,17 +96,7 @@ export default function ScannerReadout() {
         ) /
           10;
       enemy.distanceNormalized = distanceNormalized;
-      /*
-      dummyObj.position.copy(camera.position);
-      dummyObj.lookAt(enemy.object3d.position);
-      dummyObj.getWorldQuaternion(targetQuat);
-      camera.getWorldQuaternion(curQuat);
-      const angleDiff = curQuat.angleTo(targetQuat);
-      if (angleDiff > 3 && angleDiff > smallestTargetAgle) {
-        smallestTargetAgle = angleDiff;
-        tempFocusTargetIndex = i;
-      }
-*/
+
       dummyObj.position.copy(camera.position);
       dummyObj.lookAt(enemy.object3d.position);
       const flipRotation = new THREE.Quaternion();
