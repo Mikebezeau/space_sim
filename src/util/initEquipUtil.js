@@ -454,6 +454,12 @@ const initWeaponBP = function (guid, weaponType, scale) {
 
     data: initWeaponData(weaponType, scale),
 
+    //properties for controlling weapon fire
+    active: 0,
+    ready: 1,
+    shootWeaponTO: undefined,
+    //----
+
     servoLocation: function (servos) {
       return servoUtil.servoLocation(this.locationServoId, servos);
     },
@@ -477,14 +483,16 @@ const initWeaponBP = function (guid, weaponType, scale) {
     accuracy: function () {
       return weaponList[this.data.weaponType].accuracy.val[this.data.accuracy];
     },
-    range: function (housingSservo) {
-      return weaponUtil.range(this.data, housingSservo);
+    range: function (housingSservo = null) {
+      if (this.data.rangeMod) return weaponUtil.range(this.data, housingSservo);
+      else return 0;
     },
-
     burstValue: function () {
-      return weaponList[this.data.weaponType].burstValue.val[
-        this.data.burstValue
-      ];
+      if (this.data.burstValue)
+        return weaponList[this.data.weaponType].burstValue.val[
+          this.data.burstValue
+        ];
+      else return 0;
     },
 
     SP: function () {

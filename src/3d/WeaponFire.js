@@ -62,7 +62,7 @@ export default function WeaponFire() {
           //PLACE ALL WEAPON FIRING POINTS HERE // DIFFERENT ref FOR DIFFERENT WEAPON GROUPS
           <group key={weaponFire.id}>
             <mesh
-              geometry={weaponFireGeometry[weaponFire.weaponType]}
+              geometry={weaponFireGeometry[weaponFire.weaponData.weaponType]}
               material={weaponFireMaterial.beam}
             />
           </group>

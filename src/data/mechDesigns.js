@@ -984,11 +984,11 @@ const mechDesigns = {
           {
             id: 1,
             offset: {
-              x: -0.2003753874648666,
+              x: -12.700375387464867,
               y: 116.64117765143655,
-              z: 25.71988631285436,
+              z: 48.219886312854356,
             },
-            locationServoId: 14,
+            locationServoId: 13,
             data: {
               scale: 1,
               weaponType: "beam",
@@ -1010,11 +1010,13 @@ const mechDesigns = {
               SPeff: 0,
               wEff: 0,
             },
+            active: 0,
+            ready: 1,
           },
           {
             id: 2,
-            offset: { x: 0, y: 38.88039255047886, z: -12.960130850159619 },
-            locationServoId: 14,
+            offset: { x: 12.5, y: 38.88039255047886, z: -12.960130850159619 },
+            locationServoId: 13,
             data: {
               scale: 1,
               weaponType: "beam",
@@ -1036,11 +1038,13 @@ const mechDesigns = {
               SPeff: 0,
               wEff: 0,
             },
+            active: 0,
+            ready: 1,
           },
           {
             id: 3,
-            offset: { x: 0, y: 51.840523400638475, z: -12.960130850159619 },
-            locationServoId: 14,
+            offset: { x: -7.5, y: 51.840523400638475, z: -12.960130850159619 },
+            locationServoId: 13,
             data: {
               scale: 1,
               weaponType: "beam",
@@ -1062,15 +1066,17 @@ const mechDesigns = {
               SPeff: 0,
               wEff: 0,
             },
+            active: 0,
+            ready: 1,
           },
           {
             id: 4,
             offset: {
-              x: 12.960130850159619,
+              x: 20.46013085015962,
               y: 38.88039255047886,
               z: -12.960130850159619,
             },
-            locationServoId: 14,
+            locationServoId: 13,
             data: {
               scale: 1,
               weaponType: "beam",
@@ -1092,6 +1098,8 @@ const mechDesigns = {
               SPeff: 0,
               wEff: 0,
             },
+            active: 0,
+            ready: 1,
           },
         ],
         proj: [],

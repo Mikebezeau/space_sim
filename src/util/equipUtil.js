@@ -134,16 +134,16 @@ const servoUtil = {
 const mech = {
   size(servoList) {
     let mechSize = 0;
-    let largestOffset = 0;
+    //let largestOffset = 0;
     //find largest servo and set size to this value
     servoList.forEach((s, i) => {
       //servo & offset
       mechSize = s.size() > mechSize ? s.size() : mechSize;
-      const offsetVal =
-        Math.abs(s.offset.x) + Math.abs(s.offset.y) + Math.abs(s.offset.z);
-      largestOffset = offsetVal > largestOffset ? offsetVal : largestOffset;
+      //const offsetVal =
+      //  Math.abs(s.offset.x) + Math.abs(s.offset.y) + Math.abs(s.offset.z);
+      //largestOffset = offsetVal > largestOffset ? offsetVal : largestOffset;
     });
-    return mechSize + largestOffset;
+    return mechSize; // + largestOffset;
   },
 
   meleeBonus(hydraulicsType) {
@@ -191,20 +191,6 @@ const mech = {
       });
     });
     return found;
-  },
-
-  WeaponListWithServoOffset: function (servos, weaponList) {
-    let weaponListWithOffset = [];
-    Object.values(weaponList).forEach((weapons) => {
-      weapons.forEach((weapon) => {
-        weapon.servoOffset = servoUtil.servoLocation(
-          weapon.locationServoId,
-          servos
-        ).offset;
-        weaponListWithOffset.push(weapon);
-      });
-    });
-    return weaponListWithOffset;
   },
 
   totalWeight: function (servoList, weaponList, weightIneff, weightEff) {

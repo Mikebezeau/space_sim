@@ -8,15 +8,29 @@ import { addEffect } from "@react-three/fiber";
 //import * as audio from "./audio";
 import { loopAI } from "../masterAI";
 
-import { mech } from "../util/equipUtil";
+import { servoUtil } from "../util/equipUtil";
 import { guid, initPlayerMechBP, initEnemyMechBP } from "../util/initEquipUtil";
 import { distance, SCALE, FLIGHT, NUM_SCREEN_OPTIONS } from "../util/gameUtil";
+
+let guidCounter = 1; //global unique ID
 
 const seedrandom = require("seedrandom");
 const systemScale = 4, //5,
   planetScale = 1; //8;
 
-let guidCounter = 1; //global unique ID
+const weaponFireSpeed = {
+  beam: 200,
+  proj: 40,
+  missile: 20,
+  eMelee: 0,
+  melee: 0,
+};
+
+const playerStart = {
+  x: 0,
+  y: 25000 * SCALE * systemScale,
+  z: -150000 * SCALE * systemScale,
+};
 
 //const [useStore, api] = create((set, get) => {
 const [useStore] = create((set, get) => {
@@ -117,10 +131,10 @@ const [useStore] = create((set, get) => {
 
           const { ship, weaponFireList, rocks, enemies, planets } = get();
           //run enemy AI routine
-          loopAI(ship, enemies, get().mutation.clock);
+          loopAI(ship, enemies, get().mutation.clock, get().actions.shoot);
 
           const timeNow = Date.now();
-
+          /*
           if (shootTO === null && get().selectedTargetIndex !== null) {
             //if no enemy in that index will error
             //fire once per second
@@ -130,11 +144,11 @@ const [useStore] = create((set, get) => {
               shootTO = null;
             }, 500);
           }
-
+*/
           get().weaponFireList.forEach((weaponFire) => {
             //MISSILE FIRE course direction
             if (
-              weaponFire.weaponType === "missile" &&
+              weaponFire.weaponData.weaponType === "missile" &&
               get().selectedTargetIndex !== null
             ) {
               const dummyObj = new THREE.Object3D(),
@@ -257,111 +271,197 @@ const [useStore] = create((set, get) => {
         set(() => ({ focusTargetIndex: focusTargetIndex }));
       },
       setSelectedTargetIndex() {
+        //make work for enemies as well
+        //set new target for current shooter
+
         //triggered onClick
         //select target, or cancel selection if clicked again
         let targetIndex = null;
         if (get().selectedTargetIndex !== get().focusTargetIndex) {
           targetIndex = get().focusTargetIndex;
         } else {
-          clearTimeout(shootTO);
-          shootTO = null;
+          //clearTimeout(shootTO);
+          //shootTO = null;
+          get().actions.cancelWeaponFire(get().playerMechBP[0]);
         }
         set(() => ({
           selectedTargetIndex: targetIndex,
         }));
         //if not currently shooting, begin shooting immediately
-        if (shootTO === null) get().actions.shoot(true); //true = auto aim
+        //if (shootTO === null) get().actions.shoot(true); //true = auto aim
+        if (targetIndex !== null)
+          get().actions.shoot(
+            get().playerMechBP[0],
+            get().ship,
+            get().speed,
+            get().enemies[targetIndex].object3d.position,
+            false
+          );
         //console.log(get().selectedTargetIndex);
       },
       //player ship shoot weapons
-      shoot(autoAim = false) {
-        if (get().selectedTargetIndex === null && autoAim) return null;
-        //testing automated shooting
-        const weaponListWithServoOffset = mech.WeaponListWithServoOffset(
-          get().playerMechBP[0].servoList,
-          get().playerMechBP[0].weaponList
-        );
-        let weaponFireUpdate = get().weaponFireList;
-        let angleDiff = 0;
-
+      shoot(mechBP, shooterObj, shooterVelocity, targetPos, autoFire = false) {
+        if (get().selectedTargetIndex === null && autoFire) return null;
         //for each weapon on the ship, find location and create a weaponFire to be shot from there
-        weaponListWithServoOffset.forEach((weapon) => {
-          const weaponFireObj = new Object3D();
-          weaponFireObj.position.copy(get().ship.position);
-          //autofire target provided, get rotation direction towards target
-          //if not a missile, only fire if within certain angle in front of ship
-          if (autoAim && weapon.data.weaponType !== "missile") {
-            weaponFireObj.lookAt(
-              get().enemies[get().selectedTargetIndex].object3d.position
-            );
-
-            const weaponRotation = new THREE.Quaternion();
-            weaponFireObj.getWorldQuaternion(weaponRotation);
-            //optional setting z angle to match roll of ship
-            weaponFireObj.rotation.set(
-              weaponFireObj.rotation.x,
-              weaponFireObj.rotation.y,
-              get().ship.rotation.z
-            );
-            weaponFireObj.getWorldQuaternion(weaponRotation);
-            angleDiff = weaponRotation.angleTo(get().ship.quaternion);
-            //console.log(angleDiff);
-          }
-          //fire straight ahead
-          else {
-            angleDiff = 0;
-            weaponFireObj.rotation.copy(get().ship.rotation);
-          }
-
-          if (angleDiff > 0.15) return null;
-
-          let weaponFireSpeed = 0;
-          let weaponFireOffsetZ = 0;
-          switch (weapon.data.weaponType) {
-            case "beam":
-              weaponFireSpeed = 200;
-              weaponFireOffsetZ = 100;
-              break;
-            case "proj":
-              weaponFireSpeed = 40;
-              weaponFireOffsetZ = 25;
-              break;
-            case "missile":
-              weaponFireSpeed = 20;
-              weaponFireOffsetZ = 2;
-              break;
-            default:
-              console.log("invalid weapon type");
-          }
-
-          weaponFireObj.translateX(
-            (weapon.offset.x + weapon.servoOffset.x) * SCALE
-          );
-          weaponFireObj.translateY(
-            (weapon.offset.y + weapon.servoOffset.y) * SCALE
-          );
-
-          weaponFireObj.translateZ(
-            (weapon.offset.z + weapon.servoOffset.z + weaponFireOffsetZ) * SCALE
-          );
-
-          let weaponFire = {
-            id: guid(weaponFireUpdate),
-            weaponType: weapon.data.weaponType,
-            object3d: weaponFireObj,
-            time: Date.now(),
-            firstFrameSpeed: JSON.parse(JSON.stringify(get().speed)),
-            offset: { x: 0, y: 0, z: 0 },
-            velocity: weaponFireSpeed + JSON.parse(JSON.stringify(get().speed)),
-          };
-          weaponFireUpdate.push(weaponFire);
+        Object.values(mechBP.weaponList).forEach((weapons) => {
+          weapons.forEach((weapon) => {
+            //set weapon to fireing mode
+            weapon.active = 1;
+            //shooter will hold target info - player, set variables - enemies, varaibles within the enemy array entry
+            //if weapon not ready to fire do not shoot again at new target
+            //will wait for the next shot to be ready before fires at new target
+            if (weapon.ready) {
+              //clear previous weapon autofire timer
+              clearInterval(weapon.shootWeaponTO);
+              //set weapon autofire timer
+              const args = {
+                mechBP: mechBP,
+                shooterObj: shooterObj,
+                shooterVelocity: shooterVelocity,
+                targetPos: targetPos,
+                autoFire: autoFire,
+                weapon: weapon,
+              };
+              get().actions.shootWeapon(args);
+            }
+          });
         });
-        //console.log(weaponFireUpdate);
+        //if player play shooting sound
+        //playAudio(audio.zap, 0.5);
+      },
+      shootWeapon({
+        mechBP,
+        shooterObj,
+        shooterVelocity,
+        targetPos,
+        autoFire,
+        weapon,
+      }) {
+        //PREPARE FOR FIRING
+
+        //weapon loaded
+        weapon.ready = 1;
+
+        //if weapon fire mode is false, stop firing - but weapon is still now loaded
+        if (!weapon.active) return null;
+
+        //if not autoFire (i.e. enemies) set weapon to inactive now
+        //so when timer fires will only reload weapon and not shoot / set another timer
+        if (!autoFire) weapon.active = false;
+
+        //set next shot for autofire (until cancelled)
+        const args = {
+          mechBP: mechBP,
+          shooterObj: shooterObj,
+          shooterVelocity: shooterVelocity,
+          targetPos: targetPos,
+          autoFire: autoFire,
+          weapon: weapon,
+        };
+        const reloadSpeed = weapon.burstValue()
+          ? 1000 / weapon.burstValue()
+          : 1000;
+        //console.log(weapon.data);
+        weapon.shootWeaponTO = setTimeout(
+          () => get().actions.shootWeapon(args),
+          reloadSpeed,
+          args
+        );
+
+        //FIRE WEAPON IF APPROPRIATE
+
+        //autofire angle of tolerance for shots to be fired
+        let angleDiff = 0; //angleDiff set to 0 if not using
+
+        const weaponFireObj = new Object3D();
+        weaponFireObj.position.copy(shooterObj.position);
+
+        //if a missile fire straight ahead
+        if (weapon.data.weaponType === "missile") {
+          weaponFireObj.rotation.copy(shooterObj.rotation);
+        }
+        //by default other weapon type fire out of front of ship toward enemies
+        else {
+          weaponFireObj.lookAt(targetPos);
+        }
+
+        //autofire target provided, if not a missile, only fire if within certain angle in front of ship
+        //if (autoFire && weapon.data.weaponType !== "missile") {
+        if (weapon.data.weaponType !== "missile") {
+          const weaponRotation = new THREE.Quaternion();
+          weaponFireObj.getWorldQuaternion(weaponRotation);
+          //optional setting z angle to match roll of ship
+          weaponFireObj.rotation.set(
+            weaponFireObj.rotation.x,
+            weaponFireObj.rotation.y,
+            get().ship.rotation.z
+          );
+          weaponFireObj.getWorldQuaternion(weaponRotation);
+          angleDiff = weaponRotation.angleTo(shooterObj.quaternion);
+          //console.log(angleDiff);
+        }
+
+        console.log(0);
+        //this sucks
+        if (get().playerScreen !== FLIGHT) return null;
+
+        //checking if angle is not within limit for firing
+        //if (autoFire && angleDiff > 0.15) return null;
+
+        //********************* */
+        //enemies having a hard time pointing at player
+        //if (angleDiff > 0.15) return null;
+
+        //FIRE WEAPON
+
+        //weapon is now firing the bullet
+        weapon.ready = 0;
+
+        const fireSpeed = weaponFireSpeed[weapon.data.weaponType];
+
+        const weaponFireOffsetZ = fireSpeed / 2;
+
+        weapon.servoOffset = servoUtil.servoLocation(
+          weapon.locationServoId,
+          mechBP.servoList
+        ).offset;
+
+        weaponFireObj.translateX(
+          (weapon.offset.x + weapon.servoOffset.x) * SCALE
+        );
+        weaponFireObj.translateY(
+          (weapon.offset.y + weapon.servoOffset.y) * SCALE
+        );
+        weaponFireObj.translateZ(
+          (weapon.offset.z + weapon.servoOffset.z + weaponFireOffsetZ) * SCALE
+        );
+
+        //ADD BULLET TO BULLET LIST
+        console.log("shoot");
+        let weaponFire = {
+          //id: guid(weaponFireUpdate),
+          id: guid(get().weaponFireList),
+          weaponData: weapon.data,
+          object3d: weaponFireObj,
+          //targetIndex: get().selectedTargetIndex,
+          time: Date.now(),
+          range: weapon.range(),
+          firstFrameSpeed: JSON.parse(JSON.stringify(shooterVelocity)),
+          //offset: { x: 0, y: 0, z: 0 },
+          velocity: fireSpeed + JSON.parse(JSON.stringify(shooterVelocity)),
+        };
+        //add bullet to list
         set((state) => ({
-          weaponFireList: weaponFireUpdate,
+          weaponFireList: [...state.weaponFireList, weaponFire],
           weaponFireLightTimer: Date.now(),
         }));
-        //playAudio(audio.zap, 0.5);
+      },
+      cancelWeaponFire(mechBP) {
+        Object.values(mechBP.weaponList).forEach((weapons) => {
+          weapons.forEach((weapon) => {
+            weapon.active = false;
+          });
+        });
       },
       //
       removeWeaponFire() {
@@ -369,7 +469,7 @@ const [useStore] = create((set, get) => {
         //would remove most elements and I don't know why
         let updateWeaponFire = [];
         get().weaponFireList.forEach((weaponFire) => {
-          if (Date.now() - weaponFire.time < 1000)
+          if (Date.now() - weaponFire.time < 200 * weaponFire.range)
             updateWeaponFire.push(weaponFire);
         });
         set((state) => ({
@@ -583,9 +683,9 @@ function initGalaxyStarPositions(
 
 function initShip() {
   let ship = new THREE.Object3D();
-  ship.position.setX(0);
-  ship.position.setY(25000 * SCALE * systemScale);
-  ship.position.setZ(-150000 * SCALE * systemScale);
+  ship.position.setX(playerStart.x);
+  ship.position.setY(playerStart.y);
+  ship.position.setZ(playerStart.z);
   return ship;
 }
 //set camera to view galaxy in main menu
@@ -638,14 +738,15 @@ function randomData(count, track, radius, size, randomScale) {
 }
 
 function randomEnemies(track) {
-  let enemies = randomData(20, track, 5 * SCALE, 0, 1);
+  let enemies = randomData(120, track, 5 * SCALE, 0, 1);
   enemies.forEach((enemy, index) => {
     enemy.groupLeaderGuid = 0;
+    enemy.tacticOrder = 0; //0 = follow leader, 1 = attack player
     enemy.formation = null;
     enemy.formationPosition = new Vector3();
-    enemy.speed = 3 + Math.floor(Math.random() * 3);
+    enemy.speed = 300 + Math.floor(Math.random() * 3);
     enemy.mechBP = initEnemyMechBP(
-      index === 0 ? 3 : Math.floor(Math.random() * 2)
+      index === 0 ? 3 : 1 //Math.floor(Math.random() * 2)
     );
     enemy.size = enemy.mechBP.size() * SCALE;
     enemy.drawDistanceLevel = 0;
@@ -767,7 +868,6 @@ function initSolarSystem(rng, systemScale = 1, planetScale = 1) {
       position: { x, y: 0, z },
       rotation: { x: 0, y: 0, z: 0 },
     });
-    console.log(x, z);
   }
   return temp;
 }

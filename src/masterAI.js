@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Object3D, Vector3 } from "three";
 import { distance, SCALE } from "./util/gameUtil";
 
-export function loopAI(playerShip, enemies, clock) {
+export function loopAI(playerShip, enemies, clock, actionShoot) {
   const dummyObj = new THREE.Object3D();
   const toTargetQuat = new THREE.Quaternion(),
     curQuat = new THREE.Quaternion();
@@ -19,30 +19,66 @@ export function loopAI(playerShip, enemies, clock) {
     const enemyLeader = enemies.find((e) => e.guid === enemy.groupLeaderGuid);
 
     let destinationPosition = new Vector3();
+    let distanceFromTargetLocation = undefined;
 
     //if ship is the leader
     if (enemy.guid === enemy.groupLeaderGuid)
       destinationPosition = leaderDestinationPosition(playerShip);
     //if ship is part of group
     else {
-      destinationPosition = groupFollowPosition(
-        enemy,
-        enemyLeader,
-        enemies,
-        clock
+      //follow leaders order
+      enemy.tacticOrder = enemyLeader.tacticOrder;
+      if (enemy.tacticOrder === 1) {
+        //attack player
+        destinationPosition = playerShip.position;
+      } else {
+        //find group position
+        destinationPosition = groupFollowPosition(
+          enemy,
+          enemyLeader,
+          enemies,
+          clock
+        );
+      }
+    }
+
+    //ONLY CHANGE DIRECTION IF a little distance away from target destination so that jittering deosnt happen
+    distanceFromTargetLocation = distance(
+      enemy.object3d.position,
+      destinationPosition
+    );
+
+    //if leader ship within attack range of player
+    if (
+      (enemy.guid === enemy.groupLeaderGuid || enemy.tacticOrder === 1) &&
+      distanceFromTargetLocation < 5000 * SCALE
+    ) {
+      //give order to attack
+      enemy.tacticOrder = 1;
+      //fire at player
+      actionShoot(
+        enemy.mechBP,
+        enemy.object3d,
+        enemy.speed,
+        playerShip.position,
+        false
       );
     }
+
+    if (
+      enemy.guid === enemy.groupLeaderGuid &&
+      distanceFromTargetLocation > 5000 * SCALE
+    ) {
+      //player too far away to attack, so regroup
+      enemy.tacticOrder = 0;
+    }
+
     //turn towards target
     //set dummy to aquire rotation towards target
     dummyObj.position.copy(enemy.object3d.position);
     //current enemy direction quat
     curQuat.setFromEuler(enemy.object3d.rotation);
 
-    //ONLY CHANGE DIRECTION IF a little distance away from target destination so that jittering deosnt happen
-    const distanceFromTargetLocation = distance(
-      enemy.object3d.position,
-      destinationPosition
-    );
     //direction quat pointing to player location
     if (distanceFromTargetLocation > 500 * SCALE) {
       dummyObj.lookAt(destinationPosition);
@@ -55,9 +91,10 @@ export function loopAI(playerShip, enemies, clock) {
       }
 */
       //rotate slowly towards target quaternion
-      const manueverVal = 0.5 / Math.abs(enemy.mechBP.MV());
+      const manueverVal = 10 / Math.abs(enemy.mechBP.MV());
       enemy.object3d.rotation.setFromQuaternion(
-        curQuat.slerp(toTargetQuat.normalize(), 0.2 * manueverVal)
+        //curQuat.slerp(toTargetQuat.normalize(), 0.2 * manueverVal)
+        curQuat.slerp(toTargetQuat.normalize(), manueverVal)
       ); // .rotateTowards for a static rotation value
     }
     //speed equals same speed as leader
@@ -113,12 +150,12 @@ function groupFollowPosition(enemy, enemyLeader, enemies, clock) {
     group.forEach((eGroup, i) => {
       //assign a position to each group member
       eGroup.formationPosition.x =
-        (group.length * 250 - i * 500) *
+        (group.length * 50 - i * 50) *
         Math.pow(enemy.mechBP.scale + enemyLeader.mechBP.scale, 1.5) *
         SCALE;
       eGroup.formationPosition.y = 0;
       eGroup.formationPosition.z =
-        -500 *
+        -50 *
         Math.pow(enemy.mechBP.scale + enemyLeader.mechBP.scale, 1.5) *
         SCALE;
     });
