@@ -29,10 +29,9 @@ export default function Ship() {
   const { camera } = useThree();
   const mutation = useStore((state) => state.mutation);
   const { clock, mouse, ray } = mutation;
-  const ship = useStore((state) => state.ship);
+  const player = useStore((state) => state.player);
   const weaponFireLightTimer = useStore((state) => state.weaponFireLightTimer);
-  const speed = useStore((state) => state.speed);
-  const setShipPosition = useStore((state) => state.actions.setShipPosition);
+  const setPlayerObject = useStore((state) => state.actions.setPlayerObject);
   const playerMechBP = useEquipStore((state) => state.playerMechBP); //for rendering ship servo shapes
 
   const main = useRef();
@@ -60,21 +59,29 @@ export default function Ship() {
     if (!main.current) return null;
     //rotate ship based on mouse position
     //new rotation
+    const MVmod =
+      10 /
+      (Math.abs(playerMechBP[0].MV()) === 0
+        ? 0.1
+        : Math.abs(playerMechBP[0].MV()));
+
     rotateQuat.setFromAxisAngle(
       direction.set(-mouse.y * 0.25, -mouse.x * 0.3, mouse.x * 0.4),
-      Math.PI / 10
+      (Math.PI / 10) * MVmod
     );
+    //console.log(-mouse.y * 0.25, -mouse.x * 0.3, mouse.x * 0.4);
+    //console.log(direction.angleTo(new THREE.Vector3(0, 0, 0)));//1.57
     //current ship rotation
     curQuat.setFromEuler(main.current.rotation);
     //update ship rotation
     endQuat.multiplyQuaternions(curQuat, rotateQuat);
+    //console.log(curQuat.angleTo(endQuat));
     main.current.rotation.setFromQuaternion(endQuat.normalize());
     //move ship forward
-    main.current.translateZ(speed * SCALE);
+    main.current.translateZ(player.speed * SCALE);
     //save ship position / rotation to state
     //ship.position.copy(main.current.position);
-    setShipPosition(main.current.position); //made this set to state in this way as to reflect updates to other components (SystemMap)
-    ship.rotation.copy(main.current.rotation);
+    setPlayerObject(main.current); //made this set to state in this way as to reflect updates to other components (SystemMap)
 
     //CAMERA
     //set tempObjectDummy to be behind ship
@@ -95,15 +102,15 @@ export default function Ship() {
 
     //engine flicker
     let flickerVal = Math.sin(clock.getElapsedTime() * 500);
-    let speedRoof = speed > 25 ? 25 : speed;
+    let speedRoof = player.speed > 25 ? 25 : player.speed;
     exhaust.current.position.z = speedRoof / -8;
     exhaust.current.scale.x = speedRoof / 10 + flickerVal * 5;
     exhaust.current.scale.y = speedRoof / 10 + flickerVal * 5;
     exhaust.current.scale.z = speedRoof + 1.5 + flickerVal * 5;
-    speed > 2
+    player.speed > 2
       ? (exhaust.current.material.visible = 1)
       : (exhaust.current.material.visible = 0);
-    engineLight.current.intensity = speed > 0 ? speed * 0.05 : 0;
+    engineLight.current.intensity = player.speed > 0 ? player.speed * 0.05 : 0;
 
     //weapon firing light blast
     weaponFireLight.current.intensity +=
@@ -113,17 +120,19 @@ export default function Ship() {
         weaponFireLight.current.intensity) *
       0.3;
 
-    // Get ships orientation and save it to the stores ray (used for hit detection)
     main.current.getWorldPosition(position);
     main.current.getWorldDirection(direction);
-    //ray.origin.copy(main.current.position);//this works too
-    ray.origin.copy(position);
-    ray.direction.copy(direction); //negate inverts the vector direction (x=-x,y=-y...)
+    player.ray.origin.copy(position);
+    player.ray.direction.copy(direction);
+
+    player.hitBox.min.copy(position);
+    player.hitBox.max.copy(position);
+    player.hitBox.expandByScalar(player.size * 3000 * SCALE);
 
     //update crosshair / target box switch if weapon hit possible
-    crossMaterial.color = mutation.hits ? lightgreen : hotpink;
-    cross.current.visible = !mutation.hits;
-    target.current.visible = !!mutation.hits;
+    crossMaterial.color = mutation.playerHits ? lightgreen : hotpink;
+    cross.current.visible = !mutation.playerHits;
+    target.current.visible = !!mutation.playerHits;
   });
   /*
 const pointLight = new THREE.PointLight( 0xff0000, 1, 100 );
@@ -139,8 +148,16 @@ scene.add( pointLightHelper );
       <group
         ref={main}
         scale={SCALE}
-        position={[ship.position.x, ship.position.y, ship.position.z]}
-        rotation={[ship.rotation.x, ship.rotation.y, ship.rotation.z]}
+        position={[
+          player.object3d.position.x,
+          player.object3d.position.y,
+          player.object3d.position.z,
+        ]}
+        rotation={[
+          player.object3d.rotation.x,
+          player.object3d.rotation.y,
+          player.object3d.rotation.z,
+        ]}
       >
         <group ref={cross} position={[0, 0, 300]} name="cross">
           <mesh renderOrder={1000} material={crossMaterial}>
@@ -186,7 +203,7 @@ scene.add( pointLightHelper );
         <pointLight
           ref={weaponFireLight}
           position={[0, 0, 0.2]}
-          distance={1}
+          distance={3 * SCALE}
           intensity={0}
           color="lightgreen"
         />
@@ -204,7 +221,7 @@ scene.add( pointLightHelper );
         <pointLight
           ref={engineLight}
           position={[0, 0.2, -0.75]}
-          distance={1}
+          distance={3 * SCALE}
           intensity={0}
           color="lightblue"
         />

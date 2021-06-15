@@ -11,7 +11,7 @@ const targetQuat = new THREE.Quaternion(),
   curQuat = new THREE.Quaternion();
 
 const lightgreen = new THREE.Color("lightgreen");
-const red = new THREE.Color("red");
+const red = new THREE.Color("maroon");
 
 const selectedRingGeometry = new THREE.RingBufferGeometry(
   0.34 * SCALE,
@@ -33,17 +33,17 @@ const selectedMaterialRing = new THREE.MeshBasicMaterial({
   side: THREE.DoubleSide,
   transparent: 1,
   opacity: 1,
-  emissive: red,
-  emissiveIntensity: 1,
+  //emissive: red,
+  //emissiveIntensity: 1,
   //depthWrite: false,
 });
 const materialRing = new THREE.MeshBasicMaterial({
   color: lightgreen,
   side: THREE.DoubleSide,
   transparent: 1,
-  opacity: 1,
-  emissive: lightgreen,
-  emissiveIntensity: 1,
+  opacity: 0.3,
+  //emissive: lightgreen,
+  //emissiveIntensity: 1,
   //depthWrite: false,
 });
 
@@ -61,9 +61,9 @@ const materialArrowIndicator = new THREE.MeshBasicMaterial({
   color: red,
   side: THREE.DoubleSide,
   transparent: 1,
-  opacity: 1,
-  emissive: red,
-  emissiveIntensity: 1,
+  opacity: 0.3,
+  //emissive: red,
+  //emissiveIntensity: 1,
   //depthWrite: false,
   wireframe: true,
 });
@@ -74,7 +74,7 @@ const materialArrowHidden = new THREE.MeshBasicMaterial({
 export default function ScannerReadout() {
   //const clock = useStore((state) => state.mutation.clock);
   const { camera } = useThree();
-  const { selectedTargetIndex, focusTargetIndex, enemies, ship } = useStore(
+  const { selectedTargetIndex, focusTargetIndex, enemies, player } = useStore(
     (state) => state
   ); // planets
   const { setFocusTargetIndex } = useStore((state) => state.actions); // setTestVariable
@@ -91,7 +91,9 @@ export default function ScannerReadout() {
       const distanceNormalized =
         1 -
         Math.floor(
-          (distance(enemy.object3d.position, ship.position) / 1000000 / SCALE) *
+          (distance(enemy.object3d.position, player.object3d.position) /
+            1000000 /
+            SCALE) *
             10
         ) /
           10;
@@ -115,7 +117,7 @@ export default function ScannerReadout() {
       dummyObj.getWorldQuaternion(targetQuat);
       //only fire if within certain angle, missile will always fire straight and then follow target as it flies
       //const shipRotation = new THREE.Quaternion();
-      //get().ship.getWorldQuaternion(shipRotation);
+      //get().player.object3d.getWorldQuaternion(shipRotation);
       const angleDiff = targetQuat.angleTo(camera.quaternion);
       if (angleDiff < 0.38 && angleDiff < smallestTargetAgle) {
         smallestTargetAgle = angleDiff;
@@ -193,7 +195,8 @@ function placeTarget(
 }
 
 function placeArrow(camera, enemy, mesh, selectedTargetIndex, enemyIndex) {
-  if (enemy.distanceNormalized >= 0.8 || selectedTargetIndex === enemyIndex) {
+  //if (enemy.distanceNormalized >= 0.8 || selectedTargetIndex === enemyIndex) {
+  if (1) {
     dummyObj.rotation.copy(camera.rotation);
     dummyObj.translateZ(-10 * SCALE);
     dummyObj.lookAt(enemy.object3d.position);

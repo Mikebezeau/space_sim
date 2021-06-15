@@ -4,7 +4,7 @@ import useStore from "./stores/store";
 
 //basic HTML/CSS heads up display used to show player info
 export default function Hud() {
-  const speed = useStore((state) => state.speed);
+  const { speed } = useStore((state) => state.player);
   //const points = useStore((state) => state.points);
   const health = useStore((state) => state.health);
   //const sound = useStore((state) => state.sound);

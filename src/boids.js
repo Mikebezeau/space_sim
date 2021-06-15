@@ -1,16 +1,3 @@
-import React from "react";
-import ReactDOM from "react-dom";
-import "./css/index.css";
-import App from "./App";
-
-ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  document.getElementById("root")
-);
-
-/*
 import * as THREE from "three";
 //-----------------
 // Global Variables
@@ -199,12 +186,12 @@ function OShip() {
 //-------------------------------------------------------
 
 // Helper function; shortcut for random number in certain range
+function rrand(min, max) {
+  return Math.random() * (max - min) + min;
+}
 
 // Boid Definition
 function Boid(type) {
-  function rrand(min, max) {
-    return Math.random() * (max - min) + min;
-  }
   this.type = type;
   // Initial movement vectors
   this.position = type
@@ -298,12 +285,7 @@ Boid.prototype.align = function (flock) {
   // Average out total weight
   if (count > 0) {
     total.divideScalar(count);
-
-    // Limit max forces
-    if (total.length() > 1) {
-      total.normalize();
-      total.multiplyScalar(1);
-    }
+    total.limit(1);
   }
   return total;
 };
@@ -346,7 +328,6 @@ Boid.prototype.steer = function (target) {
 };
 
 // Limit max forces
-
 THREE.Vector3.prototype.limit = function (max) {
   if (this.length() > max) {
     this.normalize();
@@ -366,4 +347,3 @@ function render() {
   renderer.render(scene, camera);
 }
 render();
-*/

@@ -1,0 +1,36 @@
+#equipmentMenu select,
+#equipmentMenu button,
+#equipmentMenu input {
+  font-family: "Teko", sans-serif;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin: 4px 6px;
+}
+
+#equipmentMenu table {
+  width: 100%;
+  padding: 12px;
+}
+#equipmentMenu td {
+  text-align: center;
+}
+
+#equipmentMenu button {
+  border: 1px solid grey !important;
+  margin: 4px 6px;
+}
+
+#equipmentMenu .selectedItem {
+  background-color: lightskyblue;
+  border-radius: 4px;
+  margin: 4px 6px;
+}
+#equipmentMenu .nonSelectedItem {
+  background-color: black;
+  border-radius: 4px;
+  margin: 4px 6px;
+}
+
+#equipmentMenu .servoPositionSelect {
+  width: fit-content;
+}

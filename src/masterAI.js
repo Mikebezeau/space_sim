@@ -2,12 +2,13 @@ import * as THREE from "three";
 import { Object3D, Vector3 } from "three";
 import { distance, SCALE } from "./util/gameUtil";
 
-export function loopAI(playerShip, enemies, clock, actionShoot) {
-  const dummyObj = new THREE.Object3D();
-  const toTargetQuat = new THREE.Quaternion(),
-    curQuat = new THREE.Quaternion();
+const dummyObj = new THREE.Object3D();
+const toTargetQuat = new THREE.Quaternion(),
+  curQuat = new THREE.Quaternion();
 
-  enemies.forEach((enemy, i) => {
+export function loopAI(player, enemies, enemyBoids, clock, actionShoot) {
+  //console.log(enemyBoids[0]);
+  enemies.forEach((enemy, index) => {
     //select target
     //make sure the group leader is alive
     enemy.groupLeaderGuid = enemies.find(
@@ -17,124 +18,156 @@ export function loopAI(playerShip, enemies, clock, actionShoot) {
       : enemy.guid; //if not set group leader to itself - now has no leader
 
     const enemyLeader = enemies.find((e) => e.guid === enemy.groupLeaderGuid);
+    const isLeader = enemy.guid === enemy.groupLeaderGuid;
 
-    let destinationPosition = new Vector3();
-    let distanceFromTargetLocation = undefined;
+    const destinationPosition = findTargetPosition(
+      player,
+      enemyLeader,
+      enemies,
+      enemy,
+      isLeader
+    );
 
-    //if ship is the leader
-    if (enemy.guid === enemy.groupLeaderGuid)
-      destinationPosition = leaderDestinationPosition(playerShip);
-    //if ship is part of group
-    else {
-      //follow leaders order
-      enemy.tacticOrder = enemyLeader.tacticOrder;
-      if (enemy.tacticOrder === 1) {
-        //attack player
-        destinationPosition = playerShip.position;
-      } else {
-        //find group position
-        destinationPosition = groupFollowPosition(
-          enemy,
-          enemyLeader,
-          enemies,
-          clock
-        );
-      }
-    }
-
-    //ONLY CHANGE DIRECTION IF a little distance away from target destination so that jittering deosnt happen
-    distanceFromTargetLocation = distance(
+    const distanceToTargetLocation = distance(
       enemy.object3d.position,
       destinationPosition
     );
 
     //if leader ship within attack range of player
     if (
-      (enemy.guid === enemy.groupLeaderGuid || enemy.tacticOrder === 1) &&
-      distanceFromTargetLocation < 5000 * SCALE
+      (isLeader || enemy.tacticOrder === 1) &&
+      distanceToTargetLocation < 1000 * enemy.mechBP.scale * SCALE
+      //distanceToTargetLocation < 1000 * enemy.mechBP.size * SCALE
     ) {
       //give order to attack
       enemy.tacticOrder = 1;
       //fire at player
-      actionShoot(
-        enemy.mechBP,
-        enemy.object3d,
-        enemy.speed,
-        playerShip.position,
-        false
-      );
+      actionShoot(enemy.mechBP, enemy, player, false, enemy.team);
+    } else {
+      enemy.tacticOrder = 0;
     }
 
+    //if leader is too far away for combat change tactic order to reform formation
     if (
-      enemy.guid === enemy.groupLeaderGuid &&
-      distanceFromTargetLocation > 5000 * SCALE
+      isLeader &&
+      distanceToTargetLocation > 1000 * enemy.mechBP.scale * SCALE
+      //distanceToTargetLocation > 1000 * enemy.mechBP.size * SCALE
     ) {
       //player too far away to attack, so regroup
       enemy.tacticOrder = 0;
     }
 
+    //set traget desitination of enemy boid
+    //if (!isLeader)
+    enemyBoids[index].home.copy(destinationPosition);
+    //just for fun, if a big ship, let the target be the leader capital ship if close enough to player
+    if (
+      enemy.mechBP.scale > 3 &&
+      distanceToTargetLocation < 500 * enemy.mechBP.scale * SCALE
+      //distanceToTargetLocation < 500 * enemy.mechBP.size * SCALE //size: 1.5, 50, 11000
+    )
+      enemyBoids[index].home.copy(enemyLeader.object3d.position);
+
+    // Run an iteration of the flock
+    enemyBoids[index].step(enemyBoids, enemy, isLeader, []);
     //turn towards target
-    //set dummy to aquire rotation towards target
-    dummyObj.position.copy(enemy.object3d.position);
+    //direction quat pointing to player location
+    //ONLY CHANGE DIRECTION IF a short distance away from target destination, so that jittering deosnt happen
+    const MVmod =
+      1 /
+      (Math.abs(enemy.mechBP.MV()) === 0 ? 0.1 : Math.abs(enemy.mechBP.MV()));
+
+    //if (distanceToTargetLocation > 50 * enemy.mechBP.scale * SCALE) {
     //current enemy direction quat
     curQuat.setFromEuler(enemy.object3d.rotation);
+    //set dummy to aquire rotation towards target
+    dummyObj.position.copy(enemy.object3d.position);
+    dummyObj.lookAt(enemyBoids[index].position);
+    toTargetQuat.setFromEuler(dummyObj.rotation);
+    //rotate slowly towards target quaternion
 
-    //direction quat pointing to player location
-    if (distanceFromTargetLocation > 500 * SCALE) {
-      dummyObj.lookAt(destinationPosition);
-      toTargetQuat.setFromEuler(dummyObj.rotation);
-      //get difference of angles in radians // 360 degres = 6.28319 radians
-      /*
-      const angleDiff = curQuat.angleTo(toTargetQuat);
-      if (enemy.guid === 150 && clock.getElapsedTime() % 1 < 0.05) {
-        console.log(angleDiff);
-      }
-*/
-      //rotate slowly towards target quaternion
-      const manueverVal = 10 / Math.abs(enemy.mechBP.MV());
+    //do not exceed maximum turning angle Math.PI / 10
+    //if (index === 100) console.log(enemy.mechBP.size());
+    if (
+      curQuat.angleTo(toTargetQuat) >
+      (Math.PI / 10 / enemy.mechBP.scale) * MVmod
+    ) {
+      // .rotateTowards for a static rotation value
+      //if (index === 10) console.log(curQuat.angleTo(toTargetQuat), (Math.PI / 10) * MVmod);
       enemy.object3d.rotation.setFromQuaternion(
-        //curQuat.slerp(toTargetQuat.normalize(), 0.2 * manueverVal)
-        curQuat.slerp(toTargetQuat.normalize(), manueverVal)
-      ); // .rotateTowards for a static rotation value
-    }
-    //speed equals same speed as leader
-    //??speed depending on distance away
-
-    enemy.speed =
-      enemy.guid === enemy.groupLeaderGuid
-        ? //if ship is the leader
-          enemy.speed
-        : //else if ship is far away from target destination go faster
-        distanceFromTargetLocation > 1000 * enemy.mechBP.scale * SCALE
-        ? enemyLeader.speed + distanceFromTargetLocation
-        : enemyLeader.speed * 0.9;
-    enemy.speed = enemy.speed > 1000 ? 1000 : enemy.speed;
-    //move toward target
-    enemy.object3d.translateZ(enemy.speed * SCALE); //at this point a positive z moves toward player ship
-
-    /*
-        enemy.guid,
-        enemy.groupLeaderGuid,
-        enemy.object3d.position,
-        enemyLeader.object3d.position
-        //toTargetQuat,
-        //destinationPosition
+        curQuat.rotateTowards(
+          toTargetQuat,
+          (Math.PI / 10 / enemy.mechBP.scale) * MVmod
+        )
+      );
+    } else {
+      enemy.object3d.rotation.setFromQuaternion(
+        curQuat.slerp(toTargetQuat, (Math.PI / 10 / enemy.mechBP.scale) * MVmod)
       );
     }
+    //}
+
+    /*
+    const maxWeaponRange = enemy.mechBP.maxWeaponRange();//returns units - transform to space distance??
 */
+
+    //in combat set speed max
+    enemy.speed =
+      enemy.tacticOrder === 1
+        ? 4 + enemyBoids[index].speed * MVmod * SCALE
+        : enemy.speed;
+
+    //if far enough away, use boid speed to get in correct position
+    enemy.speed =
+      distanceToTargetLocation > 1000 * enemy.mechBP.scale * SCALE
+        ? enemyBoids[index].speed * 100 * SCALE //(distanceToTargetLocation * enemy.mechBP.scale) / 1000 / SCALE
+        : enemy.speed;
+
+    //reduce speed to the boid speed
+    if (enemy.speed > enemyBoids[index].speed * 100 * SCALE) {
+      enemy.speed = enemyBoids[index].speed * 100 * SCALE;
+    }
+
+    //move toward target
+    enemy.object3d.translateZ(enemy.speed * SCALE);
+    enemyBoids[index].position.copy(enemy.object3d.position);
+
+    //if (index === 0) console.log(enemyBoids[index].speed);
+    //enemy.object3d.lookAt(enemyBoids[index].pointAt);
+    //enemy.object3d.lookAt(enemyBoids[index].position);
+    //enemy.object3d.position.copy(enemyBoids[index].position);
   });
 }
 
-//function leaderDestinationPosition(enemy, playerShip, enemies) {
-function leaderDestinationPosition(playerShip) {
+function findTargetPosition(player, enemyLeader, enemies, enemy, isLeader) {
+  let destinationPosition = undefined;
+
+  //if ship is the leader
+  if (isLeader)
+    destinationPosition = leaderDestinationPosition(player.object3d);
+  //if ship is part of group
+  else {
+    //follow leaders order
+    enemy.tacticOrder = enemyLeader.tacticOrder;
+    if (enemy.tacticOrder === 1) {
+      //attack player
+      destinationPosition = player.object3d.position;
+    } else {
+      //find group position
+      destinationPosition = enemyLeader.object3d.position; // groupFollowPosition(enemy, enemyLeader, enemies);
+    }
+  }
+  return destinationPosition;
+}
+//function leaderDestinationPosition(enemy, playerObj, enemies) {
+function leaderDestinationPosition(playerObj) {
   //leader heads toward player for now
-  let destinationPosition = playerShip.position;
+  let destinationPosition = playerObj.position;
   return destinationPosition;
 }
 
-function groupFollowPosition(enemy, enemyLeader, enemies, clock) {
+function groupFollowPosition(enemy, enemyLeader, enemies) {
   let destinationObject = new Object3D();
-  //console.log(destinationObject.position, enemyLeader.object3d);
 
   destinationObject.position.copy(enemyLeader.object3d.position);
   destinationObject.rotation.copy(enemyLeader.object3d.rotation);
@@ -202,7 +235,4 @@ select desitation:
     depending if target, move around blocking objects
     stay within certain distance of leader
     move to turn weapons toward target if attacking
-
-
-
 */

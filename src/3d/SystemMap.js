@@ -15,21 +15,21 @@ const planetGeometry = new THREE.DodecahedronBufferGeometry(0.25, 0);
 const shipGeometry = new THREE.DodecahedronBufferGeometry(0.2, 0);
 const planetMaterial = new THREE.MeshBasicMaterial({
   color: new THREE.Color("purple"),
-  emissive: "purple",
-  emissiveIntensity: "0.5",
+  //emissive: "purple",
+  //emissiveIntensity: "0.5",
   wireframe: true,
 });
 const shipMaterial = new THREE.MeshBasicMaterial({
   color: new THREE.Color("lightskyblue"),
-  emissive: "lightskyblue",
-  emissiveIntensity: "0.5",
+  //emissive: "lightskyblue",
+  //emissiveIntensity: "0.5",
   wireframe: true,
 });
 
 const maxMapSize = 25;
 
 export default function SystemMap({ showPlayer = false }) {
-  const { ship } = useStore((state) => state);
+  const player = useStore((state) => state.player);
   const systemMap = useRef();
   const { camera } = useThree();
 
@@ -67,7 +67,9 @@ export default function SystemMap({ showPlayer = false }) {
   return (
     <group ref={systemMap} scale={showPlayer ? SCALE : 1}>
       <System planets={planets} mapScale={mapScale} />
-      {showPlayer && <ShipPositions mapScale={mapScale} ship={ship} />}
+      {showPlayer && (
+        <ShipPositions mapScale={mapScale} playerObj={player.object3d} />
+      )}
     </group>
   );
 }
@@ -101,12 +103,16 @@ function System({ planets, mapScale }) {
   });
 }
 
-function ShipPositions({ mapScale, ship }) {
+function ShipPositions({ mapScale, playerObj }) {
   //, enemies }) {
   return (
     <group>
       <mesh
-        position={[mapScale * ship.position.x, mapScale * ship.position.z, 0]}
+        position={[
+          mapScale * playerObj.position.x,
+          mapScale * playerObj.position.z,
+          0,
+        ]}
         geometry={shipGeometry}
         material={shipMaterial}
       ></mesh>

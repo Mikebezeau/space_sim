@@ -1,7 +1,6 @@
 import create from "zustand";
 import * as THREE from "three";
 
-import { Object3D, Vector3 } from "three";
 import { Curves } from "three/examples/jsm/curves/CurveExtras";
 import { addEffect } from "@react-three/fiber";
 
@@ -11,12 +10,15 @@ import { loopAI } from "../masterAI";
 import { servoUtil } from "../util/equipUtil";
 import { guid, initPlayerMechBP, initEnemyMechBP } from "../util/initEquipUtil";
 import { distance, SCALE, FLIGHT, NUM_SCREEN_OPTIONS } from "../util/gameUtil";
+import { setupFlock } from "../util/boidController";
 
 let guidCounter = 1; //global unique ID
 
 const seedrandom = require("seedrandom");
-const systemScale = 4, //5,
-  planetScale = 1; //8;
+const systemScale = 3, //5,
+  planetScale = 2; //8;
+
+const numEnemies = 50;
 
 const weaponFireSpeed = {
   beam: 200,
@@ -28,18 +30,33 @@ const weaponFireSpeed = {
 
 const playerStart = {
   x: 0,
-  y: 25000 * SCALE * systemScale,
-  z: -150000 * SCALE * systemScale,
+  y: 15000 * SCALE * systemScale,
+  z: -50000 * SCALE * systemScale,
 };
 
 //const [useStore, api] = create((set, get) => {
 const [useStore] = create((set, get) => {
-  //change spline and track to change where the space debrie and asteroids are located
-  let spline = new Curves.GrannyKnot();
-  let track = new THREE.TubeBufferGeometry(spline, 250, 15 * SCALE, 10, true);
+  //change curve and track to change where the space debrie and asteroids are located
+  let curve = new Curves.GrannyKnot(); //GrannyKnot
+  // Create a sine-like wave
+  /*
+  const curve = new THREE.CubicBezierCurve3(
+    new THREE.Vector3(-10000 * SCALE * systemScale, 0, 0),
+    new THREE.Vector3(
+      -5000 * SCALE * systemScale,
+      15000 * SCALE * systemScale,
+      -5000
+    ),
+    new THREE.Vector3(
+      5000 * SCALE * systemScale,
+      -15000 * SCALE * systemScale,
+      5000
+    ),
+    new THREE.Vector3(10000 * SCALE * systemScale, 0, 0)
+  );
+  */
+  let track = new THREE.TubeBufferGeometry(curve, 128, 100 * SCALE, 8, false);
   //these used for weaponFire hits
-  let cancelExplosionTO = undefined;
-  let shootTO = null;
   const box = new THREE.Box3();
 
   //globally available variables
@@ -56,13 +73,12 @@ const [useStore] = create((set, get) => {
     camera: undefined,
     points: 0,
     health: 100,
-    ship: initShip(),
+    player: initPlayer(),
     playerMechBP: initPlayerMechBP(),
     playerScreen: FLIGHT,
     selectedTargetIndex: null,
     focusTargetIndex: null,
     weaponFireLightTimer: 0,
-    speed: 1,
     stationDock: { stationIndex: 0, portIndex: 0 },
     weaponFireList: [], //
     explosions: [],
@@ -74,6 +90,7 @@ const [useStore] = create((set, get) => {
       () => 1 + Math.random() * 2.5
     ),
     enemies: randomEnemies(track),
+    enemyBoids: setupFlock(numEnemies),
     planets: initSolarSystem(seedrandom(0), systemScale, planetScale),
     stations: randomStations(seedrandom(0), 1),
     mutation: {
@@ -85,7 +102,7 @@ const [useStore] = create((set, get) => {
 
       //scale: 15,
       //fov: 70,//set directly in camera declaration
-      hits: false,
+      playerHits: false,
       //rings: randomRings(30, track),
       particles: randomData(
         3000,
@@ -102,8 +119,6 @@ const [useStore] = create((set, get) => {
 
       // Re-usable objects
       dummy: new THREE.Object3D(),
-      ray: new THREE.Ray(), //USED FOR RAY FROM SHIP for weaponFire hit detection
-      box: new THREE.Box3(), //also used for ray hit detection
     },
 
     //------------------------------------------------------------------------------------
@@ -118,6 +133,11 @@ const [useStore] = create((set, get) => {
 
     actions: {
       init() {
+        const { enemies, enemyBoids } = get();
+        enemyBoids.forEach((boid, index) => {
+          boid.position.copy(get().player.object3d.position);
+        });
+
         const { mutation, actions } = get();
         //set({ camera });//set in App canvas
         //clock used in auto rotations
@@ -129,22 +149,17 @@ const [useStore] = create((set, get) => {
         addEffect(() => {
           if (get().playerScreen !== FLIGHT) return;
 
-          const { ship, weaponFireList, rocks, enemies, planets } = get();
+          const { player, weaponFireList, rocks, enemies, planets } = get();
           //run enemy AI routine
-          loopAI(ship, enemies, get().mutation.clock, get().actions.shoot);
+          loopAI(
+            player,
+            enemies,
+            get().enemyBoids,
+            get().mutation.clock,
+            get().actions.shoot
+          );
 
           const timeNow = Date.now();
-          /*
-          if (shootTO === null && get().selectedTargetIndex !== null) {
-            //if no enemy in that index will error
-            //fire once per second
-            shootTO = setTimeout(() => {
-              //true: is auto-aiming
-              get().actions.shoot(true);
-              shootTO = null;
-            }, 500);
-          }
-*/
           get().weaponFireList.forEach((weaponFire) => {
             //MISSILE FIRE course direction
             if (
@@ -152,29 +167,18 @@ const [useStore] = create((set, get) => {
               get().selectedTargetIndex !== null
             ) {
               const dummyObj = new THREE.Object3D(),
-                //flipRotation = new THREE.Quaternion(),
                 targetQuat = new THREE.Quaternion();
               dummyObj.position.copy(weaponFire.object3d.position);
               dummyObj.lookAt(
                 enemies[get().selectedTargetIndex].object3d.position
               );
               dummyObj.getWorldQuaternion(targetQuat);
-              //flip the opposite direction
-              /*
-              flipRotation.setFromAxisAngle(
-                new THREE.Vector3(0, 1, 0),
-                Math.PI
-              );
-              targetQuat.multiplyQuaternions(targetQuat, flipRotation);
-*/
               weaponFire.object3d.rotation.setFromQuaternion(
                 weaponFire.object3d.quaternion.slerp(
                   targetQuat.normalize(),
                   0.2
                 )
               ); // .rotateTowards for a static rotation value
-              //
-              //weaponFire.object3d.rotation.setFromQuaternion(targetQuat);
             }
           });
           /*
@@ -185,62 +189,30 @@ const [useStore] = create((set, get) => {
           mutation.position = track.parameters.path.getPointAt(t);
           mutation.position.multiplyScalar(mutation.scale);
 */
-
-          //THIS TAKES WAY TO LONG TO RUN ON LOAD UP
-          // test for distance to planets and enemies, set drawDistanceLevel accordingly
-          //drawDistanceLevel will be updated when an appropriate distance is reached to reduce quality of enemy render model
-          /*
-          planets.forEach((planet, index) => {
-            const drawDistanceLevel = Math.floor(
-              (distance(planet.position, ship.position) - planet.radius) /
-                (25000 * SCALE)
+          enemies.forEach((enemy) => {
+            enemy.shotsHit = weaponFireList.filter((shot) =>
+              actions.testBox(enemy, shot)
             );
-
-            if (
-              planet.drawDistanceLevel !== drawDistanceLevel &&
-              drawDistanceLevel < 2
-            ) {
-              
-
+            if (enemy.shotsHit.length > 0)
               set((state) => ({
-                planets: state.planets.map((p, i) =>
-                  i === index
-                    ? { ...p, drawDistanceLevel: drawDistanceLevel }
-                    : p
+                weaponFireList: state.weaponFireList.filter(
+                  (shot) => !enemy.shotsHit.find((s) => s.id === shot.id)
                 ),
               }));
-            }
+            enemy.shotsHit = [];
           });
-*/
-          //drawDistanceLevel will be updated when an appropriate distance is reached to reduce quality of enemy render model
-          /*
-          enemies.forEach((enemy, index) => {
-            const drawDistanceLevel =
-              distance(enemy.object3d.position, ship.position) < 300000 * SCALE
-                ? 0
-                : 1;
-
-            if (enemy.drawDistanceLevel !== drawDistanceLevel) {
-              set((state) => ({
-                enemies: state.enemies.map((e, i) =>
-                  i === index
-                    ? { ...e, drawDistanceLevel: drawDistanceLevel }
-                    : e
-                ),
-              }));
-            }
-          });
-*/
           // test for hits
           const r = rocks.filter(actions.test);
           const e = enemies.filter(actions.test);
           const a = r.concat(e);
           //If hit a new object play sound
           //edited out audio for now
-          //const previous = mutation.hits;
-          mutation.hits = a.length;
-          //if (previous === 0 && mutation.hits) playAudio(audio.click);
-          if (mutation.hits && weaponFireList.length) {
+          //const previous = mutation.playerHits;
+          mutation.playerHits = a.length;
+          //if (previous === 0 && mutation.playerHits) playAudio(audio.click);
+
+          /* //OLD STUFF
+          if (mutation.playerHits && weaponFireList.length) {
             const updates = a.map((data) => ({ time: timeNow, ...data }));
             set((state) => ({ explosions: [...state.explosions, ...updates] }));
             clearTimeout(cancelExplosionTO);
@@ -253,6 +225,7 @@ const [useStore] = create((set, get) => {
                 })),
               1000
             );
+            
             set((state) => ({
               //points: state.points + r.length * 100 + e.length * 200,
               rocks: state.rocks.filter(
@@ -262,7 +235,9 @@ const [useStore] = create((set, get) => {
                 (enemy) => !e.find((e) => e.guid === enemy.guid)
               ),
             }));
+            
           }
+*/
           //if (a.some(data => data.distance < 15)) set(state => ({ health: state.health - 1 }))
         });
       },
@@ -270,6 +245,7 @@ const [useStore] = create((set, get) => {
       setFocusTargetIndex(focusTargetIndex) {
         set(() => ({ focusTargetIndex: focusTargetIndex }));
       },
+
       setSelectedTargetIndex() {
         //make work for enemies as well
         //set new target for current shooter
@@ -292,15 +268,13 @@ const [useStore] = create((set, get) => {
         if (targetIndex !== null)
           get().actions.shoot(
             get().playerMechBP[0],
-            get().ship,
-            get().speed,
-            get().enemies[targetIndex].object3d.position,
-            false
+            get().player,
+            get().enemies[targetIndex],
+            true //player autofire
           );
-        //console.log(get().selectedTargetIndex);
       },
-      //player ship shoot weapons
-      shoot(mechBP, shooterObj, shooterVelocity, targetPos, autoFire = false) {
+      //shoot all mechs weapons
+      shoot(mechBP, shooter, target, autoFire = false) {
         if (get().selectedTargetIndex === null && autoFire) return null;
         //for each weapon on the ship, find location and create a weaponFire to be shot from there
         Object.values(mechBP.weaponList).forEach((weapons) => {
@@ -316,11 +290,11 @@ const [useStore] = create((set, get) => {
               //set weapon autofire timer
               const args = {
                 mechBP: mechBP,
-                shooterObj: shooterObj,
-                shooterVelocity: shooterVelocity,
-                targetPos: targetPos,
+                shooter: shooter,
+                target: target,
                 autoFire: autoFire,
                 weapon: weapon,
+                team: 0,
               };
               get().actions.shootWeapon(args);
             }
@@ -329,15 +303,9 @@ const [useStore] = create((set, get) => {
         //if player play shooting sound
         //playAudio(audio.zap, 0.5);
       },
-      shootWeapon({
-        mechBP,
-        shooterObj,
-        shooterVelocity,
-        targetPos,
-        autoFire,
-        weapon,
-      }) {
+      shootWeapon({ mechBP, shooter, target, autoFire, weapon, team }) {
         //PREPARE FOR FIRING
+        const { actions, enemies } = get();
 
         //weapon loaded
         weapon.ready = 1;
@@ -349,12 +317,11 @@ const [useStore] = create((set, get) => {
         //so when timer fires will only reload weapon and not shoot / set another timer
         if (!autoFire) weapon.active = false;
 
-        //set next shot for autofire (until cancelled)
+        //set timeout for reload / autofire (if active will automatically shoot again)
         const args = {
           mechBP: mechBP,
-          shooterObj: shooterObj,
-          shooterVelocity: shooterVelocity,
-          targetPos: targetPos,
+          shooter: shooter,
+          target: target,
           autoFire: autoFire,
           weapon: weapon,
         };
@@ -363,26 +330,28 @@ const [useStore] = create((set, get) => {
           : 1000;
         //console.log(weapon.data);
         weapon.shootWeaponTO = setTimeout(
-          () => get().actions.shootWeapon(args),
+          () => actions.shootWeapon(args),
           reloadSpeed,
           args
         );
 
         //FIRE WEAPON IF APPROPRIATE
+        //test for friendly fire of team mates
+        if (actions.friendlyFireTest(shooter)) return null;
 
         //autofire angle of tolerance for shots to be fired
         let angleDiff = 0; //angleDiff set to 0 if not using
 
-        const weaponFireObj = new Object3D();
-        weaponFireObj.position.copy(shooterObj.position);
+        const weaponFireObj = new THREE.Object3D();
+        weaponFireObj.position.copy(shooter.object3d.position);
 
         //if a missile fire straight ahead
         if (weapon.data.weaponType === "missile") {
-          weaponFireObj.rotation.copy(shooterObj.rotation);
+          weaponFireObj.rotation.copy(shooter.object3d.rotation);
         }
         //by default other weapon type fire out of front of ship toward enemies
         else {
-          weaponFireObj.lookAt(targetPos);
+          weaponFireObj.lookAt(target.object3d.position);
         }
 
         //autofire target provided, if not a missile, only fire if within certain angle in front of ship
@@ -394,23 +363,22 @@ const [useStore] = create((set, get) => {
           weaponFireObj.rotation.set(
             weaponFireObj.rotation.x,
             weaponFireObj.rotation.y,
-            get().ship.rotation.z
+            get().player.object3d.rotation.z
           );
           weaponFireObj.getWorldQuaternion(weaponRotation);
-          angleDiff = weaponRotation.angleTo(shooterObj.quaternion);
-          //console.log(angleDiff);
+          angleDiff = weaponRotation.angleTo(shooter.object3d.quaternion);
         }
+        //dumb way of asking if not a player firing (dont shoot enemy missiles)
+        else if (!autoFire) angleDiff = 1;
 
-        console.log(0);
         //this sucks
         if (get().playerScreen !== FLIGHT) return null;
 
-        //checking if angle is not within limit for firing
-        //if (autoFire && angleDiff > 0.15) return null;
-
-        //********************* */
+        //checking if angle is not within limit for player firing
+        if (autoFire && angleDiff > 0.3) return null;
         //enemies having a hard time pointing at player
-        //if (angleDiff > 0.15) return null;
+        //letting big ships shoot from any angle
+        if (mechBP.scale < 4 && angleDiff > 0.5) return null;
 
         //FIRE WEAPON
 
@@ -437,18 +405,18 @@ const [useStore] = create((set, get) => {
         );
 
         //ADD BULLET TO BULLET LIST
-        console.log("shoot");
         let weaponFire = {
           //id: guid(weaponFireUpdate),
           id: guid(get().weaponFireList),
+          shooterId: shooter.id,
           weaponData: weapon.data,
+          range: weapon.range(),
           object3d: weaponFireObj,
           //targetIndex: get().selectedTargetIndex,
           time: Date.now(),
-          range: weapon.range(),
-          firstFrameSpeed: JSON.parse(JSON.stringify(shooterVelocity)),
+          firstFrameSpeed: JSON.parse(JSON.stringify(shooter.speed)),
           //offset: { x: 0, y: 0, z: 0 },
-          velocity: fireSpeed + JSON.parse(JSON.stringify(shooterVelocity)),
+          velocity: fireSpeed + JSON.parse(JSON.stringify(shooter.speed)),
         };
         //add bullet to list
         set((state) => ({
@@ -481,14 +449,36 @@ const [useStore] = create((set, get) => {
 
       //testing for weaponFire hits using ray (ray from spaceship)
       test(data) {
-        //will have to check ray for each shot fired in weaponFireList
         box.min.copy(data.object3d.position);
         box.max.copy(data.object3d.position);
-        box.expandByScalar(data.size * SCALE * 10);
+        box.expandByScalar(data.size * SCALE * 3000);
         data.hit.set(1000, 1000, 10000);
-        const result = get().mutation.ray.intersectBox(box, data.hit);
-        data.distance = get().mutation.ray.origin.distanceTo(data.hit);
+        const result = get().player.ray.intersectBox(box, data.hit);
+        //data.distance = get().player.ray.origin.distanceTo(data.hit);
         return result;
+      },
+
+      friendlyFireTest(shooter) {
+        const shooterTeam = get().enemies.filter(
+          (enemy) => enemy.team === shooter.team
+        );
+        let hit = 0;
+        shooterTeam.some((target) => {
+          if (
+            shooter.id !== target.id &&
+            shooter.ray.intersectBox(target.hitBox, target.hit) !== null
+          ) {
+            hit = 1;
+            return;
+          }
+        });
+
+        return hit;
+      },
+
+      //
+      testBox(target, shot) {
+        return 0;
       },
 
       setEnemyBP(index, mechBP) {
@@ -551,31 +541,37 @@ const [useStore] = create((set, get) => {
       },
 
       //player ship
-      setShipPosition(position) {
+      setPlayerObject(obj) {
         set((state) => ({
-          ship: { ...state.ship, position: position },
+          player: { ...state.player, object3d: obj },
         }));
       },
       //player ship speed up
       speedUp() {
         set((state) => ({
-          speed:
-            state.speed < 0
-              ? 0
-              : state.speed < 5
-              ? state.speed + 1
-              : state.speed + 10,
+          player: {
+            ...state.player,
+            speed:
+              state.player.speed < 0
+                ? 0
+                : state.player.speed < 5
+                ? state.player.speed + 1
+                : state.player.speed + 10,
+          },
         }));
       },
       //player ship speed down
       speedDown() {
         set((state) => ({
-          speed:
-            state.speed > 0
-              ? 0
-              : state.speed > -5
-              ? state.speed - 1
-              : state.speed - 10,
+          player: {
+            ...state.player,
+            speed:
+              state.player.speed > 0
+                ? 0
+                : state.player.speed > -5
+                ? state.player.speed - 1
+                : state.player.speed - 10,
+          },
         }));
       },
       //dock at spacestation
@@ -681,12 +677,18 @@ function initGalaxyStarPositions(
   return new Float32Array(positions);
 }
 
-function initShip() {
-  let ship = new THREE.Object3D();
-  ship.position.setX(playerStart.x);
-  ship.position.setY(playerStart.y);
-  ship.position.setZ(playerStart.z);
-  return ship;
+function initPlayer() {
+  let obj = new THREE.Object3D();
+  obj.position.setX(playerStart.x);
+  obj.position.setY(playerStart.y);
+  obj.position.setZ(playerStart.z);
+  return {
+    team: 0,
+    speed: 1,
+    object3d: obj,
+    ray: new THREE.Ray(),
+    hitBox: new THREE.Box3(),
+  }; //USED FOR RAY FROM SHIP for weaponFire hit detection };
 }
 //set camera to view galaxy in main menu
 function initCamMainMenu() {
@@ -717,12 +719,10 @@ function randomData(count, track, radius, size, randomScale) {
         )
       );
     //get rid of offset completely
-    const object3d = new Object3D();
+    const object3d = new THREE.Object3D();
     object3d.position.copy(offset);
     return {
       guid: guidCounter++,
-      groupLeaderGuid: 0,
-      groupId: 0,
       scale: typeof randomScale === "function" ? randomScale() : randomScale,
       size,
       offset,
@@ -738,18 +738,64 @@ function randomData(count, track, radius, size, randomScale) {
 }
 
 function randomEnemies(track) {
-  let enemies = randomData(120, track, 5 * SCALE, 0, 1);
+  let enemies = randomData(numEnemies, track, 5 * SCALE, 0, 1);
+
   enemies.forEach((enemy, index) => {
-    enemy.groupLeaderGuid = 0;
+    /*
+    enemy.object3d.position.set(
+      (Math.random() * 100000 - 50000) * SCALE,
+      (Math.random() * 100000 - 50000) * SCALE,
+      10000 * SCALE
+    );
+    */
+    enemy.id = guid(enemies);
+    enemy.team = index < 40 ? 1 : 2;
+
+    //enemy.groupLeaderGuid = 0;
+    enemy.groupLeaderGuid = index < 10 ? enemies[0].guid : enemies[10].guid;
+
+    enemy.groupId = 0;
     enemy.tacticOrder = 0; //0 = follow leader, 1 = attack player
+    //enemy.prevAngleToTargetLocation = 0;
+    //enemy.prevAngleToLeaderLocation = 0;
     enemy.formation = null;
-    enemy.formationPosition = new Vector3();
+    enemy.formationPosition = new THREE.Vector3();
     enemy.speed = 300 + Math.floor(Math.random() * 3);
     enemy.mechBP = initEnemyMechBP(
-      index === 0 ? 3 : 1 //Math.floor(Math.random() * 2)
+      //index === 0 ? 3 :
+      index < numEnemies / 20 ? 1 : 0 //Math.floor(Math.random() * 2)
     );
     enemy.size = enemy.mechBP.size() * SCALE;
     enemy.drawDistanceLevel = 0;
+
+    const box = new THREE.BoxGeometry(
+      enemy.size * 3000,
+      enemy.size * 3000,
+      enemy.size * 3000
+    );
+    const yellow = new THREE.Color("yellow");
+    const green = new THREE.Color("green");
+    const mesh = new THREE.MeshStandardMaterial({
+      color: yellow,
+      emissive: yellow,
+      emissiveIntensity: 1,
+      wireframe: true,
+    });
+    enemy.boxHelper = new THREE.Mesh(box, mesh); //visible bounding box, geometry of which is used to calculate hit detection box
+    enemy.boxHelper.geometry.computeBoundingBox();
+    enemy.greenMat = new THREE.MeshStandardMaterial({
+      color: green,
+      emissive: green,
+      emissiveIntensity: 1,
+      wireframe: true,
+    });
+
+    enemy.ray = new THREE.Ray(); //USED FOR RAY FROM SHIP for testing friendly fire hit detection
+    enemy.hitBox = new THREE.Box3(); //used with rays for hit detection
+    enemy.hitBox.copy(enemy.boxHelper.geometry.boundingBox);
+    enemy.shotsHit = []; //registers shots that have hit the mech, to remove shots from space
+    // in the animation loop, compute the current bounding box with the world matrix
+    //hitBox.applyMatrix4( enemy.boxHelper.matrixWorld );
   });
 
   //group enemies into squads
@@ -760,7 +806,7 @@ function randomEnemies(track) {
         .filter(
           (e) =>
             distance(enemy.object3d.position, e.object3d.position) <
-            200000 * SCALE
+              200000 * SCALE && enemy.mechBP.scale >= e.mechBP.scale
         )
         .forEach((eGroup) => {
           //this will apply to leader as well as all those nearby

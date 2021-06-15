@@ -1,0 +1,44 @@
+.formControlCol1 {
+  width: 100%;
+  padding: 12px;
+}
+
+.formControlCol2 {
+  display: block;
+  width: 50%;
+  padding: 12px;
+  float: left;
+}
+
+.formControlCol3 {
+  display: block;
+  width: 33%;
+  padding: 12px;
+  float: left;
+}
+
+.formSliderLabelCost {
+  float: right;
+}
+
+.formControlCol3 .formSliderLabelCost {
+  clear: both;
+  display: block;
+  width: 100%;
+  text-align: right;
+}
+
+.toggleContainer .switch {
+  float: right;
+}
+
+.formToggleLabelCost {
+  clear: both;
+  display: block;
+  width: 100%;
+}
+
+.addWeaponButton {
+  display: block;
+  clear: both;
+}

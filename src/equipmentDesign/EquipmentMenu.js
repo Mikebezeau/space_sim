@@ -13,6 +13,7 @@ import ServoPositionButtons from "../equipmentDesign/ServoPositionButtons";
 //import ServoHydraulics from "./equipment/ServoHydraulics";
 import { Weapons, WeaponsAssignSpaces } from "../equipment/Weapons";
 import { LandingBay, LandingBayAssignSpaces } from "../equipment/LandingBay";
+import "../css/equipmentMenu.css";
 
 export default function EquipmentMenu() {
   //BLUEPRINT SELECTION MENU
@@ -158,15 +159,19 @@ export default function EquipmentMenu() {
       <UpperRight>
         <div style={{ width: health + "%" }} />
       </UpperRight>
-      <Center>
+      <Center id="equipmentMenu">
         <div>
-          <span className={selectedBPid === 0 ? "selectedItem" : "false"}>
+          <span
+            className={selectedBPid === 0 ? "selectedItem" : "nonSelectedItem"}
+          >
             <button onClick={handleNewBP}>New BP</button>
           </span>
           {playerMechBP.map((value, index) => (
             <span
               key={"mechbp" + index}
-              className={selectedBPid === value.id ? "selectedItem" : "false"}
+              className={
+                selectedBPid === value.id ? "selectedItem" : "nonSelectedItem"
+              }
             >
               <button
                 key={"select" + index}
@@ -186,6 +191,7 @@ export default function EquipmentMenu() {
 
           <span style={{ float: "right" }}>
             <input
+              style={{ textTransform: "none" }}
               type="textbox"
               onChange={(e) => handleImportChange(e)}
               value={importExportText}
@@ -195,6 +201,7 @@ export default function EquipmentMenu() {
                 handleSelectBP(e.target.value);
               }}
             >
+              <option>Select BP</option>
               {mechDesigns.enemy.map((bp, i) => (
                 <option key={i} value={i}>
                   {bp.name}
@@ -216,7 +223,9 @@ export default function EquipmentMenu() {
           {topMenuSelection.map((value, key) => (
             <span
               key={"topmenu" + key}
-              className={mainMenuSelection === key ? "selectedItem" : "false"}
+              className={
+                mainMenuSelection === key ? "selectedItem" : "nonSelectedItem"
+              }
             >
               <button onClick={() => topSelectionHandler(key)}>{value}</button>
             </span>
@@ -232,7 +241,9 @@ export default function EquipmentMenu() {
                 return (
                   <span
                     key={"submenu" + key}
-                    className={subSelection === key ? "selectedItem" : "false"}
+                    className={
+                      subSelection === key ? "selectedItem" : "nonSelectedItem"
+                    }
                   >
                     <button onClick={() => subSelectionHandler(key)}>
                       {value.buttonLable}

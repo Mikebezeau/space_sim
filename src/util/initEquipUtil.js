@@ -233,6 +233,10 @@ const initMechBP = function (guid) {
         .concat(this.weaponList.eMelee)
         .concat(this.weaponList.melee);
     },
+
+    maxWeaponRange: function () {
+      return mech.maxWeaponRange(this.concatWeaponList());
+    },
   };
 };
 
@@ -355,16 +359,17 @@ const initWeaponData = function (weaponType, scale = 1) {
         title: "Projectile",
         name: "Projectile",
         damageRange: 3,
-        accuracy: 2,
         rangeMod: 4,
+        accuracy: 2,
         burstValue: 2,
         multiFeed: 0,
+        special: 0, //phalanx & anti-personnel
+
+        variable: 0,
         longRange: 0,
         hyperVelocity: 0,
-        ammoList: [{ type: 0, numAmmo: 10 }],
 
-        special: 0, //phalanx & anti-personnel
-        variable: 0,
+        ammoList: [{ type: 0, numAmmo: 10 }],
 
         SPeff: 0,
         wEff: 0,
@@ -481,7 +486,7 @@ const initWeaponBP = function (guid, weaponType, scale) {
       return weaponUtil.structure(this.damage());
     },
     accuracy: function () {
-      return weaponList[this.data.weaponType].accuracy.val[this.data.accuracy];
+      return weaponUtil.accuracy(this.data);
     },
     range: function (housingSservo = null) {
       if (this.data.rangeMod) return weaponUtil.range(this.data, housingSservo);

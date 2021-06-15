@@ -10,7 +10,8 @@ function make(color, speed) {
   return {
     ref: React.createRef(),
     color,
-    data: new Array(20)
+    //data: new Array(20)
+    data: new Array(10)
       .fill()
       .map(() => [
         new THREE.Vector3(),
@@ -29,9 +30,9 @@ export default function Explosions() {
   const explosions = useStore((state) => state.explosions);
   return explosions.map(({ guid, object3d, scale }) => (
     <Explosion
-      key={guid}
+      key={Math.random()}
       position={object3d.position}
-      scale={SCALE * scale * 75}
+      scale={SCALE * scale * 10}
     />
   ));
 }
@@ -68,7 +69,7 @@ function Explosion({ position, scale }) {
     <group ref={group} position={position} scale={[scale, scale, scale]}>
       {particles.map(({ color, data }, index) => (
         <instancedMesh
-          key={index}
+          key={Math.random()}
           args={[null, null, data.length]}
           frustumCulled={false}
         >

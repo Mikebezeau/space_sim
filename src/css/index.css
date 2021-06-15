@@ -28,20 +28,3 @@ body {
   color: black;
   cursor: move !important;
 }
-
-.selectedItem {
-  background-color: lightskyblue;
-  border: 1px solid white;
-  margin: 4px 6px;
-}
-button {
-  border: 1px solid grey !important;
-  margin: 4px 6px;
-}
-select {
-  margin: 4px 6px;
-}
-
-.servoPositionSelect {
-  width: fit-content;
-}

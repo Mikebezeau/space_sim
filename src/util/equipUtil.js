@@ -322,6 +322,14 @@ const mech = {
       equipList.hydraulics.lift[hydraulicsType];
     return liftVal;
   },
+
+  maxWeaponRange: function (allWeaponList) {
+    let maxRange = 0;
+    allWeaponList.forEach((weapon) => {
+      maxRange = weapon.range > maxRange ? weapon.range : maxRange;
+    });
+    return maxRange;
+  },
 };
 
 export { applyScaledWeightMult, applyScaledCPMult, servoUtil, mech, armorUtil };

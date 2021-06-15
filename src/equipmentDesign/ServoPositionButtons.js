@@ -195,7 +195,7 @@ const ServoPositionButtons = ({ heading }) => {
           <div>
             {mechBP.servoWeaponList(servo.id).map((weapon) => (
               <span
-                key={"weapon" + index}
+                key={weapon.id + "weapon"}
                 className={
                   editWeaponId === weapon.id
                     ? "selectedItem"

@@ -138,7 +138,11 @@ export const ServoShapes = function ({
   //landingBay,
   landingBayServoLocationId,
   landingBayPosition,
+  bmap,
 }) {
+  constructionMaterial.bumpMap = bmap;
+  constructionMaterial.bumpScale = 0.3;
+
   const editing = servo.id === servoEditId ? true : false;
   const size = servo.size();
   const useMaterial = editing ? selectMaterial : constructionMaterial; //servo.material;

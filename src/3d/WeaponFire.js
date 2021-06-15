@@ -5,7 +5,9 @@ import { useFrame } from "@react-three/fiber";
 import useStore from "../stores/store";
 import { SCALE } from "../util/gameUtil";
 
-const lightgreen = new THREE.Color("lightgreen");
+const red = new THREE.Color("red");
+const yellow = new THREE.Color("yellow");
+const lightgrey = new THREE.Color("lightgrey");
 
 const weaponFireGeometry = {
   beam: new THREE.BoxBufferGeometry(0.1 * SCALE, 0.1 * SCALE, 200 * SCALE),
@@ -15,9 +17,22 @@ const weaponFireGeometry = {
 
 const weaponFireMaterial = {
   beam: new THREE.MeshStandardMaterial({
-    color: lightgreen,
-    emissive: lightgreen,
+    color: red,
+    emissive: red,
     emissiveIntensity: 1,
+    wireframe: true,
+  }),
+  proj: new THREE.MeshStandardMaterial({
+    color: yellow,
+    emissive: yellow,
+    emissiveIntensity: 1,
+    wireframe: true,
+  }),
+  missile: new THREE.MeshStandardMaterial({
+    color: lightgrey,
+    emissive: lightgrey,
+    emissiveIntensity: 1,
+    wireframe: true,
   }),
 };
 
@@ -63,7 +78,7 @@ export default function WeaponFire() {
           <group key={weaponFire.id}>
             <mesh
               geometry={weaponFireGeometry[weaponFire.weaponData.weaponType]}
-              material={weaponFireMaterial.beam}
+              material={weaponFireMaterial[weaponFire.weaponData.weaponType]}
             />
           </group>
         ))}

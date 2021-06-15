@@ -13,7 +13,7 @@ import Particles from "./3d/Particles";
 import EnemyMechs from "./3d/EnemyMechs";
 import Rocks from "./3d/Rocks";
 import Explosions from "./3d/Explosions";
-import Ship from "./3d/Ship";
+import PlayerMech from "./3d/PlayerMech";
 import ScannerReadout from "./3d/ScannerReadout";
 //import TestMech from "./3d/TestMech"; <TestMech />
 import WeaponFire from "./3d/WeaponFire";
@@ -120,12 +120,12 @@ function App() {
             <Explosions />
             <Particles />
             <Suspense fallback={null}>
+              <PlayerMech />
+              <ScannerReadout />
               <Rocks />
               <Planets />
               <EnemyMechs />
               {/*<Stations />*/}
-              <Ship />
-              <ScannerReadout />
               <WeaponFire />
               <SystemMap showPlayer={true} />
             </Suspense>

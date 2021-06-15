@@ -145,9 +145,11 @@ const weaponUtil = {
     return structure;
   },
   accuracy: function (data) {
-    return weaponList[data.weaponType].accuracy.val[data.accuracy];
+    let acc = weaponList[data.weaponType].accuracy.val[data.accuracy];
+    acc = data.longRange ? acc - 2 : acc;
+    return acc;
   },
-  range: function (data, housingSservo) {
+  range: function (data, housingSservo = null) {
     var range = 0;
     if (weaponList[data.weaponType].damageRange.range === "melee") {
       //melee weapon, check for thrown

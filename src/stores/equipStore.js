@@ -8,6 +8,22 @@ import {
   initWeaponBP,
 } from "../util/initEquipUtil";
 
+/*
+//for transfering weapon data fields
+function castWeaponDataInt(mergBP, parsedBP) {
+  Object.keys(parsedBP).forEach((key) => {
+    mergBP[key] =
+      key === "weaponType" ||
+      key === "title" ||
+      key === "name" ||
+      key === "ammoList"
+        ? parsedBP[key]
+        : Number(parsedBP[key]);
+  });
+  return mergBP;
+}
+*/
+
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 //                GLOBAL VARIABLES
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -328,7 +344,7 @@ const [useEquipStore] = create((set, get) => {
             : get()[weaponType + "BP"];
 
           if (weapon) {
-            weapon.data[propName] = val;
+            weapon.data[propName] = Number(val);
 
             if (id) {
               //editing weapon already assigned to mech in its weapon list array
@@ -401,6 +417,19 @@ const [useEquipStore] = create((set, get) => {
 
           set((state) => ({
             mechBP: { ...state.mechBP, weaponList: weaponList },
+          }));
+        },
+
+        deleteWeapon(weaponType, id) {
+          let updateWeaponList = get().mechBP.weaponList;
+          updateWeaponList[weaponType] = updateWeaponList[weaponType].filter(
+            (w) => w.id !== id
+          );
+          set((state) => ({
+            mechBP: {
+              ...state.mechBP,
+              weaponList: updateWeaponList,
+            },
           }));
         },
       },

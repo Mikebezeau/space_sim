@@ -1,5 +1,8 @@
 import React from "react";
+import * as THREE from "three";
 import { MeshStandardMaterial, Color } from "three";
+import { useLoader } from "@react-three/fiber";
+import { TextureLoader } from "three/src/loaders/TextureLoader.js";
 import { ServoShapes, WeaponShapes } from "../data/equipShapes";
 import { equipList } from "../data/equipData";
 
@@ -10,6 +13,7 @@ export default function BuildMech({
   weaponEditId = null,
   editMode = false,
   showAxisLines = false,
+  isLeader = false,
 }) {
   //place edit axis lines
 
@@ -19,12 +23,24 @@ export default function BuildMech({
     emissiveIntensity: 0.5,
   });
 
-  const redGlowMaterial = new MeshStandardMaterial({
-    color: new Color("red"),
-    emissive: new Color("red"),
-    emissiveIntensity: 0.5,
-  });
+  const directoinGlowMaterial = isLeader
+    ? new MeshStandardMaterial({
+        color: new Color("green"),
+        emissive: new Color("green"),
+        emissiveIntensity: 0.5,
+      })
+    : new MeshStandardMaterial({
+        color: new Color("red"),
+        emissive: new Color("red"),
+        emissiveIntensity: 0.5,
+      });
   //const axesHelper = new THREE.AxesHelper( 5 );
+
+  const bmap = useLoader(TextureLoader, "images/maps/mechBumpMap.jpg");
+  bmap.repeat.set(1, 1);
+  bmap.wrapS = THREE.RepeatWrapping;
+  bmap.wrapT = THREE.RepeatWrapping;
+  //bmap={mechBP.scale > 3 ? bmap : undefined}
   return (
     <group scale={editMode ? 2 / equipList.scale.weightMult[mechBP.scale] : 1}>
       {mechBP.servoList.map((servo, index) => (
@@ -55,38 +71,41 @@ export default function BuildMech({
         </group>
       ))}
       {(showAxisLines || editMode) && (
-        <group scale={mechBP.size() * 0.01}>
+        <group scale={mechBP.size() * 0.01 * showAxisLines}>
           <mesh
             position={[0, 0, 150]}
             rotation={[Math.PI / 2, 0, 0]}
-            material={redGlowMaterial}
+            material={directoinGlowMaterial}
           >
             <cylinderBufferGeometry
               attach="geometry"
               args={[0.25, 0.25, 300, 4]}
             />
           </mesh>
-
-          <mesh
-            position={[0, 0, 0]}
-            rotation={[0, Math.PI / 2, 0]}
-            material={glowMaterial}
-          >
-            <cylinderBufferGeometry
-              attach="geometry"
-              args={[0.25, 0.25, 150, 4]}
-            />
-          </mesh>
-          <mesh
-            position={[0, 0, 0]}
-            rotation={[0, 0, Math.PI / 2]}
-            material={glowMaterial}
-          >
-            <cylinderBufferGeometry
-              attach="geometry"
-              args={[0.25, 0.25, 150, 4]}
-            />
-          </mesh>
+          {editMode && (
+            <>
+              <mesh
+                position={[0, 0, 0]}
+                rotation={[0, Math.PI / 2, 0]}
+                material={glowMaterial}
+              >
+                <cylinderBufferGeometry
+                  attach="geometry"
+                  args={[0.25, 0.25, 150, 4]}
+                />
+              </mesh>
+              <mesh
+                position={[0, 0, 0]}
+                rotation={[0, 0, Math.PI / 2]}
+                material={glowMaterial}
+              >
+                <cylinderBufferGeometry
+                  attach="geometry"
+                  args={[0.25, 0.25, 150, 4]}
+                />
+              </mesh>
+            </>
+          )}
         </group>
       )}
     </group>
