@@ -42,8 +42,8 @@ export function Boid(index) {
 // Run an iteration of the flock
 Boid.prototype.step = function (flock, boidInfo, isLeader, obstacles) {
   this.groupLeaderGuid = boidInfo.groupLeaderGuid;
-  this.minRange = boidInfo.size * 2.5 * 3000 * SCALE;
-  this.neighborRange = boidInfo.size * 3.5 * 3000 * SCALE;
+  this.minRange = boidInfo.size * 2.5 * 3;
+  this.neighborRange = boidInfo.size * 3.5 * 3;
   this.mass = boidInfo.size * 100;
   this.accumulate(flock, isLeader, obstacles);
   this.update();

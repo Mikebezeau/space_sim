@@ -56,6 +56,12 @@ export default function EquipmentMenu() {
     );
     equipActions.basicMenu.editShipZoom(0);
   };
+  const handleSelectStationBP = (i) => {
+    equipActions.blueprintMenu.importBlueprint(
+      JSON.stringify(mechDesigns.station[i])
+    );
+    equipActions.basicMenu.editShipZoom(0);
+  };
   const handleExportBP = () => {
     setImportExportText(equipActions.blueprintMenu.exportBlueprint());
   };
@@ -201,8 +207,20 @@ export default function EquipmentMenu() {
                 handleSelectBP(e.target.value);
               }}
             >
-              <option>Select BP</option>
+              <option>Select Enemy BP</option>
               {mechDesigns.enemy.map((bp, i) => (
+                <option key={i} value={i}>
+                  {bp.name}
+                </option>
+              ))}
+            </select>
+            <select
+              onChange={(e) => {
+                handleSelectStationBP(e.target.value);
+              }}
+            >
+              <option>Select Station BP</option>
+              {mechDesigns.station.map((bp, i) => (
                 <option key={i} value={i}>
                   {bp.name}
                 </option>

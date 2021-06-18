@@ -1,9 +1,8 @@
 import React, { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import useStore from "../stores/store";
-import { geoList } from "../data/shapeGeometry";
-//import { useLoader } from "@react-three/fiber";
-//import { TextureLoader } from "three/src/loaders/TextureLoader.js";
+import BuildMech from "./BuildMech";
+import { SCALE } from "../util/gameUtil";
 
 const Station = React.memo(({ station }) => {
   //station rotation
@@ -21,8 +20,11 @@ const Station = React.memo(({ station }) => {
       ref={ref}
       position={[station.position.x, station.position.y, station.position.z]}
       rotation={[station.rotation.x, station.rotation.y, station.rotation.z]}
-      scale={[station.size, station.size, station.size]}
+      scale={SCALE}
+      key={station.guid}
     >
+      <BuildMech mechBP={station.stationBP} showAxisLines={0} />
+
       <pointLight
         position={[0, 5, 0]}
         distance={0}
@@ -42,32 +44,6 @@ const Station = React.memo(({ station }) => {
         intensity={0.2}
         color="lightblue"
       />
-      <mesh
-        scale={[2, 2, 2]}
-        geometry={geoList.cylinder}
-        material={station.material}
-      ></mesh>
-      <mesh
-        scale={[0.6, 0.6, 0.6]}
-        rotation={[0, 0, Math.PI / 2]}
-        position={[0, 0, 0]}
-        geometry={geoList.cylinder}
-        material={station.material}
-      ></mesh>
-      <mesh
-        scale={[0.75, 0.75, 0.75]}
-        rotation={[0, Math.PI / 2, Math.PI / 2]}
-        position={[0, 0, 0]}
-        geometry={geoList.cylinder}
-        material={station.material}
-      ></mesh>
-      <mesh
-        scale={[1.7, 1.7, 1.2]}
-        rotation={[Math.PI / 2, 0, 0]}
-        position={[0, 0, 0]}
-        geometry={geoList.torus}
-        material={station.material}
-      ></mesh>
     </group>
   );
 });

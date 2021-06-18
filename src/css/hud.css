@@ -1,0 +1,18 @@
+.healthBar {
+  height: 100%;
+  background: lightblue;
+}
+
+.scanData {
+  font-weight: 300;
+  font-size: small;
+  line-height: 1.2em;
+  max-width: 210px;
+}
+
+.floatLeft {
+  float: left;
+}
+.floatRight {
+  float: right;
+}

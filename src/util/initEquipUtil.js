@@ -73,7 +73,8 @@ const loadBlueprint = function (importBP) {
   //parsedBP.weaponList.forEach((list, key) => {
   Object.keys(parsedBP.weaponList).forEach((key) => {
     parsedBP.weaponList[key].forEach((parsedWeapon) => {
-      const weaponBP = initWeaponBP(0, key);
+      let weaponBP = initWeaponBP(0, key);
+      weaponBP.data = parsedWeapon.data;
       mergBP.weaponList[key].push(transferProperties(weaponBP, parsedWeapon));
     });
   });
@@ -87,6 +88,14 @@ const initPlayerMechBP = function () {
   let playerMechBP = loadBlueprint(JSON.stringify(mechDesigns.player[0]));
   playerMechBP.id = 1;
   return [playerMechBP];
+};
+
+//Station BLUEPRINT list
+const initStationBP = function (bluePrintIndex) {
+  let stationBP = loadBlueprint(
+    JSON.stringify(mechDesigns.station[bluePrintIndex])
+  );
+  return stationBP;
 };
 
 //ENEMY MECH BLUEPRINT list
@@ -518,6 +527,7 @@ export {
   guid,
   loadBlueprint,
   initPlayerMechBP,
+  initStationBP,
   initEnemyMechBP,
   initMechBP,
   initMechServo,

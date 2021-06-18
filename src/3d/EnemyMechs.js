@@ -15,7 +15,6 @@ const direction = new THREE.Vector3();
 
 const Enemy = React.memo(({ enemy, index }) => {
   const ref = useRef();
-  const boidDirection = useRef();
 
   useFrame(() => {
     if (ref.current) {
@@ -34,7 +33,7 @@ const Enemy = React.memo(({ enemy, index }) => {
         */
       enemy.hitBox.min.copy(position);
       enemy.hitBox.max.copy(position);
-      enemy.hitBox.expandByScalar(enemy.size * 3000 * SCALE);
+      enemy.hitBox.expandByScalar(enemy.size * 3);
 
       //testing
       /*
@@ -47,18 +46,18 @@ const Enemy = React.memo(({ enemy, index }) => {
   });
 
   return (
-    <group ref={ref} scale={SCALE} key={enemy.guid}>
+    <group ref={ref} scale={SCALE} key={enemy.id}>
       <BuildMech
         mechBP={enemy.mechBP}
         drawDistanceLevel={enemy.drawDistanceLevel}
         showAxisLines={0}
-        isLeader={enemy.guid === enemy.groupLeaderGuid}
+        isLeader={enemy.id === enemy.groupLeaderGuid}
       />
-      {enemy.guid === enemy.groupLeaderGuid && (
+      {enemy.id === enemy.groupLeaderGuid && (
         <mesh
           geometry={enemy.boxHelper.geometry}
           material={
-            enemy.guid === enemy.groupLeaderGuid
+            enemy.id === enemy.groupLeaderGuid
               ? enemy.greenMat
               : enemy.boxHelper.material
           }

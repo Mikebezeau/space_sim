@@ -11,14 +11,12 @@ export function loopAI(player, enemies, enemyBoids, clock, actionShoot) {
   enemies.forEach((enemy, index) => {
     //select target
     //make sure the group leader is alive
-    enemy.groupLeaderGuid = enemies.find(
-      (e) => e.guid === enemy.groupLeaderGuid
-    )
+    enemy.groupLeaderGuid = enemies.find((e) => e.id === enemy.groupLeaderGuid)
       ? enemy.groupLeaderGuid //leader is alive
-      : enemy.guid; //if not set group leader to itself - now has no leader
+      : enemy.id; //if not set group leader to itself - now has no leader
 
-    const enemyLeader = enemies.find((e) => e.guid === enemy.groupLeaderGuid);
-    const isLeader = enemy.guid === enemy.groupLeaderGuid;
+    const enemyLeader = enemies.find((e) => e.id === enemy.groupLeaderGuid);
+    const isLeader = enemy.id === enemy.groupLeaderGuid;
 
     const destinationPosition = findTargetPosition(
       player,
@@ -194,7 +192,7 @@ function groupFollowPosition(enemy, enemyLeader, enemies) {
     });
   }
   /*
-  if (enemy.guid === 150 && clock.getElapsedTime() % 1 < 0.05)
+  if (enemy.id === 150 && clock.getElapsedTime() % 1 < 0.05)
     console.log(enemy.formationPosition);
     */
   //destination location is the leaders position offset by this ships formation coordinates position/offset values
@@ -213,7 +211,7 @@ fleet / ship groups
     each group of smaller ships will be divided into further sub groups according to max # of ships / group
 
 enemy ship properties:
-    guid //global ship id
+    id // ship id
     groupLeaderGuid //global ship id of who is the group leader (or this ships own id if it is the group leader)
     groupId // id of group this ship is assigned to
 

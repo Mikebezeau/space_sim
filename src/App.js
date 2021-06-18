@@ -7,7 +7,7 @@ import { Canvas } from "@react-three/fiber";
 import MainMenu from "./MainMenu";
 import Stars from "./3d/Stars";
 import Planets from "./3d/Planets";
-//import Stations from "./3d/Stations";
+import Stations from "./3d/Stations";
 import Effects from "./3d/Effects";
 import Particles from "./3d/Particles";
 import EnemyMechs from "./3d/EnemyMechs";
@@ -125,7 +125,7 @@ function App() {
               <Rocks />
               <Planets />
               <EnemyMechs />
-              {/*<Stations />*/}
+              <Stations />
               <WeaponFire />
               <SystemMap showPlayer={true} />
             </Suspense>

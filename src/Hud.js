@@ -2,11 +2,13 @@ import React from "react";
 import styled, { css } from "styled-components";
 import useStore from "./stores/store";
 
+import "./css/hud.css";
+
 //basic HTML/CSS heads up display used to show player info
 export default function Hud() {
   const { speed } = useStore((state) => state.player);
   //const points = useStore((state) => state.points);
-  const health = useStore((state) => state.health);
+  const { planets, focusPlanetIndex, health } = useStore((state) => state);
   //const sound = useStore((state) => state.sound);
   //const toggle = useStore((state) => state.actions.toggleSound);
   /*
@@ -36,9 +38,41 @@ export default function Hud() {
       <UpperLeft>
         <h2>Speed</h2>
         <h1>{speed}</h1>
+        <div className="scanData">
+          <p>System</p>
+          {Object.entries(planets[0].data).map(([key, value]) => {
+            return (
+              <span key={key}>
+                {key}:{" "}
+                <span className="floatRight">
+                  {Math.floor(value * 1000) / 1000}
+                </span>
+                <br />
+              </span>
+            );
+          })}
+        </div>
       </UpperLeft>
       <UpperRight>
-        <div style={{ width: health + "%" }} />
+        <div className="healthBar" style={{ width: health + "%" }} />
+        <br />
+        <div className="scanData">
+          {focusPlanetIndex !== null && planets[focusPlanetIndex] && (
+            <>
+              <p>Planet Scan</p>
+              {Object.entries(planets[focusPlanetIndex].data).map(
+                ([key, value]) => {
+                  return (
+                    <span key={key}>
+                      <span className="floatLeft">{key}:</span> {value}
+                      <br />
+                    </span>
+                  );
+                }
+              )}
+            </>
+          )}
+        </div>
       </UpperRight>
     </>
   );
@@ -91,12 +125,8 @@ const UpperRight = styled.div`
   transform: skew(-5deg, -10deg);
   font-size: 2em;
   height: 40px;
-  width: 200px;
+  width: 210px;
   background: black;
-  & > div {
-    height: 100%;
-    background: lightblue;
-  }
 
   @media only screen and (max-width: 700px) {
     bottom: 50px;

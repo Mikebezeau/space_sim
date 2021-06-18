@@ -11,7 +11,7 @@ function make(color, speed) {
     ref: React.createRef(),
     color,
     //data: new Array(20)
-    data: new Array(10)
+    data: new Array(2)
       .fill()
       .map(() => [
         new THREE.Vector3(),
@@ -21,19 +21,34 @@ function make(color, speed) {
           -1 + Math.random() * 2
         )
           .normalize()
-          .multiplyScalar(speed * 0.75),
+          .multiplyScalar(speed * 0.75 * SCALE),
       ]),
   };
 }
 
 export default function Explosions() {
+  //test shape
+  const geometry = new THREE.SphereGeometry(10, 8, 8);
+  //test material
+  const material = new THREE.MeshLambertMaterial({
+    emissive: new THREE.Color(0xffffff),
+    emissiveIntensity: 0.5,
+    color: new THREE.Color(0xffffff),
+    opacity: 1,
+    depthWrite: false,
+  });
+  //<Explosion key={id} position={object3d.position} scale={SCALE} />
   const explosions = useStore((state) => state.explosions);
-  return explosions.map(({ guid, object3d, scale }) => (
-    <Explosion
-      key={Math.random()}
-      position={object3d.position}
-      scale={SCALE * scale * 10}
-    />
+  //if (explosions.length > 0) console.log(explosions[0]);
+  return explosions.map(({ id, object3d }) => (
+    <group key={id}>
+      <mesh
+        geometry={geometry}
+        material={material}
+        position={object3d.position}
+        scale={SCALE}
+      ></mesh>
+    </group>
   ));
 }
 
@@ -66,7 +81,7 @@ function Explosion({ position, scale }) {
   });
 
   return (
-    <group ref={group} position={position} scale={[scale, scale, scale]}>
+    <group ref={group} position={position}>
       {particles.map(({ color, data }, index) => (
         <instancedMesh
           key={Math.random()}

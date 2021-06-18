@@ -57,6 +57,22 @@ export default function EquipmentBlueprint() {
         ref.current.rotation.set(rotation.x, rotation.y, rotation.z);
       }
     }
+
+    /*
+    enemy.hitBox.min.copy(position);
+    enemy.hitBox.max.copy(position);
+    enemy.hitBox.expandByScalar(mechBP.size() * 3000 * SCALE);
+
+
+        <mesh
+          geometry={enemy.boxHelper.geometry}
+          material={
+            enemy.guid === enemy.groupLeaderGuid
+              ? enemy.greenMat
+              : enemy.boxHelper.material
+          }
+        ></mesh>
+*/
   });
   //<pointLight ref={light} intensity={0.6} />
 

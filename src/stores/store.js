@@ -8,20 +8,35 @@ import { addEffect } from "@react-three/fiber";
 import { loopAI } from "../masterAI";
 
 import { servoUtil } from "../util/equipUtil";
-import { guid, initPlayerMechBP, initEnemyMechBP } from "../util/initEquipUtil";
-import { distance, SCALE, FLIGHT, NUM_SCREEN_OPTIONS } from "../util/gameUtil";
+import {
+  guid,
+  initPlayerMechBP,
+  initStationBP,
+  initEnemyMechBP,
+} from "../util/initEquipUtil";
+import {
+  getRandomArbitrary,
+  distance,
+  SCALE,
+  FLIGHT,
+  NUM_SCREEN_OPTIONS,
+} from "../util/gameUtil";
 import { setupFlock } from "../util/boidController";
 
+import StarSystem from "../accrete/StarSystem"; //ACCRETE
+
 let guidCounter = 1; //global unique ID
+let explosionGuidCounter = 1; //global unique ID
 
 const seedrandom = require("seedrandom");
-const systemScale = 3, //5,
-  planetScale = 2; //8;
 
-const numEnemies = 50;
+const systemScale = 3, //5,
+  planetScale = 0.01; //8;
+
+const numEnemies = 10;
 
 const weaponFireSpeed = {
-  beam: 200,
+  beam: 100,
   proj: 40,
   missile: 20,
   eMelee: 0,
@@ -30,9 +45,11 @@ const weaponFireSpeed = {
 
 const playerStart = {
   x: 0,
-  y: 15000 * SCALE * systemScale,
-  z: -50000 * SCALE * systemScale,
+  y: 15000 * SCALE * systemScale, //15000
+  z: 5000 * SCALE * systemScale, //-50000 * SCALE * systemScale,
 };
+
+let cancelExplosionTO = undefined;
 
 //const [useStore, api] = create((set, get) => {
 const [useStore] = create((set, get) => {
@@ -77,6 +94,7 @@ const [useStore] = create((set, get) => {
     playerMechBP: initPlayerMechBP(),
     playerScreen: FLIGHT,
     selectedTargetIndex: null,
+    focusPlanetIndex: null,
     focusTargetIndex: null,
     weaponFireLightTimer: 0,
     stationDock: { stationIndex: 0, portIndex: 0 },
@@ -133,7 +151,7 @@ const [useStore] = create((set, get) => {
 
     actions: {
       init() {
-        const { enemies, enemyBoids } = get();
+        const { player, playerMechBP, enemies, enemyBoids } = get();
         enemyBoids.forEach((boid, index) => {
           boid.position.copy(get().player.object3d.position);
         });
@@ -143,6 +161,29 @@ const [useStore] = create((set, get) => {
         //clock used in auto rotations
         mutation.clock.start();
         //actions.toggleSound(get().sound);
+
+        player.size = playerMechBP[0].size() * SCALE;
+        //const playerObj = player.object3d;
+        //playerObj.position.setZ(-15000 * SCALE - get().planets[0].radius);
+        //console.log(playerObj.position.z, -get().planets[0].radius);
+        //get().actions.setPlayerObject(playerObj);
+
+        //set player hitbox size
+        const box = new THREE.BoxGeometry(
+          player.size * 5000,
+          player.size * 5000,
+          player.size * 5000
+        );
+        const yellow = new THREE.Color("yellow");
+        const mesh = new THREE.MeshStandardMaterial({
+          color: yellow,
+          emissive: yellow,
+          emissiveIntensity: 1,
+          wireframe: true,
+        });
+        player.boxHelper = new THREE.Mesh(box, mesh); //visible bounding box, geometry of which is used to calculate hit detection box
+        player.boxHelper.geometry.computeBoundingBox();
+        player.hitBox.copy(player.boxHelper.geometry.boundingBox);
 
         //addEffect will add the following code to what gets run per frame
         //removes exploded emenies and rocks from store data, removes explosions once they have timed out
@@ -189,19 +230,70 @@ const [useStore] = create((set, get) => {
           mutation.position = track.parameters.path.getPointAt(t);
           mutation.position.multiplyScalar(mutation.scale);
 */
+
+          let newExplosions = [];
+          let weaponFireUpdate = get().weaponFireList;
+          //ENEMIES
           enemies.forEach((enemy) => {
             enemy.shotsHit = weaponFireList.filter((shot) =>
               actions.testBox(enemy, shot)
             );
-            if (enemy.shotsHit.length > 0)
-              set((state) => ({
-                weaponFireList: state.weaponFireList.filter(
-                  (shot) => !enemy.shotsHit.find((s) => s.id === shot.id)
-                ),
-              }));
-            enemy.shotsHit = [];
+
+            if (enemy.shotsHit.length > 0) {
+              //set explosion at shots location
+              newExplosions = newExplosions.concat(
+                enemy.shotsHit.map((data) => ({
+                  time: timeNow,
+                  id: explosionGuidCounter++,
+                  ...data,
+                }))
+              );
+              //remove shots that hit target
+              weaponFireUpdate = weaponFireUpdate.filter(
+                (weaponFire) =>
+                  !enemy.shotsHit.find((s) => s.id === weaponFire.id)
+              );
+              enemy.shotsHit = [];
+            }
           });
-          // test for hits
+
+          //PLAYER *** DUPLICATED FROM ENEMIES TEST - FIX
+          player.shotsHit = weaponFireList.filter((shot) =>
+            actions.testBox(player, shot)
+          );
+          if (player.shotsHit.length > 0) {
+            //set explosion at shots location
+            newExplosions = newExplosions.concat(
+              player.shotsHit.map((data) => ({
+                time: timeNow,
+                id: explosionGuidCounter++,
+                ...data,
+              }))
+            );
+            //remove shots that hit target
+            weaponFireUpdate = weaponFireUpdate.filter(
+              (weaponFire) =>
+                !player.shotsHit.find((s) => s.id === weaponFire.id)
+            );
+            player.shotsHit = [];
+          }
+
+          //remove shots
+          set((state) => ({
+            weaponFireList: weaponFireUpdate,
+          }));
+          //remove old explosions
+          let explosionRemaining = get().explosions.filter(
+            (explosion) => timeNow - explosion.time > 1000
+          );
+          let explosionUpdate = explosionRemaining.concat(newExplosions);
+          //update explosions
+          set((state) => ({
+            explosions: explosionUpdate,
+          }));
+          //if (explosionUpdate.length === 0) explosionGuidCounter = 0;
+
+          // test if player is pointing at targets (used for changing the crosshairs)
           const r = rocks.filter(actions.test);
           const e = enemies.filter(actions.test);
           const a = r.concat(e);
@@ -242,6 +334,10 @@ const [useStore] = create((set, get) => {
         });
       },
 
+      setFocusPlanetIndex(focusPlanetIndex) {
+        set(() => ({ focusPlanetIndex: focusPlanetIndex }));
+      },
+
       setFocusTargetIndex(focusTargetIndex) {
         set(() => ({ focusTargetIndex: focusTargetIndex }));
       },
@@ -263,19 +359,20 @@ const [useStore] = create((set, get) => {
         set(() => ({
           selectedTargetIndex: targetIndex,
         }));
-        //if not currently shooting, begin shooting immediately
-        //if (shootTO === null) get().actions.shoot(true); //true = auto aim
+
         if (targetIndex !== null)
           get().actions.shoot(
             get().playerMechBP[0],
             get().player,
             get().enemies[targetIndex],
-            true //player autofire
+            true, // true //player autofire
+            false // auto aim
           );
       },
       //shoot all mechs weapons
-      shoot(mechBP, shooter, target, autoFire = false) {
-        if (get().selectedTargetIndex === null && autoFire) return null;
+      shoot(mechBP, shooter, target, autoFire = false, autoAim = true) {
+        if (get().selectedTargetIndex === null && autoFire && autoAim)
+          return null;
         //for each weapon on the ship, find location and create a weaponFire to be shot from there
         Object.values(mechBP.weaponList).forEach((weapons) => {
           weapons.forEach((weapon) => {
@@ -295,6 +392,7 @@ const [useStore] = create((set, get) => {
                 autoFire: autoFire,
                 weapon: weapon,
                 team: 0,
+                autoAim: autoAim,
               };
               get().actions.shootWeapon(args);
             }
@@ -303,7 +401,15 @@ const [useStore] = create((set, get) => {
         //if player play shooting sound
         //playAudio(audio.zap, 0.5);
       },
-      shootWeapon({ mechBP, shooter, target, autoFire, weapon, team }) {
+      shootWeapon({
+        mechBP,
+        shooter,
+        target,
+        autoFire,
+        weapon,
+        team,
+        autoAim,
+      }) {
         //PREPARE FOR FIRING
         const { actions, enemies } = get();
 
@@ -324,6 +430,7 @@ const [useStore] = create((set, get) => {
           target: target,
           autoFire: autoFire,
           weapon: weapon,
+          autoAim: autoAim,
         };
         const reloadSpeed = weapon.burstValue()
           ? 1000 / weapon.burstValue()
@@ -343,20 +450,40 @@ const [useStore] = create((set, get) => {
         let angleDiff = 0; //angleDiff set to 0 if not using
 
         const weaponFireObj = new THREE.Object3D();
+        //copy position of weapon (offset from base mech)
+        // weapon
         weaponFireObj.position.copy(shooter.object3d.position);
+        weaponFireObj.rotation.copy(shooter.object3d.rotation);
+        const fireSpeed = weaponFireSpeed[weapon.data.weaponType];
+        const weaponFireOffsetZ = fireSpeed / 2;
+        weapon.servoOffset = servoUtil.servoLocation(
+          weapon.locationServoId,
+          mechBP.servoList
+        ).offset;
+        weaponFireObj.translateX(
+          (weapon.offset.x + weapon.servoOffset.x) * SCALE
+        );
+        weaponFireObj.translateY(
+          (weapon.offset.y + weapon.servoOffset.y) * SCALE
+        );
+        weaponFireObj.translateZ(
+          (weapon.offset.z + weapon.servoOffset.z) * SCALE
+        );
 
         //if a missile fire straight ahead
-        if (weapon.data.weaponType === "missile") {
+        if (weapon.data.weaponType === "missile" || autoAim === false) {
           weaponFireObj.rotation.copy(shooter.object3d.rotation);
         }
         //by default other weapon type fire out of front of ship toward enemies
         else {
           weaponFireObj.lookAt(target.object3d.position);
         }
+        //move forward so bullet isnt 1/2 way through ship... >.< - change
+        weaponFireObj.translateZ(weaponFireOffsetZ * SCALE);
 
         //autofire target provided, if not a missile, only fire if within certain angle in front of ship
         //if (autoFire && weapon.data.weaponType !== "missile") {
-        if (weapon.data.weaponType !== "missile") {
+        if (weapon.data.weaponType !== "missile" || autoAim === true) {
           const weaponRotation = new THREE.Quaternion();
           weaponFireObj.getWorldQuaternion(weaponRotation);
           //optional setting z angle to match roll of ship
@@ -385,25 +512,6 @@ const [useStore] = create((set, get) => {
         //weapon is now firing the bullet
         weapon.ready = 0;
 
-        const fireSpeed = weaponFireSpeed[weapon.data.weaponType];
-
-        const weaponFireOffsetZ = fireSpeed / 2;
-
-        weapon.servoOffset = servoUtil.servoLocation(
-          weapon.locationServoId,
-          mechBP.servoList
-        ).offset;
-
-        weaponFireObj.translateX(
-          (weapon.offset.x + weapon.servoOffset.x) * SCALE
-        );
-        weaponFireObj.translateY(
-          (weapon.offset.y + weapon.servoOffset.y) * SCALE
-        );
-        weaponFireObj.translateZ(
-          (weapon.offset.z + weapon.servoOffset.z + weaponFireOffsetZ) * SCALE
-        );
-
         //ADD BULLET TO BULLET LIST
         let weaponFire = {
           //id: guid(weaponFireUpdate),
@@ -412,12 +520,30 @@ const [useStore] = create((set, get) => {
           weaponData: weapon.data,
           range: weapon.range(),
           object3d: weaponFireObj,
+          hitBox: new THREE.Box3(), //used for hit detection
           //targetIndex: get().selectedTargetIndex,
           time: Date.now(),
           firstFrameSpeed: JSON.parse(JSON.stringify(shooter.speed)),
           //offset: { x: 0, y: 0, z: 0 },
+          fireSpeed: fireSpeed,
           velocity: fireSpeed + JSON.parse(JSON.stringify(shooter.speed)),
+          ray: new THREE.Ray(),
         };
+
+        const box = new THREE.BoxGeometry(
+          0.1 * SCALE,
+          0.1 * SCALE,
+          200 * SCALE
+        );
+        const mesh = new THREE.MeshStandardMaterial({
+          color: new THREE.Color("yellow"),
+          emissive: new THREE.Color("yellow"),
+          emissiveIntensity: 1,
+          wireframe: true,
+        });
+        const boxHelper = new THREE.Mesh(box, mesh); //visible bounding box, geometry of which is used to calculate hit detection box
+        boxHelper.geometry.computeBoundingBox();
+        weaponFire.hitBox.copy(boxHelper.geometry.boundingBox);
         //add bullet to list
         set((state) => ({
           weaponFireList: [...state.weaponFireList, weaponFire],
@@ -442,7 +568,6 @@ const [useStore] = create((set, get) => {
         });
         set((state) => ({
           weaponFireList: updateWeaponFire,
-          //weaponFireList: weaponFireList.filter((weaponFire) => Date.now() - weaponFire.time <= 1000),
         }));
         //console.log(get().weaponFireList.length);
       },
@@ -451,8 +576,8 @@ const [useStore] = create((set, get) => {
       test(data) {
         box.min.copy(data.object3d.position);
         box.max.copy(data.object3d.position);
-        box.expandByScalar(data.size * SCALE * 3000);
-        data.hit.set(1000, 1000, 10000);
+        box.expandByScalar(data.size * 3);
+        //data.hit.set(1000, 1000, 10000);
         const result = get().player.ray.intersectBox(box, data.hit);
         //data.distance = get().player.ray.origin.distanceTo(data.hit);
         return result;
@@ -478,7 +603,20 @@ const [useStore] = create((set, get) => {
 
       //
       testBox(target, shot) {
-        return 0;
+        /*target.hitBox.min.copy(target.object3d.position);
+        target.hitBox.max.copy(target.object3d.position);
+        target.hitBox.expandByScalar(target.size * 3);
+
+        shot.hitBox.min.copy(shot.object3d.position);
+        shot.hitBox.max.copy(shot.object3d.position);
+        //shot.hitBox.expandByScalar(3000 * SCALE);
+*/
+        //will update to stop from shooting if will hit self in more detailed check
+        if (target.id === shot.shooterId) return false;
+
+        const result = shot.hitBox.intersectsBox(target.hitBox);
+        //data.distance = get().player.ray.origin.distanceTo(data.hit);
+        return result;
       },
 
       setEnemyBP(index, mechBP) {
@@ -538,6 +676,9 @@ const [useStore] = create((set, get) => {
             planetScale
           ),
         }));
+        //const playerObj = get().player.object3d;
+        //playerObj.position.setZ(-15000 * SCALE - get().planets[0].radius);
+        //get().actions.setPlayerObject(playerObj);
       },
 
       //player ship
@@ -629,7 +770,7 @@ const [useStore] = create((set, get) => {
 //creating galaxy like the milky way
 function initGalaxyStarPositions(
   rng = seedrandom("galaxy_stars"),
-  count = 100
+  count = 1000
 ) {
   const numArms = 4;
   const armSeparationDistance = (2 * Math.PI) / numArms;
@@ -683,11 +824,13 @@ function initPlayer() {
   obj.position.setY(playerStart.y);
   obj.position.setZ(playerStart.z);
   return {
+    id: 0,
     team: 0,
     speed: 1,
     object3d: obj,
     ray: new THREE.Ray(),
     hitBox: new THREE.Box3(),
+    shotsHit: [],
   }; //USED FOR RAY FROM SHIP for weaponFire hit detection };
 }
 //set camera to view galaxy in main menu
@@ -741,18 +884,14 @@ function randomEnemies(track) {
   let enemies = randomData(numEnemies, track, 5 * SCALE, 0, 1);
 
   enemies.forEach((enemy, index) => {
-    /*
-    enemy.object3d.position.set(
-      (Math.random() * 100000 - 50000) * SCALE,
-      (Math.random() * 100000 - 50000) * SCALE,
-      10000 * SCALE
-    );
-    */
+    //if (index === 0) {
+    //  enemy.object3d.position.set(playerStart.x, playerStart.y, playerStart.z);
+    //}
     enemy.id = guid(enemies);
     enemy.team = index < 40 ? 1 : 2;
 
     //enemy.groupLeaderGuid = 0;
-    enemy.groupLeaderGuid = index < 10 ? enemies[0].guid : enemies[10].guid;
+    enemy.groupLeaderGuid = index < 10 ? enemies[0].id : enemies[10].id;
 
     enemy.groupId = 0;
     enemy.tacticOrder = 0; //0 = follow leader, 1 = attack player
@@ -769,9 +908,9 @@ function randomEnemies(track) {
     enemy.drawDistanceLevel = 0;
 
     const box = new THREE.BoxGeometry(
-      enemy.size * 3000,
-      enemy.size * 3000,
-      enemy.size * 3000
+      enemy.size * 5000,
+      enemy.size * 5000,
+      enemy.size * 5000
     );
     const yellow = new THREE.Color("yellow");
     const green = new THREE.Color("green");
@@ -806,11 +945,11 @@ function randomEnemies(track) {
         .filter(
           (e) =>
             distance(enemy.object3d.position, e.object3d.position) <
-              200000 * SCALE && enemy.mechBP.scale >= e.mechBP.scale
+              20000 * SCALE && enemy.mechBP.scale >= e.mechBP.scale
         )
         .forEach((eGroup) => {
           //this will apply to leader as well as all those nearby
-          eGroup.groupLeaderGuid = enemy.guid;
+          eGroup.groupLeaderGuid = enemy.id;
           //console.log(eGroup.groupLeaderGuid);
         });
     }
@@ -822,21 +961,21 @@ function randomStations(rng, num) {
   let temp = [];
   //create station
   temp.push({
+    id: 1, //id(),
     type: "EQUIPMENT",
     name: "X-22",
     roughness: 1,
     metalness: 5,
-    //color: new THREE.Color("rgb(255, 0, 0)"),//THREE.Color used for effects
-    size: 500 * SCALE,
     ports: [{ x: 0.5, y: 0.5, z: 0.5 }],
     position: {
       x: 0,
-      y: 25000 * SCALE * systemScale,
-      z: 145000 * SCALE * systemScale,
+      y: 0,
+      z: -14500 * SCALE * systemScale,
     },
 
     rotation: { x: 0, y: 0.5, z: 0 },
 
+    stationBP: initStationBP(0),
     material: new THREE.MeshPhongMaterial({
       color: 0x222222,
       emissive: 0x222222,
@@ -849,19 +988,49 @@ function randomStations(rng, num) {
 }
 
 function initSolarSystem(rng, systemScale = 1, planetScale = 1) {
-  let numPlanets = Math.floor(rng() * 7) + 4;
+  //Only one in about five hundred thousand stars has more than twenty times the mass of the Sun.
+  let solarMass = getRandomArbitrary(0.6, 1.4);
+  solarMass = solarMass < 0.7 ? getRandomArbitrary(0.1, 0.7) : solarMass;
+  solarMass = solarMass > 1.3 ? getRandomArbitrary(1.3, 10) : solarMass;
+  //15% of stars have a system like earths (with gas giants)
+  //ACCRETE
+  const system = new StarSystem({
+    //A: getRandomArbitrary(0.00125, 0.0015) * solarMass,
+    //B: getRandomArbitrary(0.000005, 0.000012) * solarMass,
+    //K: getRandomArbitrary(50, 100),
+    //N: 3,
+    //Q: 0.77,
+    //W: getRandomArbitrary(0.15, 0.25),
+    //ALPHA: 5, //getRandomArbitrary(2, 7),
+    mass: solarMass,
+  }); //ACCRETE
+  const newSystem = system.create();
+  const solarRadius = newSystem.radius * SCALE * planetScale;
+
+  console.log(newSystem);
+
+  //-------
   let temp = [];
   //create sun
   temp.push({
     type: "SUN",
+    data: {
+      age: newSystem.age,
+      mass: newSystem.mass,
+      radius: newSystem.radius,
+      luminosity: newSystem.luminosity,
+      ecosphereRadius: newSystem.ecosphereRadius,
+      greenhouseRadius: newSystem.greenhouseRadius,
+    },
     roughness: 0,
     metalness: 1,
     color: new THREE.Color(0xffffff),
-    radius: (600 + 10 * numPlanets) * SCALE * planetScale * numPlanets,
+    radius: solarRadius,
     opacity: 1,
     textureMap: 0,
     drawDistanceLevel: 10,
     transparent: false,
+    object3d: new THREE.Object3D(),
     position: { x: 0, y: 0, z: 0 },
     rotation: { x: 0, y: 0, z: 0 },
     /*
@@ -881,7 +1050,110 @@ function initSolarSystem(rng, systemScale = 1, planetScale = 1) {
 
     */
   });
+  /*
+  const colors = [
+    new THREE.Color(0x173f5f),
+    new THREE.Color(0x173f5f),
+    new THREE.Color(0x20639b),
+    new THREE.Color(0x3caea3),
+    new THREE.Color(0xf6d55c),
+    new THREE.Color(0xed553b),
+  ];
+*/
+  newSystem.planets.forEach((p) => {
+    console.log(p.radius, p.planetType);
+    //p.radius = p.radius * SCALE * planetScale;
+    /*
+    Rocky
 
+    Gas
+      Gas Dwarf
+      Jovian
+    
+    temperature.max > this.boilingPoint
+      Venusian
+
+    temperature.day < FREEZING_POINT_OF_WATER
+      Ice
+    iceCover >= 0.95
+      Ice
+
+    surfacePressure <= 250.0
+      Martian
+
+    waterCover >= 0.95
+      Water
+
+    waterCover > 0.05
+      Terrestrial
+    */
+
+    // 1 AU = 150 million kilometres
+    const x = 0; //(a + b * angle) * Math.sin(angle) + temp[0].radius / 3;
+    const y = 0;
+    const z = solarRadius * 2 + p.a * 1500 * SCALE * systemScale; //(a + b * angle) * Math.cos(angle) + temp[0].radius / 3;
+    const object3d = new THREE.Object3D();
+    object3d.position.set(x, y, z);
+    let color = undefined;
+    let textureMap = undefined;
+    switch (p.planetType) {
+      case "Rocky":
+        color = new THREE.Color(0x6b6b47);
+        textureMap = 4;
+        break;
+      case "Gas":
+        color = new THREE.Color(0xffe6b3);
+        textureMap = 3;
+        break;
+      case "Gas Dwarf":
+        color = new THREE.Color(0xd5ff80);
+        textureMap = 2;
+        break;
+      case "Jovian":
+        color = new THREE.Color(0xbf8040);
+        textureMap = 3;
+        break;
+      case "Venusian":
+        color = new THREE.Color(0xd2a679);
+        textureMap = 6;
+        break;
+      case "Ice":
+        color = new THREE.Color(0xb3ccff);
+        textureMap = 7;
+        break;
+      case "Martian":
+        color = new THREE.Color(0xb30000);
+        textureMap = 4;
+        break;
+      case "Water":
+        color = new THREE.Color(0x3399ff);
+        textureMap = 8;
+        break;
+      case "Terrestrial":
+        color = new THREE.Color(0x3399ff);
+        textureMap = 1;
+        break;
+      default:
+    }
+    temp.push({
+      type: "PLANET",
+      data: p.toJSONforHud(),
+      roughness: 1,
+      metalness: 0,
+      //color: colors[getRandomInt(4) + 1],
+      color: color,
+      radius: p.radius * SCALE * planetScale * 10,
+      opacity: 1,
+      drawDistanceLevel: 0,
+      textureMap: textureMap,
+      transparent: false,
+      object3d: object3d,
+      position: { x, y: 0, z },
+      rotation: { x: 0, y: 0, z: 0 },
+    });
+  });
+
+  /*
   //add moons around planets
   for (let i = 1; i <= numPlanets; i++) {
     const colors = [
@@ -915,6 +1187,7 @@ function initSolarSystem(rng, systemScale = 1, planetScale = 1) {
       rotation: { x: 0, y: 0, z: 0 },
     });
   }
+  */
   return temp;
 }
 

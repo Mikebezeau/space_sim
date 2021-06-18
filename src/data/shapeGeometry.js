@@ -88,7 +88,7 @@ export const geoList = {
   //TetrahedronGeometry(radius : Float, detail : Integer) //4
 
   torus: [
-    new THREE.TorusGeometry(1, 0.2, 4, 34),
+    new THREE.TorusGeometry(1, 0.2, 4, 16),
     new THREE.TorusGeometry(1, 0.2, 0, 0),
   ],
   //const geometry = new THREE.TorusGeometry( 10, 3, 16, 100 ); //3d ring

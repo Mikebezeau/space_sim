@@ -10,7 +10,7 @@ const yellow = new THREE.Color("yellow");
 const lightgrey = new THREE.Color("lightgrey");
 
 const weaponFireGeometry = {
-  beam: new THREE.BoxBufferGeometry(0.1 * SCALE, 0.1 * SCALE, 200 * SCALE),
+  beam: new THREE.BoxBufferGeometry(0.1 * SCALE, 0.1 * SCALE, 100 * SCALE),
   proj: new THREE.BoxBufferGeometry(0.2 * SCALE, 0.2 * SCALE, 50 * SCALE),
   missile: new THREE.BoxBufferGeometry(0.5 * SCALE, 0.5 * SCALE, 5 * SCALE),
 };
@@ -42,13 +42,15 @@ export default function WeaponFire() {
   const weaponFireGroup = useRef();
 
   //const { clock } = useStore((state) => state.mutation);
+  const position = new THREE.Vector3();
+  const direction = new THREE.Vector3();
 
   useFrame(() => {
     if (!weaponFireGroup.current) return null;
     //weaponFire movement update
 
     weaponFireList.forEach((weaponFire, i) => {
-      const group = weaponFireGroup.current.children[i];
+      const bullet = weaponFireGroup.current.children[i];
       if (weaponFire.firstFrameSpeed !== false) {
         //show the weapons firing out of the guns before moving the bullets the first time
         //move them up to where the ship is now
@@ -57,30 +59,29 @@ export default function WeaponFire() {
         //move the bullet to it's position on the weapon to to show accuratly what weapon its coming from
       } else weaponFire.object3d.translateZ(weaponFire.velocity * SCALE);
 
-      group.position.copy(weaponFire.object3d.position);
-      group.rotation.copy(weaponFire.object3d.rotation);
-    });
+      bullet.position.copy(weaponFire.object3d.position);
+      bullet.rotation.copy(weaponFire.object3d.rotation);
 
+      bullet.getWorldPosition(position);
+      bullet.getWorldDirection(direction);
+      weaponFire.ray.origin.copy(position);
+      weaponFire.ray.direction.copy(direction);
+
+      weaponFire.hitBox.min.copy(position);
+      weaponFire.hitBox.max.copy(position);
+      weaponFire.hitBox.expandByScalar(SCALE);
+    });
     removeWeaponFire();
-    /*
-    if (
-      //weaponFireGroup.current.children[weaponFireGroup.current.children.length - 1] &&
-      weaponFireGroup.current.children[0] &&
-      Math.abs(Math.sin(clock.getElapsedTime())) < 0.03
-    )
-      console.log(weaponFireGroup.current.children[0].position);*/
   });
   return (
     <>
       <group ref={weaponFireGroup}>
         {weaponFireList.map((weaponFire) => (
-          //PLACE ALL WEAPON FIRING POINTS HERE // DIFFERENT ref FOR DIFFERENT WEAPON GROUPS
-          <group key={weaponFire.id}>
-            <mesh
-              geometry={weaponFireGeometry[weaponFire.weaponData.weaponType]}
-              material={weaponFireMaterial[weaponFire.weaponData.weaponType]}
-            />
-          </group>
+          <mesh
+            key={weaponFire.id}
+            geometry={weaponFireGeometry[weaponFire.weaponData.weaponType]}
+            material={weaponFireMaterial[weaponFire.weaponData.weaponType]}
+          />
         ))}
       </group>
     </>

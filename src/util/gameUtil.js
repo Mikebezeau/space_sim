@@ -22,6 +22,10 @@ export const getRandomInt = (max) => {
   return Math.floor(Math.random() * max);
 };
 
+export const getRandomArbitrary = (min, max) => {
+  return Math.random() * (max - min) + min;
+};
+
 export const flipRotation = (quat) => {
   //const tempObject = new THREE.Object3D();
   const flipQuat = new THREE.Quaternion(),

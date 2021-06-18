@@ -71,7 +71,7 @@ export default function BuildMech({
         </group>
       ))}
       {(showAxisLines || editMode) && (
-        <group scale={mechBP.size() * 0.01 * showAxisLines}>
+        <group scale={mechBP.size() * 0.1}>
           <mesh
             position={[0, 0, 150]}
             rotation={[Math.PI / 2, 0, 0]}

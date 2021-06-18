@@ -7,6 +7,7 @@ import { distance } from "../util/gameUtil";
 
 const Planet = React.memo(({ planet }) => {
   //planet rotation
+  /*
   const { clock } = useStore((state) => state.mutation);
 
   const ref = useRef();
@@ -16,7 +17,7 @@ const Planet = React.memo(({ planet }) => {
       ref.current.rotation.set(0, r, 0);
     }
   });
-
+*/
   //load textures
 
   /*
@@ -34,10 +35,12 @@ const Planet = React.memo(({ planet }) => {
     "images/maps/sunmap.jpg",
     "images/maps/earthmap1k.jpg",
     "images/maps/jupitermap.jpg",
+    "images/maps/jupiter2_1k.jpg",
     "images/maps/mercurymap.jpg",
     "images/maps/moonmap1k.jpg",
-    "images/maps/moonmap1k.jpg",
     "images/maps/venusmap.jpg",
+    "images/maps/earthcloudmaptrans.jpg",
+    "images/maps/earthcloudmap.jpg",
   ]);
 
   //planet shape
@@ -46,7 +49,7 @@ const Planet = React.memo(({ planet }) => {
   const materialPlanet = new THREE.MeshLambertMaterial({
     map: textureMaps[planet.textureMap],
     emissive: planet.type === "SUN" ? planet.color : false,
-    emissiveIntensity: 0.2,
+    //emissiveIntensity: 0.2,
     color: planet.color,
     opacity: planet.opacity,
     transparent: planet.transparent,
@@ -77,12 +80,12 @@ const Planet = React.memo(({ planet }) => {
   const ringRadius = distance(planet.position, { x: 0, y: 0, z: 0 });
   //draw planet and line ring in system to show planet orbit
   return (
+    //ref={ref}
     <>
       {/* planet and clouds */}
       <group
-        ref={ref}
-        position={[planet.position.x, planet.position.y, planet.position.z]}
-        rotation={[planet.rotation.x, planet.rotation.y, planet.rotation.z]}
+        position={planet.object3d.position}
+        rotation={planet.object3d.rotation}
       >
         <mesh geometry={geometryPlanet} material={materialPlanet}></mesh>
         {/*planet.type !== "SUN" && planet.drawDistanceLevel < 3 && (

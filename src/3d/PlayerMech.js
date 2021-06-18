@@ -199,7 +199,12 @@ scene.add( pointLightHelper );
         </group>
 
         <BuildMech mechBP={playerMechBP[0]} showAxisLines={false} />
-
+        {player.boxHelper && (
+          <mesh
+            geometry={player.boxHelper.geometry}
+            material={player.boxHelper.material}
+          ></mesh>
+        )}
         <pointLight
           ref={weaponFireLight}
           position={[0, 0, 0.2]}

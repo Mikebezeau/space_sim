@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import useEquipStore from "../stores/equipStore";
 import { geoList } from "../data/shapeGeometry";
 
@@ -16,6 +16,8 @@ const ServoPositionButtons = ({ heading }) => {
 
   const partMoveOffsetVal = mechBP.size() / 20;
 
+  const [moveAmount, setMoveAmount] = useState(1);
+
   const handleRotateShipView = (axis, direction) => {
     equipActions.basicMenu.editShipRotation(axis, direction);
   };
@@ -30,13 +32,21 @@ const ServoPositionButtons = ({ heading }) => {
       let bayPosition = mechBP.landingBayPosition;
       bayPosition = {
         x: mechBP.landingBayPosition.x,
-        y: mechBP.landingBayPosition.y + partMoveOffsetVal,
+        y: mechBP.landingBayPosition.y + moveAmount * partMoveOffsetVal,
         z: mechBP.landingBayPosition.z,
       };
       equipActions.basicMenu.setProp("landingBayPosition", bayPosition);
     }
-    equipActions.servoMenu.adjustServoOffset(0, partMoveOffsetVal, 0);
-    equipActions.weaponMenu.adjustWeaponOffset(0, partMoveOffsetVal, 0);
+    equipActions.servoMenu.adjustServoOffset(
+      0,
+      moveAmount * partMoveOffsetVal,
+      0
+    );
+    equipActions.weaponMenu.adjustWeaponOffset(
+      0,
+      moveAmount * partMoveOffsetVal,
+      0
+    );
   }
   useKBControls("KeyQ", handleMovePartUp);
 
@@ -46,13 +56,21 @@ const ServoPositionButtons = ({ heading }) => {
       let bayPosition = mechBP.landingBayPosition;
       bayPosition = {
         x: mechBP.landingBayPosition.x,
-        y: mechBP.landingBayPosition.y - partMoveOffsetVal,
+        y: mechBP.landingBayPosition.y - moveAmount * partMoveOffsetVal,
         z: mechBP.landingBayPosition.z,
       };
       equipActions.basicMenu.setProp("landingBayPosition", bayPosition);
     }
-    equipActions.servoMenu.adjustServoOffset(0, -partMoveOffsetVal, 0);
-    equipActions.weaponMenu.adjustWeaponOffset(0, -partMoveOffsetVal, 0);
+    equipActions.servoMenu.adjustServoOffset(
+      0,
+      -moveAmount * partMoveOffsetVal,
+      0
+    );
+    equipActions.weaponMenu.adjustWeaponOffset(
+      0,
+      -moveAmount * partMoveOffsetVal,
+      0
+    );
   }
   useKBControls("KeyA", handleMovePartDown);
 
@@ -63,12 +81,20 @@ const ServoPositionButtons = ({ heading }) => {
       bayPosition = {
         x: mechBP.landingBayPosition.x,
         y: mechBP.landingBayPosition.y,
-        z: mechBP.landingBayPosition.z - partMoveOffsetVal,
+        z: mechBP.landingBayPosition.z - moveAmount * partMoveOffsetVal,
       };
       equipActions.basicMenu.setProp("landingBayPosition", bayPosition);
     }
-    equipActions.servoMenu.adjustServoOffset(0, 0, partMoveOffsetVal);
-    equipActions.weaponMenu.adjustWeaponOffset(0, 0, partMoveOffsetVal);
+    equipActions.servoMenu.adjustServoOffset(
+      0,
+      0,
+      moveAmount * partMoveOffsetVal
+    );
+    equipActions.weaponMenu.adjustWeaponOffset(
+      0,
+      0,
+      moveAmount * partMoveOffsetVal
+    );
   }
   useKBControls("ArrowUp", handleMovePartForward);
 
@@ -79,12 +105,20 @@ const ServoPositionButtons = ({ heading }) => {
       bayPosition = {
         x: mechBP.landingBayPosition.x,
         y: mechBP.landingBayPosition.y,
-        z: mechBP.landingBayPosition.z + partMoveOffsetVal,
+        z: mechBP.landingBayPosition.z + moveAmount * partMoveOffsetVal,
       };
       equipActions.basicMenu.setProp("landingBayPosition", bayPosition);
     }
-    equipActions.servoMenu.adjustServoOffset(0, 0, -partMoveOffsetVal);
-    equipActions.weaponMenu.adjustWeaponOffset(0, 0, -partMoveOffsetVal);
+    equipActions.servoMenu.adjustServoOffset(
+      0,
+      0,
+      -moveAmount * partMoveOffsetVal
+    );
+    equipActions.weaponMenu.adjustWeaponOffset(
+      0,
+      0,
+      -moveAmount * partMoveOffsetVal
+    );
   }
   useKBControls("ArrowDown", handleMovePartBackward);
 
@@ -93,14 +127,22 @@ const ServoPositionButtons = ({ heading }) => {
     if (editLandingBayId) {
       let bayPosition = mechBP.landingBayPosition;
       bayPosition = {
-        x: mechBP.landingBayPosition.x - partMoveOffsetVal,
+        x: mechBP.landingBayPosition.x - moveAmount * partMoveOffsetVal,
         y: mechBP.landingBayPosition.y,
         z: mechBP.landingBayPosition.z,
       };
       equipActions.basicMenu.setProp("landingBayPosition", bayPosition);
     }
-    equipActions.servoMenu.adjustServoOffset(-partMoveOffsetVal, 0, 0);
-    equipActions.weaponMenu.adjustWeaponOffset(-partMoveOffsetVal, 0, 0);
+    equipActions.servoMenu.adjustServoOffset(
+      -moveAmount * partMoveOffsetVal,
+      0,
+      0
+    );
+    equipActions.weaponMenu.adjustWeaponOffset(
+      -moveAmount * partMoveOffsetVal,
+      0,
+      0
+    );
   }
   useKBControls("ArrowLeft", handleMovePartLeft);
 
@@ -109,14 +151,22 @@ const ServoPositionButtons = ({ heading }) => {
     if (editLandingBayId) {
       let bayPosition = mechBP.landingBayPosition;
       bayPosition = {
-        x: mechBP.landingBayPosition.x + partMoveOffsetVal,
+        x: mechBP.landingBayPosition.x + moveAmount * partMoveOffsetVal,
         y: mechBP.landingBayPosition.y,
         z: mechBP.landingBayPosition.z,
       };
       equipActions.basicMenu.setProp("landingBayPosition", bayPosition);
     }
-    equipActions.servoMenu.adjustServoOffset(partMoveOffsetVal, 0, 0);
-    equipActions.weaponMenu.adjustWeaponOffset(partMoveOffsetVal, 0, 0);
+    equipActions.servoMenu.adjustServoOffset(
+      moveAmount * partMoveOffsetVal,
+      0,
+      0
+    );
+    equipActions.weaponMenu.adjustWeaponOffset(
+      moveAmount * partMoveOffsetVal,
+      0,
+      0
+    );
   }
   useKBControls("ArrowRight", handleMovePartRight);
 
@@ -147,7 +197,11 @@ const ServoPositionButtons = ({ heading }) => {
   };
 
   const handleScaleServoShape = (axis, val) => {
-    equipActions.servoMenu.adjustServoScale(axis, val);
+    equipActions.servoMenu.adjustServoScale(axis, moveAmount * val);
+  };
+
+  const handleSetMoveAmount = (val) => {
+    setMoveAmount(val);
   };
 
   /*
@@ -234,6 +288,12 @@ const ServoPositionButtons = ({ heading }) => {
         <button onClick={() => handleScaleServoShape("z", -1)}>Z-</button>
         <button onClick={() => handleScaleServoShape("z", 1)}>Z+</button>
         <button onClick={() => handleScaleServoShape("reset")}>Reset</button>
+      </div>
+      <div>
+        <button onClick={() => handleSetMoveAmount(1 / 10)}>Move 1/10</button>
+        <button onClick={() => handleSetMoveAmount(1)}>Move 1</button>
+        <button onClick={() => handleSetMoveAmount(10)}>Move 10</button>
+        <button onClick={() => handleSetMoveAmount(100)}>Move 100</button>
       </div>
       <div>
         Rotate:{" "}
