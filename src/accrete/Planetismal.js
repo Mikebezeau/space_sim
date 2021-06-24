@@ -149,13 +149,13 @@ export default class Planetismal {
     return (
       this._albedo ||
       (this._albedo = this.isGasGiant
-        ? about(GAS_GIANT_ALBEDO, 0.1, this.system.rng)
+        ? about(GAS_GIANT_ALBEDO, 0.1, this.rng)
         : EARTH_ALBEDO)
     );
   }
 
   get axialTilt() {
-    return inclination(this.a, this.system.rng);
+    return inclination(this.a, this.rng);
   }
 
   get orbitalZone() {
@@ -308,12 +308,14 @@ export default class Planetismal {
    */
   constructor(
     system,
+    rng,
     majorAxis,
     eccentricity,
     mass = PROTOPLANET_MASS,
     isGasGiant = false
   ) {
     this.system = system;
+    this.rng = rng;
     // semi-major axis
     this.a = majorAxis;
     // orbital eccentricity

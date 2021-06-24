@@ -2,11 +2,11 @@ import React from "react";
 import { useMemo } from "react";
 import { SCALE } from "../util/gameUtil";
 
-export default function Stars({ count = 1000 }) {
+export default function Stars({ count = 10000 }) {
   const positions = useMemo(() => {
     let positions = [];
     for (let i = 0; i < count; i++) {
-      const r = 40000 * SCALE;
+      const r = 400000 * SCALE;
       const theta = 2 * Math.PI * Math.random();
       const phi = Math.acos(2 * Math.random() - 1);
       const x =

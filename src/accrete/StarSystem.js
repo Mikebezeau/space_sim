@@ -36,7 +36,7 @@ export default class StarSystem {
     return 696340 * Math.pow(this.mass, 0.74);
   }
 
-  constructor(config = {}) {
+  constructor(config = {}, rng) {
     this.config = Object.assign(
       {},
       {
@@ -50,35 +50,38 @@ export default class StarSystem {
       },
       config
     );
+    /*
     for (const k in this.config) {
       if (this.config.hasOwnProperty(k)) {
         console.log(`${k}: ${this.config[k]}`);
       }
     }
-
+    */
+    this.rng = rng;
     this.mass = config.mass || 1;
     this.matter = new DustCloud(this);
     this.planets = [];
   }
 
-  create(rng) {
-    this.rng = rng;
+  create() {
     let i = 0;
     while (this.matter.hasDust) {
       this.injectNucleus();
       this.planets = this.checkCollisions(this.planets);
       i += 1;
     }
+    /*
     console.log(
       `Created system of ${this.planets.length} planets after ${i} iterations`
     );
+    */
     return this;
   }
 
   injectNucleus() {
     const a = rand(0.3, 50, this.rng);
     const e = 1 - Math.pow(1 - rand(0, 1, this.rng), this.config.Q);
-    const nucleus = new Planetismal(this, a, e);
+    const nucleus = new Planetismal(this, this.rng, a, e);
     const planet = this.collectDust(nucleus);
     if (planet.mass > C.PROTOPLANET_MASS) this.planets.push(planet);
   }
@@ -131,6 +134,6 @@ export default class StarSystem {
     const term1 = (num1 + num2) / ((p1.mass + p2.mass) * Math.sqrt(a3));
     const e3 = Math.sqrt(Math.abs(1 - term1 * term1));
     const m3 = p1.mass + p2.mass;
-    return this.collectDust(new Planetismal(this, a3, e3, m3));
+    return this.collectDust(new Planetismal(this, this.rng, a3, e3, m3));
   }
 }

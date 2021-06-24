@@ -28,3 +28,23 @@ body {
   color: black;
   cursor: move !important;
 }
+
+input,
+button,
+.toggleContainer,
+.slidecontainer {
+  pointer-events: auto !important;
+  margin: 2%;
+  width: 60%;
+  background-color: black;
+  border-color: lightblue;
+  color: lightblue;
+  border-radius: 5px;
+}
+
+.floatLeft {
+  float: left;
+}
+.floatRight {
+  float: right;
+}

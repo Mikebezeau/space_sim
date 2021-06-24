@@ -11,8 +11,8 @@ const ringMaterial = new THREE.MeshBasicMaterial({
   side: THREE.DoubleSide,
 });
 
-const planetGeometry = new THREE.DodecahedronBufferGeometry(0.25, 0);
-const shipGeometry = new THREE.DodecahedronBufferGeometry(0.2, 0);
+const planetGeometry = new THREE.DodecahedronBufferGeometry(1, 0);
+const shipGeometry = new THREE.DodecahedronBufferGeometry(0.2, 0); //make ships smaller then planets
 const planetMaterial = new THREE.MeshBasicMaterial({
   color: new THREE.Color("purple"),
   //emissive: "purple",
@@ -29,7 +29,7 @@ const shipMaterial = new THREE.MeshBasicMaterial({
 const maxMapSize = 25;
 
 export default function SystemMap({ showPlayer = false }) {
-  const player = useStore((state) => state.player);
+  const { player, systemScale, planetScale } = useStore((state) => state);
   const systemMap = useRef();
   const { camera } = useThree();
 
@@ -65,8 +65,14 @@ export default function SystemMap({ showPlayer = false }) {
   const mapScale = showPlayer ? maxMapSize / maxRadius : 0.015;
   //console.log(mapScale, maxMapSize, maxRadius);
   return (
-    <group ref={systemMap} scale={showPlayer ? SCALE : 1}>
-      <System planets={planets} mapScale={mapScale} />
+    <group ref={systemMap} scale={showPlayer ? SCALE : 20 / systemScale}>
+      <System
+        showPlayer={showPlayer}
+        planets={planets}
+        planetScale={planetScale}
+        systemScale={systemScale}
+        mapScale={mapScale}
+      />
       {showPlayer && (
         <ShipPositions mapScale={mapScale} playerObj={player.object3d} />
       )}
@@ -74,35 +80,37 @@ export default function SystemMap({ showPlayer = false }) {
   );
 }
 
-const System = React.memo(({ planets, mapScale }) => {
-  //function System({ planets, mapScale }) {
-  return planets.map((planet, index) => {
-    //console.log(planet.type);
-    const ringRadius =
-      mapScale * distance(planet.object3d.position, { x: 0, y: 0, z: 0 });
-    //console.log(mapScale, planet.object3d.position.x); // scale={[mapScale, mapScale, mapScale]}>
-    return (
-      <group key={index}>
-        <mesh
-          position={[0, 0, 0]}
-          scale={[ringRadius, ringRadius, ringRadius]}
-          geometry={ringGeometry}
-          material={ringMaterial}
-        />
-        <mesh
-          scale={1 + 0.25 * planet.radius}
-          position={[
-            planet.object3d.position.x * mapScale,
-            planet.object3d.position.z * mapScale,
-            0,
-          ]}
-          geometry={planetGeometry}
-          material={planetMaterial}
-        ></mesh>
-      </group>
-    );
-  });
-});
+const System = React.memo(
+  ({ showPlayer, planets, planetScale, systemScale, mapScale }) => {
+    //function System({ planets, mapScale }) {
+    return planets.map((planet, index) => {
+      //console.log(planet.type);
+      const ringRadius =
+        mapScale * distance(planet.object3d.position, { x: 0, y: 0, z: 0 });
+      //console.log(mapScale, planet.object3d.position.x); // scale={[mapScale, mapScale, mapScale]}>
+      return (
+        <group key={index}>
+          <mesh
+            position={[0, 0, 0]}
+            scale={[ringRadius, ringRadius, ringRadius]}
+            geometry={ringGeometry}
+            material={ringMaterial}
+          />
+          <mesh
+            scale={0.2 + planet.radius * (showPlayer ? 0.01 : 0.1)}
+            position={[
+              planet.object3d.position.x * mapScale,
+              planet.object3d.position.z * mapScale,
+              0,
+            ]}
+            geometry={planetGeometry}
+            material={planetMaterial}
+          ></mesh>
+        </group>
+      );
+    });
+  }
+);
 
 function ShipPositions({ mapScale, playerObj }) {
   //, enemies }) {

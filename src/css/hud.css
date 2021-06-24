@@ -30,25 +30,19 @@
 
 @media only screen and (min-width: 500px) {
   .scanData {
-    font-size: 1vw;
+    font-size: 10px;
+  }
+  .shieldsBar span {
+    font-size: 15px;
   }
 }
-.floatLeft {
-  float: left;
-}
-.floatRight {
-  float: right;
+
+.scanData .toggleContainer {
+  clear: both;
 }
 
-.scanData button {
-  pointer-events: auto !important;
-  margin: 2%;
-  width: 60%;
-  background-color: black;
-  border-color: lightblue;
-  color: lightblue;
-  border-radius: 5px;
-}
-.scanData input {
-  pointer-events: auto !important;
+.scanData input,
+.scanData button,
+.scanData .toggleContainer {
+  width: 100%;
 }

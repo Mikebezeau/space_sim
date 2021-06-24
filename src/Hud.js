@@ -1,14 +1,19 @@
 import React from "react";
 import styled, { css } from "styled-components";
 import useStore from "./stores/store";
+import { GALAXY_MAP, EQUIPMENT_SCREEN } from "./util/gameUtil";
+import { ToggleTestControls } from "./testingControls/ToggleTestControls";
+import { TestingMapGalaxy } from "./testingControls/TestingMapGalaxy";
 import { TestingEnemyControls } from "./testingControls/TestingEnemyControls";
 import { TestingBoidControls } from "./testingControls/TestingBoidControls";
 import "./css/hud.css";
+import "./css/toggleControl.css";
 
 //basic HTML/CSS heads up display used to show player info
 export default function Hud() {
   //testing
-  const { testing } = useStore((state) => state);
+  const { testing, toggleTestControls } = useStore((state) => state);
+  const { switchScreen } = useStore((state) => state.actions);
   //
   const { speed, shield } = useStore((state) => state.player);
   const { planets, focusPlanetIndex } = useStore((state) => state);
@@ -31,32 +36,46 @@ export default function Hud() {
   }, []);
 */
 
-  /*
-  const speedVal = useMemo(
-    () => (speed >= 1000 ? (speed / 1000).toFixed(1) + "K" : speed),
-    [speed]
-  );
-  */
+  //const speedVal = useMemo(() => speed + "Km/s", [speed]);
+
   return (
     <>
       <UpperLeft>
         <h2>Speed</h2>
         <h1>{speed}</h1>
         <div className="scanData">
-          <p>System</p>
-          {Object.entries(planets[0].data).map(([key, value]) => {
-            return (
-              <span key={key}>
-                {key}:{" "}
-                <span className="floatRight">
-                  {Math.floor(value * 1000) / 1000 /*rounding off*/}
-                </span>
-                <br />
-              </span>
-            );
-          })}
-          <button onClick={testing.warpToPlanet}>(W)arp to Planet</button>
-          <TestingEnemyControls />
+          <ToggleTestControls />
+          {!toggleTestControls && (
+            <>
+              <button onClick={() => switchScreen(GALAXY_MAP)}>
+                (G)alaxy Star Map
+              </button>
+              <button onClick={() => switchScreen(EQUIPMENT_SCREEN)}>
+                (E)quipment
+              </button>
+
+              <p>System</p>
+              {Object.entries(planets[0].data).map(([key, value]) => {
+                return (
+                  <span key={key}>
+                    {key}:{" "}
+                    <span className="floatRight">
+                      {Math.floor(value * 1000) / 1000 /*rounding off*/}
+                    </span>
+                    <br />
+                  </span>
+                );
+              })}
+            </>
+          )}
+          {toggleTestControls && (
+            <>
+              <TestingMapGalaxy />
+
+              <button onClick={testing.warpToPlanet}>(W)arp to Planet</button>
+              <TestingEnemyControls />
+            </>
+          )}
         </div>
       </UpperLeft>
       <UpperRight>
@@ -74,20 +93,26 @@ export default function Hud() {
         )}
         <br />
         <div className="scanData">
-          <TestingBoidControls />
-          {focusPlanetIndex !== null && planets[focusPlanetIndex] && (
+          {!toggleTestControls &&
+            focusPlanetIndex !== null &&
+            planets[focusPlanetIndex] && (
+              <>
+                <p>Planet Scan</p>
+                {Object.entries(planets[focusPlanetIndex].data).map(
+                  ([key, value]) => {
+                    return (
+                      <span key={key}>
+                        <span className="floatLeft">{key}:</span> {value}
+                        <br />
+                      </span>
+                    );
+                  }
+                )}
+              </>
+            )}
+          {toggleTestControls && (
             <>
-              <p>Planet Scan</p>
-              {Object.entries(planets[focusPlanetIndex].data).map(
-                ([key, value]) => {
-                  return (
-                    <span key={key}>
-                      <span className="floatLeft">{key}:</span> {value}
-                      <br />
-                    </span>
-                  );
-                }
-              )}
+              <TestingBoidControls />
             </>
           )}
         </div>
@@ -111,7 +136,7 @@ const UpperLeft = styled.div`
   ${base}
   top: 40px;
   left: 2vw;
-  transform: skew(5deg, 10deg);
+  transform: skew(5deg, 5deg);
   width: 18vw;
   & > h1 {
     margin: 0;
@@ -123,7 +148,9 @@ const UpperLeft = styled.div`
     font-size: 2vw;
     line-height: 1em;
   }
-  @media only screen and (max-width: 700px) {
+
+  @media only screen and (min-width: 500px) {
+    width: 180px;
   }
 `;
 
@@ -132,11 +159,12 @@ const UpperRight = styled.div`
   text-align: right;
   top: 250px;
   right: 2vw;
-  transform: skew(-5deg, -10deg);
+  transform: skew(-5deg, -5deg);
   font-size: 1.5vw;
   width: 18vw;
 
-  @media only screen and (max-width: 700px) {
+  @media only screen and (min-width: 500px) {
+    width: 180px;
   }
 `;
 

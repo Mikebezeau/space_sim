@@ -5,7 +5,7 @@ import { useRef } from "react";
 import useStore from "./stores/store";
 import { SCALE } from "./util/gameUtil";
 
-import GalaxyStarMap from "./3d/GalaxyStarMap";
+import GalaxyStars from "./3d/GalaxyStars";
 
 const direction = new THREE.Vector3();
 
@@ -26,8 +26,8 @@ export default function MainMenu() {
     menuCam.position.copy(camera.position);
   });
   return (
-    <group ref={starMap} position={[0, 0, -700 * SCALE]} rotation={[0, 0, 0]}>
-      <GalaxyStarMap />
+    <group ref={starMap} position={[0, 0, -1400 * SCALE]} rotation={[0, 0, 0]}>
+      <GalaxyStars />
     </group>
   );
 }

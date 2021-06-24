@@ -1,6 +1,7 @@
 // Random (distributed with `n`) numbers for node/browser
 export const rand = (min = 0, max = min + 1, rng, n = 2) => {
-  return Math.random() * (max - min) + min;
+  //return Math.random() * (max - min) + min;
+  return rng() * (max - min) + min;
   /*
   const vals = new Uint16Array(Math.round(n));
 

@@ -19,7 +19,8 @@ import {
   distance,
   SCALE,
   FLIGHT,
-  NUM_SCREEN_OPTIONS,
+  GALAXY_MAP,
+  EQUIPMENT_SCREEN,
   CONTROLS_UNATTENDED,
   CONTROLS_PILOT,
   CONTROLS_SCAN_PLANET,
@@ -34,11 +35,11 @@ let guidCounter = 1; //global unique ID
 let explosionGuidCounter = 1; //global unique ID
 
 const seedrandom = require("seedrandom");
+const starsInGalaxy = 15000;
+const systemScale = 200, //,
+  planetScale = 0.05; //;
 
-const systemScale = 3, //5,
-  planetScale = 0.01; //8;
-
-const numEnemies = 100;
+const numEnemies = 20;
 
 const weaponFireSpeed = {
   beam: 100,
@@ -49,9 +50,10 @@ const weaponFireSpeed = {
 };
 
 const playerStart = {
+  system: 345,
   x: 0,
-  y: 15000 * SCALE * systemScale, //15000
-  z: -5000 * SCALE * systemScale, //-50000 * SCALE * systemScale,
+  y: 300000 * SCALE * planetScale, //15000
+  z: 0, //-50000 * SCALE * planetScale,
 };
 
 let cancelExplosionTO = undefined;
@@ -84,7 +86,9 @@ const [useStore] = create((set, get) => {
   //globally available variables
   return {
     //testing
+    toggleTestControls: false,
     showLeaders: false,
+    galaxyMapDataOutput: "",
     boidMod: {
       boidMinRangeMod: 0,
       boidNeighborRangeMod: 0,
@@ -96,7 +100,8 @@ const [useStore] = create((set, get) => {
     //
     camera: undefined,
     sound: false,
-    sytemScale: systemScale,
+    systemScale: systemScale,
+    planetScale: planetScale,
     //galaxy map
     menuCam: initCamMainMenu(),
     selectedStar: null,
@@ -105,6 +110,8 @@ const [useStore] = create((set, get) => {
     blueprintCam: initCamMainMenu(),
     playerScreen: FLIGHT,
     playerControlMode: CONTROLS_PILOT,
+    displayContextMenu: false, //right click menu
+    contextMenuPos: { x: 0, y: 0 },
     //flying
     player: initPlayer(),
     playerMechBP: initPlayerMechBP(),
@@ -124,8 +131,12 @@ const [useStore] = create((set, get) => {
     ),
     enemies: randomEnemies(track),
     enemyBoids: setupFlock(numEnemies),
-    planets: initSolarSystem(seedrandom(0), systemScale, planetScale),
-    stations: randomStations(seedrandom(0), 1),
+    planets: initSolarSystem(
+      seedrandom(playerStart.system),
+      systemScale,
+      planetScale
+    ),
+    stations: randomStations(seedrandom(playerStart.system), 1),
     mutation: {
       t: 0,
       //position: new THREE.Vector3(),
@@ -165,6 +176,37 @@ const [useStore] = create((set, get) => {
     //------------------------------------------------------------------------------------
 
     testing: {
+      toggleTestControls() {
+        set((state) => ({
+          toggleTestControls: !state.toggleTestControls,
+        }));
+      },
+      mapGalaxy() {
+        const positions = get().galaxyStarPositions;
+        let galaxyMapData = [];
+        for (let i = 0; i < positions.length; i = i + 3) {
+          const systemSeed = i;
+          const planets = initSolarSystem(seedrandom(systemSeed), 1, 1, true);
+          let hasTerrestrial = false;
+          planets.forEach((planet) => {
+            if (planet.data.type === "Terrestrial") hasTerrestrial = true;
+            if (hasTerrestrial) {
+              const systemData = {
+                position: [positions[i], positions[i + 1], positions[i + 2]],
+                hasTerran: true,
+                breathable: planet.data.breathable,
+              };
+              galaxyMapData.push(systemData);
+            }
+          });
+        }
+        console.log(
+          galaxyMapData.find((systemData) => systemData.breathable === "YES")
+        );
+        set(() => ({
+          galaxyMapDataOutput: JSON.stringify(galaxyMapData),
+        }));
+      },
       summonEnemy() {
         let enemies = get().enemies;
         let playerPos = get().player.object3d.position;
@@ -206,13 +248,15 @@ const [useStore] = create((set, get) => {
         //actions.toggleSound(get().sound);
 
         //set player mech info
-        get().actions.initPlayerMech(0);
+        actions.initPlayerMech(0);
 
         //addEffect will add the following code to what gets run per frame
         //removes exploded emenies and rocks from store data, removes explosions once they have timed out
         addEffect(() => {
           const {
             player,
+            playerScreen,
+            selectedTargetIndex,
             playerMechBP,
             weaponFireList,
             rocks,
@@ -223,7 +267,7 @@ const [useStore] = create((set, get) => {
             actions,
           } = get();
 
-          if (get().playerScreen !== FLIGHT) return;
+          if (playerScreen !== FLIGHT) return;
 
           //run enemy AI routine
           loopAI(player, enemies, enemyBoids, mutation.clock, actions.shoot);
@@ -233,14 +277,12 @@ const [useStore] = create((set, get) => {
             //MISSILE FIRE course direction
             if (
               weaponFire.weapon.data.weaponType === "missile" &&
-              get().selectedTargetIndex !== null
+              selectedTargetIndex !== null
             ) {
               const dummyObj = new THREE.Object3D(),
                 targetQuat = new THREE.Quaternion();
               dummyObj.position.copy(weaponFire.object3d.position);
-              dummyObj.lookAt(
-                enemies[get().selectedTargetIndex].object3d.position
-              );
+              dummyObj.lookAt(enemies[selectedTargetIndex].object3d.position);
               dummyObj.getWorldQuaternion(targetQuat);
               weaponFire.object3d.rotation.setFromQuaternion(
                 weaponFire.object3d.quaternion.slerp(
@@ -426,17 +468,23 @@ const [useStore] = create((set, get) => {
         player.hitBox.copy(player.boxHelper.geometry.boundingBox);
       },
 
-      displayContextMenu() {
-        /*player selection of control options:
-        CONTROLS_UNATTENDED,
-        CONTROLS_PILOT,
-        CONTROLS_SCAN_PLANET,
-        CONTROLS_SCAN_SHIP,
-        CONTROLS_SCAN_STRUCTURE
-        */
+      displayContextMenu(xPos, yPos) {
         //if options up arleady, hide menu
+        set((state) => ({ displayContextMenu: !state.displayContextMenu }));
+        set(() => ({ contextMenuPos: { x: xPos, y: yPos } }));
       },
-
+      contextMenuSelect(selectVal) {
+        /*player selection of control options:
+        CONTROLS_UNATTENDED = 1
+        CONTROLS_PILOT = 2
+        CONTROLS_SCAN_PLANET = 3
+        CONTROLS_SCAN_SHIP = 4
+        CONTROLS_SCAN_STRUCTURE = 5
+        */
+        set(() => ({ playerControlMode: selectVal }));
+        //hide menu
+        set(() => ({ displayContextMenu: false }));
+      },
       setFocusPlanetIndex(focusPlanetIndex) {
         set(() => ({ focusPlanetIndex: focusPlanetIndex }));
       },
@@ -727,15 +775,12 @@ const [useStore] = create((set, get) => {
         }));
       },
 
-      //changing player screen (main menu, flight)
-      switchScreen() {
-        //console.log("playerScreen", get().playerScreen, NUM_SCREEN_OPTIONS);
-        set((state) => ({
-          playerScreen:
-            state.playerScreen + 1 > NUM_SCREEN_OPTIONS
-              ? 1
-              : state.playerScreen + 1,
+      //changing player screen
+      switchScreen(screenNum) {
+        set(() => ({
+          playerScreen: screenNum,
         }));
+        console.log(get().playerScreen, screenNum);
       },
       //main menu slecting star in galaxy map
       detectTargetStar() {
@@ -776,6 +821,7 @@ const [useStore] = create((set, get) => {
             planetScale
           ),
         }));
+        console.log(closest);
         //const playerObj = get().player.object3d;
         //playerObj.position.setZ(-15000 * SCALE - get().planets[0].radius);
         //get().actions.setPlayerObject(playerObj);
@@ -816,7 +862,7 @@ const [useStore] = create((set, get) => {
         }));
       },
       //dock at spacestation
-      stationDoc() {
+      stationDock() {
         set((state) => ({
           stationDock: {
             isDocked: !state.stationDock.isDocked,
@@ -870,19 +916,19 @@ const [useStore] = create((set, get) => {
 //creating galaxy like the milky way
 function initGalaxyStarPositions(
   rng = seedrandom("galaxy_stars"),
-  count = 1000
+  count = starsInGalaxy
 ) {
-  const numArms = 4;
+  const numArms = 2;
   const armSeparationDistance = (2 * Math.PI) / numArms;
-  const armOffsetMax = 2;
-  const rotationFactor = 3;
-  const randomOffsetX = 0.03;
-  const randomOffsetY = 0.02;
+  const armOffsetMax = 1;
+  const rotationFactor = 6;
+  const randomOffsetX = 0.3;
+  const randomOffsetY = 0.2;
 
   let positions = [];
   for (let i = 0; i < count; i++) {
     // Choose a distance from the center of the galaxy.
-    let distance = rng();
+    let distance = 0.1 + rng();
     distance = Math.pow(distance, 2);
 
     // Choose an angle between 0 and 2 * PI.
@@ -1103,27 +1149,35 @@ function randomStations(rng, num) {
   return temp;
 }
 
-function initSolarSystem(rng, systemScale = 1, planetScale = 1) {
+function initSolarSystem(
+  rng,
+  systemScale = 1,
+  planetScale = 1,
+  noConsoleLog = false
+) {
   //Only one in about five hundred thousand stars has more than twenty times the mass of the Sun.
   let solarMass = rng(0.8) + 0.6; //getRandomArbitrary(0.6, 1.4);
   solarMass = solarMass < 0.7 ? rng(0.6) + 0.1 : solarMass; //getRandomArbitrary(0.1, 0.7) : solarMass;
   solarMass = solarMass > 1.3 ? rng(8.7) + 1.3 : solarMass; //getRandomArbitrary(1.3, 10) : solarMass;
   //15% of stars have a system like earths (with gas giants)
   //ACCRETE
-  const system = new StarSystem({
-    //A: getRandomArbitrary(0.00125, 0.0015) * solarMass,
-    //B: getRandomArbitrary(0.000005, 0.000012) * solarMass,
-    //K: getRandomArbitrary(50, 100),
-    //N: 3,
-    //Q: 0.77,
-    //W: getRandomArbitrary(0.15, 0.25),
-    //ALPHA: 5, //getRandomArbitrary(2, 7),
-    mass: solarMass,
-  }); //ACCRETE
-  const newSystem = system.create(rng);
+  const system = new StarSystem(
+    {
+      //A: getRandomArbitrary(0.00125, 0.0015) * solarMass,
+      //B: getRandomArbitrary(0.000005, 0.000012) * solarMass,
+      //K: getRandomArbitrary(50, 100),
+      //N: 3,
+      //Q: 0.77,
+      //W: getRandomArbitrary(0.15, 0.25),
+      //ALPHA: 5, //getRandomArbitrary(2, 7),
+      mass: solarMass,
+    },
+    rng
+  ); //ACCRETE
+  const newSystem = system.create();
   const solarRadius = newSystem.radius * SCALE * planetScale;
 
-  console.log(newSystem);
+  if (!noConsoleLog) console.log(newSystem);
 
   //-------
   let temp = [];
@@ -1168,7 +1222,7 @@ function initSolarSystem(rng, systemScale = 1, planetScale = 1) {
   });
 
   newSystem.planets.forEach((p) => {
-    console.log(p.radius, p.planetType);
+    if (!noConsoleLog) console.log(p.radius, p.planetType);
     //p.radius = p.radius * SCALE * planetScale;
     /*
     Rocky

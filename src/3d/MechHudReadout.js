@@ -18,7 +18,7 @@ const MechHudReadout = React.memo(() => {
   const { camera } = useThree();
 
   const object3dDummy = new THREE.Object3D();
-  console.log(width, height);
+
   useFrame(() => {
     if (!mechDamageReadout.current) return null;
     //place readout at top of screen (offset from camera location)

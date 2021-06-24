@@ -4,7 +4,8 @@
 //import ReactDOM from "react-dom";
 import React, { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
-import MainMenu from "./MainMenu";
+import GalaxyMapHud from "./GalaxyMapHud";
+import GalaxyStarMap from "./GalaxyStarMap";
 import Stars from "./3d/Stars";
 import Planets from "./3d/Planets";
 import Stations from "./3d/Stations";
@@ -38,7 +39,7 @@ import {
 import {
   IS_MOBLIE,
   FLIGHT,
-  MAIN_MENU,
+  GALAXY_MAP,
   EQUIPMENT_SCREEN,
   CONTROLS_UNATTENDED,
   CONTROLS_PILOT,
@@ -48,15 +49,22 @@ import {
 } from "./util/gameUtil";
 
 function App() {
-  const { testing, actions, playerScreen, playerControlMode } = useStore(
-    (state) => state
-  );
+  const {
+    testing,
+    actions,
+    playerScreen,
+    playerControlMode,
+    displayContextMenu,
+  } = useStore((state) => state);
   const { basicMenu } = useEquipStore((state) => state.equipActions);
 
   //mouse move
   function handleMouseMove(e) {
-    if (!IS_MOBLIE && playerScreen !== EQUIPMENT_SCREEN) actions.updateMouse(e);
-    else basicMenu.editShipMouseRotation(e);
+    if (!IS_MOBLIE && playerScreen === EQUIPMENT_SCREEN)
+      basicMenu.editShipMouseRotation(e);
+    else if (!IS_MOBLIE && playerScreen !== EQUIPMENT_SCREEN)
+      actions.updateMouse(e);
+    else actions.updateMouse(e);
   }
   useMouseMove(handleMouseMove);
 
@@ -89,7 +97,7 @@ function App() {
 
   //mouse right click
   function handleMouseRightClick(e) {
-    actions.displayContextMenu();
+    actions.displayContextMenu(e.clientX, e.clientY);
   }
   useMouseRightClick(handleMouseRightClick);
 
@@ -106,11 +114,11 @@ function App() {
   useKBControls("ArrowDown", handleSpeedDown);
 
   //changing menus
-  function handleSwitchScreen() {
+  function handleStationDock() {
     //actions.stationDoc();
-    actions.switchScreen();
+    actions.stationDock();
   }
-  useKBControls("KeyD", handleSwitchScreen);
+  useKBControls("KeyD", handleStationDock);
 
   function handleSummonEnemy() {
     //actions.stationDoc();
@@ -151,7 +159,7 @@ function App() {
         <pointLight castShadow intensity={0.6} />
         <ambientLight intensity={0.025} />
 
-        {playerScreen === MAIN_MENU && <MainMenu />}
+        {playerScreen === GALAXY_MAP && <GalaxyStarMap />}
         {playerScreen === EQUIPMENT_SCREEN && <EquipmentBlueprint />}
         {playerScreen === FLIGHT && (
           <>
@@ -178,6 +186,7 @@ function App() {
         <Effects />
       </Canvas>
       {playerScreen === FLIGHT && <Hud />}
+      {playerScreen === GALAXY_MAP && <GalaxyMapHud />}
       {playerScreen === EQUIPMENT_SCREEN && <EquipmentMenu />}
       {IS_MOBLIE && (
         <TouchControls
