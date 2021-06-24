@@ -77,7 +77,7 @@ const Planet = React.memo(({ planet }) => {
     depthWrite: false,
   });
 
-  const ringRadius = distance(planet.position, { x: 0, y: 0, z: 0 });
+  const ringRadius = distance(planet.object3d.position, { x: 0, y: 0, z: 0 });
   //draw planet and line ring in system to show planet orbit
   return (
     //ref={ref}

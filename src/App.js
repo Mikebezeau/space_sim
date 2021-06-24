@@ -15,7 +15,7 @@ import Rocks from "./3d/Rocks";
 import Explosions from "./3d/Explosions";
 import PlayerMech from "./3d/PlayerMech";
 import ScannerReadout from "./3d/ScannerReadout";
-//import TestMech from "./3d/TestMech"; <TestMech />
+import MechHudReadout from "./3d/MechHudReadout";
 import WeaponFire from "./3d/WeaponFire";
 import SystemMap from "./3d/SystemMap";
 
@@ -31,6 +31,7 @@ import {
   useKBControls,
   useMouseMove,
   useMouseClick,
+  useMouseRightClick,
   useMouseUp,
   useMouseDown,
 } from "./controlHooks/useMouseKBControls";
@@ -39,10 +40,17 @@ import {
   FLIGHT,
   MAIN_MENU,
   EQUIPMENT_SCREEN,
+  CONTROLS_UNATTENDED,
+  CONTROLS_PILOT,
+  CONTROLS_SCAN_PLANET,
+  CONTROLS_SCAN_SHIP,
+  CONTROLS_SCAN_STRUCTURE,
 } from "./util/gameUtil";
 
 function App() {
-  const { actions, playerScreen } = useStore((state) => state);
+  const { testing, actions, playerScreen, playerControlMode } = useStore(
+    (state) => state
+  );
   const { basicMenu } = useEquipStore((state) => state.equipActions);
 
   //mouse move
@@ -66,12 +74,24 @@ function App() {
   //mouse click
   function handleMouseClick(e) {
     if (!IS_MOBLIE) {
-      playerScreen === FLIGHT
-        ? actions.setSelectedTargetIndex() // selects an enemy target then triggers store: actions.shoot()
-        : actions.detectTargetStar();
+      if (playerScreen === FLIGHT) {
+        if (playerControlMode === CONTROLS_PILOT) {
+          actions.setSelectedTargetIndex(); // selects an enemy target then triggers store: actions.shoot()
+        } else {
+          //show left click menu
+        }
+      } else {
+        actions.detectTargetStar();
+      }
     }
   }
   useMouseClick(handleMouseClick);
+
+  //mouse right click
+  function handleMouseRightClick(e) {
+    actions.displayContextMenu();
+  }
+  useMouseRightClick(handleMouseRightClick);
 
   //SPEED UP
   function handleSpeedUp() {
@@ -85,12 +105,31 @@ function App() {
   }
   useKBControls("ArrowDown", handleSpeedDown);
 
-  //DOCK AT STATION
+  //changing menus
   function handleSwitchScreen() {
     //actions.stationDoc();
     actions.switchScreen();
   }
   useKBControls("KeyD", handleSwitchScreen);
+
+  function handleSummonEnemy() {
+    //actions.stationDoc();
+    testing.summonEnemy();
+  }
+  useKBControls("KeyS", handleSummonEnemy);
+
+  function handleShowLeaders() {
+    //actions.stationDoc();
+    testing.showLeaders();
+  }
+  useKBControls("KeyL", handleShowLeaders);
+
+  function handleWarpToPlanet() {
+    //actions.stationDoc();
+    testing.warpToPlanet();
+  }
+  useKBControls("KeyW", handleWarpToPlanet);
+
   //IS_MOBLIE: conditional controls for mobile devices
   //console.log("playerScreen", playerScreen, FLIGHT);
   return (
@@ -121,13 +160,18 @@ function App() {
             <Particles />
             <Suspense fallback={null}>
               <PlayerMech />
-              <ScannerReadout />
+              {playerControlMode === CONTROLS_PILOT && (
+                <>
+                  <SystemMap showPlayer={true} />
+                  <ScannerReadout />
+                  <MechHudReadout />
+                </>
+              )}
               <Rocks />
               <Planets />
               <EnemyMechs />
               <Stations />
               <WeaponFire />
-              <SystemMap showPlayer={true} />
             </Suspense>
           </>
         )}
@@ -135,7 +179,12 @@ function App() {
       </Canvas>
       {playerScreen === FLIGHT && <Hud />}
       {playerScreen === EQUIPMENT_SCREEN && <EquipmentMenu />}
-      {IS_MOBLIE && <TouchControls />}
+      {IS_MOBLIE && (
+        <TouchControls
+          playerScreen={playerScreen}
+          playerControlMode={playerControlMode}
+        />
+      )}
     </>
   );
 }

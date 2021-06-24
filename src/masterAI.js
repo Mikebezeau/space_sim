@@ -7,17 +7,13 @@ const toTargetQuat = new THREE.Quaternion(),
   curQuat = new THREE.Quaternion();
 
 export function loopAI(player, enemies, enemyBoids, clock, actionShoot) {
-  //console.log(enemyBoids[0]);
   enemies.forEach((enemy, index) => {
-    //select target
-    //make sure the group leader is alive
-    enemy.groupLeaderGuid = enemies.find((e) => e.id === enemy.groupLeaderGuid)
-      ? enemy.groupLeaderGuid //leader is alive
-      : enemy.id; //if not set group leader to itself - now has no leader
-
+    enemyBoids[index].position.copy(enemy.object3d.position);
     const enemyLeader = enemies.find((e) => e.id === enemy.groupLeaderGuid);
+    //if no leader make self leader
+    if (!enemyLeader) enemy.groupLeaderGuid = enemy.id;
     const isLeader = enemy.id === enemy.groupLeaderGuid;
-
+    //select target
     const destinationPosition = findTargetPosition(
       player,
       enemyLeader,
@@ -34,12 +30,12 @@ export function loopAI(player, enemies, enemyBoids, clock, actionShoot) {
     //if leader ship within attack range of player
     if (
       (isLeader || enemy.tacticOrder === 1) &&
-      distanceToTargetLocation < 1000 * enemy.mechBP.scale * SCALE
+      distanceToTargetLocation < 2000 * enemy.mechBP.scale * SCALE
       //distanceToTargetLocation < 1000 * enemy.mechBP.size * SCALE
     ) {
       //give order to attack
       enemy.tacticOrder = 1;
-      //fire at player
+      //fire at player if possible
       actionShoot(enemy.mechBP, enemy, player, false, enemy.team);
     } else {
       enemy.tacticOrder = 0;
@@ -48,7 +44,7 @@ export function loopAI(player, enemies, enemyBoids, clock, actionShoot) {
     //if leader is too far away for combat change tactic order to reform formation
     if (
       isLeader &&
-      distanceToTargetLocation > 1000 * enemy.mechBP.scale * SCALE
+      distanceToTargetLocation > 2000 * enemy.mechBP.scale * SCALE
       //distanceToTargetLocation > 1000 * enemy.mechBP.size * SCALE
     ) {
       //player too far away to attack, so regroup
@@ -56,8 +52,9 @@ export function loopAI(player, enemies, enemyBoids, clock, actionShoot) {
     }
 
     //set traget desitination of enemy boid
-    //if (!isLeader)
     enemyBoids[index].home.copy(destinationPosition);
+
+    /*
     //just for fun, if a big ship, let the target be the leader capital ship if close enough to player
     if (
       enemy.mechBP.scale > 3 &&
@@ -65,17 +62,15 @@ export function loopAI(player, enemies, enemyBoids, clock, actionShoot) {
       //distanceToTargetLocation < 500 * enemy.mechBP.size * SCALE //size: 1.5, 50, 11000
     )
       enemyBoids[index].home.copy(enemyLeader.object3d.position);
-
+*/
     // Run an iteration of the flock
     enemyBoids[index].step(enemyBoids, enemy, isLeader, []);
     //turn towards target
     //direction quat pointing to player location
-    //ONLY CHANGE DIRECTION IF a short distance away from target destination, so that jittering deosnt happen
     const MVmod =
       1 /
       (Math.abs(enemy.mechBP.MV()) === 0 ? 0.1 : Math.abs(enemy.mechBP.MV()));
 
-    //if (distanceToTargetLocation > 50 * enemy.mechBP.scale * SCALE) {
     //current enemy direction quat
     curQuat.setFromEuler(enemy.object3d.rotation);
     //set dummy to aquire rotation towards target
@@ -84,25 +79,24 @@ export function loopAI(player, enemies, enemyBoids, clock, actionShoot) {
     toTargetQuat.setFromEuler(dummyObj.rotation);
     //rotate slowly towards target quaternion
 
-    //do not exceed maximum turning angle Math.PI / 10
-    //if (index === 100) console.log(enemy.mechBP.size());
+    //do not exceed maximum turning angle
+    /*
     if (
       curQuat.angleTo(toTargetQuat) >
       (Math.PI / 10 / enemy.mechBP.scale) * MVmod
     ) {
       // .rotateTowards for a static rotation value
-      //if (index === 10) console.log(curQuat.angleTo(toTargetQuat), (Math.PI / 10) * MVmod);
       enemy.object3d.rotation.setFromQuaternion(
         curQuat.rotateTowards(
           toTargetQuat,
           (Math.PI / 10 / enemy.mechBP.scale) * MVmod
         )
       );
-    } else {
-      enemy.object3d.rotation.setFromQuaternion(
-        curQuat.slerp(toTargetQuat, (Math.PI / 10 / enemy.mechBP.scale) * MVmod)
-      );
-    }
+    } else {*/
+    enemy.object3d.rotation.setFromQuaternion(
+      curQuat.slerp(toTargetQuat, (Math.PI / 10 / enemy.mechBP.scale) * MVmod)
+    );
+    //}
     //}
 
     /*
@@ -117,18 +111,18 @@ export function loopAI(player, enemies, enemyBoids, clock, actionShoot) {
 
     //if far enough away, use boid speed to get in correct position
     enemy.speed =
-      distanceToTargetLocation > 1000 * enemy.mechBP.scale * SCALE
+      distanceToTargetLocation > 2000 * enemy.mechBP.scale * SCALE
         ? enemyBoids[index].speed * 100 * SCALE //(distanceToTargetLocation * enemy.mechBP.scale) / 1000 / SCALE
         : enemy.speed;
 
     //reduce speed to the boid speed
-    if (enemy.speed > enemyBoids[index].speed * 100 * SCALE) {
-      enemy.speed = enemyBoids[index].speed * 100 * SCALE;
+    if (enemy.speed > enemyBoids[index].speed * 10) {
+      // * 100 * SCALE) {
+      enemy.speed = enemyBoids[index].speed * 10; // * 100 * SCALE;
     }
 
     //move toward target
     enemy.object3d.translateZ(enemy.speed * SCALE);
-    enemyBoids[index].position.copy(enemy.object3d.position);
 
     //if (index === 0) console.log(enemyBoids[index].speed);
     //enemy.object3d.lookAt(enemyBoids[index].pointAt);

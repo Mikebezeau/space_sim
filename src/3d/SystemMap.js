@@ -54,8 +54,8 @@ export default function SystemMap({ showPlayer = false }) {
   const planets = useStore((state) => state.planets);
   //planet at end of array has largest orbit
   let maxRadius = 0;
-  planets.forEach((planets) => {
-    const distanceToSun = distance(planets.position, {
+  planets.forEach((planet) => {
+    const distanceToSun = distance(planet.object3d.position, {
       x: 0,
       y: 0,
       z: 0,
@@ -74,12 +74,13 @@ export default function SystemMap({ showPlayer = false }) {
   );
 }
 
-function System({ planets, mapScale }) {
+const System = React.memo(({ planets, mapScale }) => {
+  //function System({ planets, mapScale }) {
   return planets.map((planet, index) => {
     //console.log(planet.type);
     const ringRadius =
-      mapScale * distance(planet.position, { x: 0, y: 0, z: 0 });
-    //console.log(mapScale, planet.position.x); // scale={[mapScale, mapScale, mapScale]}>
+      mapScale * distance(planet.object3d.position, { x: 0, y: 0, z: 0 });
+    //console.log(mapScale, planet.object3d.position.x); // scale={[mapScale, mapScale, mapScale]}>
     return (
       <group key={index}>
         <mesh
@@ -91,8 +92,8 @@ function System({ planets, mapScale }) {
         <mesh
           scale={1 + 0.25 * planet.radius}
           position={[
-            planet.position.x * mapScale,
-            planet.position.z * mapScale,
+            planet.object3d.position.x * mapScale,
+            planet.object3d.position.z * mapScale,
             0,
           ]}
           geometry={planetGeometry}
@@ -101,7 +102,7 @@ function System({ planets, mapScale }) {
       </group>
     );
   });
-}
+});
 
 function ShipPositions({ mapScale, playerObj }) {
   //, enemies }) {

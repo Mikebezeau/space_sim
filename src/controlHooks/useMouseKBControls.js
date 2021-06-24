@@ -40,6 +40,27 @@ export function useMouseClick(callback) {
   }, []);
 }
 
+export function useMouseRightClick(callback) {
+  const callbackRef = useRef(callback);
+
+  useEffect(() => {
+    callbackRef.current = callback;
+  });
+
+  useEffect(() => {
+    function handleMouseRightClick(e) {
+      e.preventDefault();
+      callbackRef.current(e);
+    }
+
+    document.addEventListener("contextmenu", handleMouseRightClick);
+
+    return () => {
+      document.removeEventListener("contextmenu", handleMouseRightClick);
+    };
+  }, []);
+}
+
 export function useMouseDown(callback) {
   const callbackRef = useRef(callback);
 

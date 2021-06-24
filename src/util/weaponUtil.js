@@ -167,7 +167,7 @@ const weaponUtil = {
         weaponList[data.weaponType].damageRange.range[data.damageRange] *
           weaponList[data.weaponType].rangeMod.val[data.rangeMod]
       );
-      range = data.longRange ? range * range : range;
+      range = data.longRange ? range * 10 : range;
     }
 
     //only scale range if scaling up

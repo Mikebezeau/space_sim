@@ -6,8 +6,19 @@ import {
   useTouchMoveControls,
   useTouchEndControls,
 } from "./controlHooks/useTouchControls";
+import {
+  IS_MOBLIE,
+  FLIGHT,
+  MAIN_MENU,
+  EQUIPMENT_SCREEN,
+  CONTROLS_UNATTENDED,
+  CONTROLS_PILOT,
+  CONTROLS_SCAN_PLANET,
+  CONTROLS_SCAN_SHIP,
+  CONTROLS_SCAN_STRUCTURE,
+} from "./util/gameUtil";
 
-export default function Hud() {
+export default function TouchControls({ playerScreen, playerControlMode }) {
   const actions = useStore((state) => state.actions);
 
   //SPEED UP
@@ -24,7 +35,15 @@ export default function Hud() {
 
   //SHOOT LASERS
   function handleShoot() {
-    actions.shoot();
+    if (playerScreen === FLIGHT) {
+      if (playerControlMode === CONTROLS_PILOT) {
+        actions.setSelectedTargetIndex(); // selects an enemy target then triggers store: actions.shoot()
+      } else {
+        //show left click menu
+      }
+    } else {
+      actions.detectTargetStar();
+    }
   }
   useTouchStartControls("btn-shoot", handleShoot);
 

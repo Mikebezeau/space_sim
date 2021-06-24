@@ -1,14 +1,18 @@
 import React from "react";
 import styled, { css } from "styled-components";
 import useStore from "./stores/store";
-
+import { TestingEnemyControls } from "./testingControls/TestingEnemyControls";
+import { TestingBoidControls } from "./testingControls/TestingBoidControls";
 import "./css/hud.css";
 
 //basic HTML/CSS heads up display used to show player info
 export default function Hud() {
-  const { speed } = useStore((state) => state.player);
-  //const points = useStore((state) => state.points);
-  const { planets, focusPlanetIndex, health } = useStore((state) => state);
+  //testing
+  const { testing } = useStore((state) => state);
+  //
+  const { speed, shield } = useStore((state) => state.player);
+  const { planets, focusPlanetIndex } = useStore((state) => state);
+
   //const sound = useStore((state) => state.sound);
   //const toggle = useStore((state) => state.actions.toggleSound);
   /*
@@ -45,18 +49,32 @@ export default function Hud() {
               <span key={key}>
                 {key}:{" "}
                 <span className="floatRight">
-                  {Math.floor(value * 1000) / 1000}
+                  {Math.floor(value * 1000) / 1000 /*rounding off*/}
                 </span>
                 <br />
               </span>
             );
           })}
+          <button onClick={testing.warpToPlanet}>(W)arp to Planet</button>
+          <TestingEnemyControls />
         </div>
       </UpperLeft>
       <UpperRight>
-        <div className="healthBar" style={{ width: health + "%" }} />
+        {shield.max > 0 && (
+          <div className="shieldsBarContainer">
+            <div
+              className="shieldsBar"
+              style={{
+                width: ((shield.max - shield.damage) / shield.max) * 100 + "%",
+              }}
+            >
+              <span>SHIELDS</span>
+            </div>
+          </div>
+        )}
         <br />
         <div className="scanData">
+          <TestingBoidControls />
           {focusPlanetIndex !== null && planets[focusPlanetIndex] && (
             <>
               <p>Planet Scan</p>
@@ -92,47 +110,33 @@ const base = css`
 const UpperLeft = styled.div`
   ${base}
   top: 40px;
-  left: 50px;
+  left: 2vw;
   transform: skew(5deg, 10deg);
-  width: 20%;
+  width: 18vw;
   & > h1 {
     margin: 0;
-    font-size: 10em;
+    font-size: 10vw;
     line-height: 1em;
   }
   & > h2 {
     margin: 0;
-    font-size: 2em;
+    font-size: 2vw;
     line-height: 1em;
   }
   @media only screen and (max-width: 700px) {
-    top: 5%;
-    left: 12%;
-    & > h1 {
-      font-size: 3em !important;
-    }
-    & > h2 {
-      font-size: 1em !important;
-    }
   }
 `;
 
 const UpperRight = styled.div`
   ${base}
   text-align: right;
-  top: 40px;
-  right: 50px;
+  top: 250px;
+  right: 2vw;
   transform: skew(-5deg, -10deg);
-  font-size: 2em;
-  height: 40px;
-  width: 210px;
-  background: black;
+  font-size: 1.5vw;
+  width: 18vw;
 
   @media only screen and (max-width: 700px) {
-    bottom: 50px;
-    height: 10px;
-    width: 50px;
-    font-size: 1.5em;
   }
 `;
 

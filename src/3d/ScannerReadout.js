@@ -34,21 +34,23 @@ const selectedMaterialRing = new THREE.MeshBasicMaterial({
   side: THREE.DoubleSide,
   transparent: 1,
   opacity: 1,
+  receiveShadow: false,
   //emissive: red,
   //emissiveIntensity: 1,
-  //depthWrite: false,
 });
 const materialRing = new THREE.MeshBasicMaterial({
   color: lightgreen,
   side: THREE.DoubleSide,
   transparent: 1,
   opacity: 0.3,
+  receiveShadow: false,
 });
 const materialPlanetRing = new THREE.MeshBasicMaterial({
   color: yellow,
   side: THREE.DoubleSide,
   transparent: 1,
   opacity: 0.2,
+  receiveShadow: false,
 });
 
 const selectedArrowIndicatorGeometry = new THREE.ConeGeometry(
@@ -66,16 +68,17 @@ const materialArrowIndicator = new THREE.MeshBasicMaterial({
   side: THREE.DoubleSide,
   transparent: 1,
   opacity: 0.3,
+  receiveShadow: false,
   //emissive: red,
   //emissiveIntensity: 1,
-  //depthWrite: false,
   wireframe: true,
 });
 const materialArrowHidden = new THREE.MeshBasicMaterial({
   visible: false,
 });
 
-export default function ScannerReadout() {
+const ScannerReadout = React.memo(({}) => {
+  //export default function ScannerReadout() {
   //const clock = useStore((state) => state.mutation.clock);
   const { camera } = useThree();
   const {
@@ -251,7 +254,9 @@ export default function ScannerReadout() {
       </group>
     </>
   );
-}
+});
+
+export default ScannerReadout;
 
 function placeTarget(
   mesh,

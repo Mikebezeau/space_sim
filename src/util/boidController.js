@@ -42,9 +42,9 @@ export function Boid(index) {
 // Run an iteration of the flock
 Boid.prototype.step = function (flock, boidInfo, isLeader, obstacles) {
   this.groupLeaderGuid = boidInfo.groupLeaderGuid;
-  this.minRange = boidInfo.size * 2.5 * 3;
-  this.neighborRange = boidInfo.size * 3.5 * 3;
-  this.mass = boidInfo.size * 100;
+  this.minRange = boidInfo.size * 2.5 * 25;
+  this.neighborRange = boidInfo.size * 2.5 * 55;
+  //this.mass = boidInfo.mechBP.scale; //boidInfo.size / 100 / SCALE;
   this.accumulate(flock, isLeader, obstacles);
   this.update();
   //this.obj.mesh.position.set(this.position.x, this.position.y, this.position.z);
@@ -53,10 +53,10 @@ Boid.prototype.step = function (flock, boidInfo, isLeader, obstacles) {
 // Apply Forces
 Boid.prototype.accumulate = function (flock, isLeader, obstacles) {
   var separation, alignment, cohesion, centering;
-  separation = this.separate(flock).multiplyScalar(0.02 * this.mass);
-  alignment = this.align(flock).multiplyScalar(isLeader ? 0.1 : 0.2); //0.5
+  separation = this.separate(flock).multiplyScalar(15); // 0.2 * this.mass);
+  alignment = this.align(flock).multiplyScalar(isLeader ? 0.5 : 0.8); //0.5
   cohesion = this.cohesion(flock).multiplyScalar(isLeader ? 0.01 : 0.01); //(0.01);
-  centering = this.steer(this.home).multiplyScalar(isLeader ? 0.01 : 0.01); //(0.0001);
+  centering = this.steer(this.home).multiplyScalar(isLeader ? 0.2 : 0.1); //(0.0001);
   //centering.multiplyScalar(this.position.distanceTo(this.home) * this.mass); // stronger centering if farther away
   this.acceleration.add(separation);
   this.acceleration.add(alignment);

@@ -17,7 +17,10 @@ export default class StarSystem {
   get age() {
     // main sequence lifetime, billions of years
     const msl = (10 * this.mass) / this.luminosity;
-    return this._age || (this._age = msl >= 6 ? rand(1, 6) : rand(1, msl));
+    return (
+      this._age ||
+      (this._age = msl >= 6 ? rand(1, 6, this.rng) : rand(1, msl, this.rng))
+    );
   }
 
   get luminosity() {
@@ -58,7 +61,8 @@ export default class StarSystem {
     this.planets = [];
   }
 
-  create() {
+  create(rng) {
+    this.rng = rng;
     let i = 0;
     while (this.matter.hasDust) {
       this.injectNucleus();
@@ -72,8 +76,8 @@ export default class StarSystem {
   }
 
   injectNucleus() {
-    const a = rand(0.3, 50);
-    const e = 1 - Math.pow(1 - rand(), this.config.Q);
+    const a = rand(0.3, 50, this.rng);
+    const e = 1 - Math.pow(1 - rand(0, 1, this.rng), this.config.Q);
     const nucleus = new Planetismal(this, a, e);
     const planet = this.collectDust(nucleus);
     if (planet.mass > C.PROTOPLANET_MASS) this.planets.push(planet);

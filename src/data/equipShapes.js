@@ -2,6 +2,7 @@ import React from "react";
 import * as THREE from "three";
 import { CSG } from "three-csg-ts";
 import { geoList } from "./shapeGeometry";
+import { SCALE } from "../util/gameUtil";
 
 export const servoShapeData = {
   Pod: [
@@ -125,13 +126,38 @@ const constructionMaterial = new THREE.MeshStandardMaterial({
   emissiveIntensity: 0.1,
 });
 
+const hitMaterial = new THREE.MeshStandardMaterial({
+  color: new THREE.Color("#006"),
+  emissive: new THREE.Color("#006"),
+  emissiveIntensity: 0.1,
+});
+
 const selectMaterial = new THREE.MeshStandardMaterial({
   color: new THREE.Color("#669"),
   emissive: new THREE.Color("#669"),
   emissiveIntensity: 0.2,
 });
 
+const readoutMaterial_0 = new THREE.MeshBasicMaterial({
+  color: new THREE.Color("#669"),
+});
+
+const readoutMaterial_25 = new THREE.MeshBasicMaterial({
+  color: new THREE.Color("#966"),
+});
+
+const readoutMaterial_75 = new THREE.MeshBasicMaterial({
+  color: new THREE.Color("#900"),
+});
+
+const readoutMaterial_100 = new THREE.MeshBasicMaterial({
+  color: new THREE.Color("#000"),
+});
+
 export const ServoShapes = function ({
+  name,
+  damageReadoutMode = false,
+  isHit,
   servo,
   drawDistanceLevel,
   servoEditId,
@@ -140,12 +166,31 @@ export const ServoShapes = function ({
   landingBayPosition,
   bmap,
 }) {
-  constructionMaterial.bumpMap = bmap;
-  constructionMaterial.bumpScale = 0.3;
-
+  //constructionMaterial.bumpMap = bmap;
+  //constructionMaterial.bumpScale = 0.3;
+  //if (isHit !== undefined) console.log("hit");
   const editing = servo.id === servoEditId ? true : false;
   const size = servo.size();
-  const useMaterial = editing ? selectMaterial : constructionMaterial; //servo.material;
+  let readoutMaterial;
+  if (damageReadoutMode) {
+    const servoPercent =
+      ((servo.structure() - servo.structureDamage) / servo.structure()) * 100;
+    if (servoPercent < 0) {
+      readoutMaterial = readoutMaterial_100;
+    } else if (servoPercent < 25) {
+      readoutMaterial = readoutMaterial_25;
+    } else if (servoPercent < 75) {
+      readoutMaterial = readoutMaterial_75;
+    } else if (servoPercent < 100) {
+      readoutMaterial = readoutMaterial_100;
+    }
+  }
+  const useMaterial = damageReadoutMode
+    ? readoutMaterial
+    : editing
+    ? selectMaterial
+    : constructionMaterial; //servo.material;
+
   /*
   const visibilityMaterial = new THREE.MeshStandardMaterial({
     color: new THREE.Color("#669"),
@@ -170,7 +215,11 @@ export const ServoShapes = function ({
   let ServoMesh = new THREE.Mesh(servoGeometry, useMaterial);
 
   //only draw landing bay if within a certain distance
-  if (drawDistanceLevel === 0 && landingBayServoLocationId === servo.id) {
+  if (
+    drawDistanceLevel === 0 &&
+    !damageReadoutMode &&
+    landingBayServoLocationId === servo.id
+  ) {
     // shape to cut from servo shape
     const landingBayHole = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 1));
     // Offset box by half its width
@@ -206,8 +255,9 @@ export const ServoShapes = function ({
   }
 
   return (
-    <group scale={[size, size, size]}>
+    <group scale={size}>
       <mesh
+        name={name}
         rotation={[
           Math.sign(servo.rotation.x) *
             (Math.PI / 1 + Math.abs(servo.rotation.x)),
@@ -224,13 +274,42 @@ export const ServoShapes = function ({
   );
 };
 
-export const WeaponShapes = function ({ weapon, weaponEditId }) {
+export const WeaponShapes = function ({
+  name,
+  damageReadoutMode = false,
+  isHit,
+  weapon,
+  weaponEditId,
+}) {
   const editing = weapon.id === weaponEditId ? true : false;
   const size = Math.cbrt(weapon.SP());
-  const useMaterial = editing ? selectMaterial : constructionMaterial; //weapon.material;
+
+  let readoutMaterial;
+  if (damageReadoutMode) {
+    const weaponPercent =
+      ((weapon.structure - weapon.structureDamage) / weapon.structure) * 100;
+    switch (weaponPercent) {
+      case weaponPercent >= 100:
+        readoutMaterial = readoutMaterial_100;
+      case weaponPercent > 75:
+        readoutMaterial = readoutMaterial_75;
+      case weaponPercent > 25:
+        readoutMaterial = readoutMaterial_25;
+      default:
+        readoutMaterial = readoutMaterial_0;
+    }
+  }
+
+  const useMaterial = damageReadoutMode
+    ? readoutMaterial
+    : editing
+    ? selectMaterial
+    : constructionMaterial; //weapon.material;
+
   return (
     <group scale={[size, size, size]}>
       <mesh
+        name={name}
         rotation={weaponShapeData[weapon.data.weaponType][0].rotation}
         position={weaponShapeData[weapon.data.weaponType][0].position}
         scale={weaponShapeData[weapon.data.weaponType][0].scale}

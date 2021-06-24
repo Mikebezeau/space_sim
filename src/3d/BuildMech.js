@@ -8,6 +8,8 @@ import { equipList } from "../data/equipData";
 
 export default function BuildMech({
   mechBP,
+  damageReadoutMode,
+  servoHitNames = [],
   drawDistanceLevel = 0,
   servoEditId = null,
   weaponEditId = null,
@@ -36,10 +38,12 @@ export default function BuildMech({
       });
   //const axesHelper = new THREE.AxesHelper( 5 );
 
+  /*
   const bmap = useLoader(TextureLoader, "images/maps/mechBumpMap.jpg");
   bmap.repeat.set(1, 1);
   bmap.wrapS = THREE.RepeatWrapping;
   bmap.wrapT = THREE.RepeatWrapping;
+  */
   //bmap={mechBP.scale > 3 ? bmap : undefined}
   return (
     <group scale={editMode ? 2 / equipList.scale.weightMult[mechBP.scale] : 1}>
@@ -49,6 +53,9 @@ export default function BuildMech({
           position={[servo.offset.x, servo.offset.y, servo.offset.z]}
         >
           <ServoShapes
+            name={servo.id + "_servo"}
+            damageReadoutMode={damageReadoutMode}
+            isHit={servoHitNames.find((name) => name === servo.id + "_servo")}
             servo={servo}
             drawDistanceLevel={drawDistanceLevel}
             landingBay={mechBP.landingBay}
@@ -62,6 +69,11 @@ export default function BuildMech({
               position={[weapon.offset.x, weapon.offset.y, weapon.offset.z]}
             >
               <WeaponShapes
+                name={weapon.id + "_weapon"}
+                damageReadoutMode={damageReadoutMode}
+                isHit={servoHitNames.find(
+                  (name) => name === weapon.id + "_weapon"
+                )}
                 weapon={weapon}
                 drawDistanceLevel={drawDistanceLevel}
                 weaponEditId={weaponEditId}

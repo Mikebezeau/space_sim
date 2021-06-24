@@ -41,6 +41,7 @@ export default function Ship() {
   const cross = useRef();
   const target = useRef();
 
+  const servoHitNames = [];
   /*
   //not working
   //on first render have camera look at ship to avoid the camera shift after leaving a menu
@@ -127,12 +128,29 @@ export default function Ship() {
 
     player.hitBox.min.copy(position);
     player.hitBox.max.copy(position);
-    player.hitBox.expandByScalar(player.size * 3000 * SCALE);
+    player.hitBox.expandByScalar(player.size * 3);
 
     //update crosshair / target box switch if weapon hit possible
     crossMaterial.color = mutation.playerHits ? lightgreen : hotpink;
     cross.current.visible = !mutation.playerHits;
     target.current.visible = !!mutation.playerHits;
+
+    servoHitNames.length = 0;
+    player.shotsTesting.forEach((shot) => {
+      //detect if shot is hitting any servo peices (or weapons on weapon mounts)
+      const raycast = new THREE.Raycaster(shot.ray.origin, shot.ray.direction);
+
+      const mesh = main.current.children[0];
+      const intersection = raycast.intersectObject(mesh, true);
+      if (intersection.length > 0) {
+        //console.log(intersection[0].point);
+        //console.log(shot.object3d.position);
+        shot.object3d.position.copy(intersection[0].point);
+        servoHitNames.push(intersection[0].object.name);
+        shot.servoHitName = intersection[0].object.name;
+        player.shotsHit.push(shot);
+      }
+    });
   });
   /*
 const pointLight = new THREE.PointLight( 0xff0000, 1, 100 );
@@ -143,94 +161,89 @@ const sphereSize = 1;
 const pointLightHelper = new THREE.PointLightHelper( pointLight, sphereSize );
 scene.add( pointLightHelper );
 */
-  return (
-    <>
-      <group
-        ref={main}
-        scale={SCALE}
-        position={[
-          player.object3d.position.x,
-          player.object3d.position.y,
-          player.object3d.position.z,
-        ]}
-        rotation={[
-          player.object3d.rotation.x,
-          player.object3d.rotation.y,
-          player.object3d.rotation.z,
-        ]}
-      >
-        <group ref={cross} position={[0, 0, 300]} name="cross">
-          <mesh renderOrder={1000} material={crossMaterial}>
-            <boxBufferGeometry attach="geometry" args={[20, 1, 1]} />
-          </mesh>
-          <mesh renderOrder={1000} material={crossMaterial}>
-            <boxBufferGeometry attach="geometry" args={[1, 20, 1]} />
-          </mesh>
-        </group>
-        <group ref={target} position={[0, 0, 300]} name="target">
-          <mesh
-            position={[0, 20, 0]}
-            renderOrder={1000}
-            material={crossMaterial}
-          >
-            <boxBufferGeometry attach="geometry" args={[40, 1, 1]} />
-          </mesh>
-          <mesh
-            position={[0, -20, 0]}
-            renderOrder={1000}
-            material={crossMaterial}
-          >
-            <boxBufferGeometry attach="geometry" args={[40, 1, 1]} />
-          </mesh>
-          <mesh
-            position={[20, 0, 0]}
-            renderOrder={1000}
-            material={crossMaterial}
-          >
-            <boxBufferGeometry attach="geometry" args={[1, 40, 1]} />
-          </mesh>
-          <mesh
-            position={[-20, 0, 0]}
-            renderOrder={1000}
-            material={crossMaterial}
-          >
-            <boxBufferGeometry attach="geometry" args={[1, 40, 1]} />
-          </mesh>
-        </group>
 
-        <BuildMech mechBP={playerMechBP[0]} showAxisLines={false} />
-        {player.boxHelper && (
+  return (
+    <group
+      ref={main}
+      scale={SCALE}
+      position={[
+        player.object3d.position.x,
+        player.object3d.position.y,
+        player.object3d.position.z,
+      ]}
+      rotation={[
+        player.object3d.rotation.x,
+        player.object3d.rotation.y,
+        player.object3d.rotation.z,
+      ]}
+    >
+      <BuildMech
+        mechBP={playerMechBP[0]}
+        servoHitNames={servoHitNames}
+        showAxisLines={false}
+      />
+      {/*player.boxHelper && (
           <mesh
             geometry={player.boxHelper.geometry}
             material={player.boxHelper.material}
           ></mesh>
-        )}
-        <pointLight
-          ref={weaponFireLight}
-          position={[0, 0, 0.2]}
-          distance={3 * SCALE}
-          intensity={0}
-          color="lightgreen"
-        />
-        <mesh ref={exhaust} position={[0, 0.2, 0]}>
-          <dodecahedronBufferGeometry attach="geometry" args={[0.05, 0]} />
-          <meshStandardMaterial
-            attach="material"
-            color="lightblue"
-            transparent
-            opacity={0.3}
-            emissive="lightblue"
-            emissiveIntensity="0.3"
-          />
+        )*/}
+      <group ref={cross} position={[0, 0, 300]} name="cross">
+        <mesh renderOrder={1000} material={crossMaterial}>
+          <boxBufferGeometry attach="geometry" args={[20, 1, 1]} />
         </mesh>
-        <pointLight
-          ref={engineLight}
-          position={[0, 0.2, -0.75]}
-          distance={3 * SCALE}
-          intensity={0}
-          color="lightblue"
-        />
+        <mesh renderOrder={1000} material={crossMaterial}>
+          <boxBufferGeometry attach="geometry" args={[1, 20, 1]} />
+        </mesh>
       </group>
-    </>
+      <group ref={target} position={[0, 0, 300]} name="target">
+        <mesh position={[0, 20, 0]} renderOrder={1000} material={crossMaterial}>
+          <boxBufferGeometry attach="geometry" args={[40, 1, 1]} />
+        </mesh>
+        <mesh
+          position={[0, -20, 0]}
+          renderOrder={1000}
+          material={crossMaterial}
+        >
+          <boxBufferGeometry attach="geometry" args={[40, 1, 1]} />
+        </mesh>
+        <mesh position={[20, 0, 0]} renderOrder={1000} material={crossMaterial}>
+          <boxBufferGeometry attach="geometry" args={[1, 40, 1]} />
+        </mesh>
+        <mesh
+          position={[-20, 0, 0]}
+          renderOrder={1000}
+          material={crossMaterial}
+        >
+          <boxBufferGeometry attach="geometry" args={[1, 40, 1]} />
+        </mesh>
+      </group>
+
+      <pointLight
+        ref={weaponFireLight}
+        position={[0, 0, 0.2]}
+        distance={3 * SCALE}
+        intensity={0}
+        color="lightgreen"
+      />
+      <mesh ref={exhaust} position={[0, 0.2, 0]}>
+        <dodecahedronBufferGeometry attach="geometry" args={[0.05, 0]} />
+        <meshStandardMaterial
+          attach="material"
+          color="lightblue"
+          transparent
+          opacity={0.3}
+          emissive="lightblue"
+          emissiveIntensity="0.3"
+        />
+      </mesh>
+      <pointLight
+        ref={engineLight}
+        position={[0, 0.2, -0.75]}
+        distance={3 * SCALE}
+        intensity={0}
+        color="lightblue"
+      />
+    </group>
   );
 }

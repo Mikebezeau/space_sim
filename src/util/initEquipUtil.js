@@ -265,6 +265,8 @@ const initMechServo = function (guid, scale, classIndex = 0, type = "Torso") {
     SPMod: 0,
     wEff: 0,
     armor: { class: 0, rating: 1 }, //rating 1 = standard armor
+    armorDamage: 0,
+    structureDamage: 0,
 
     material: new THREE.MeshStandardMaterial({
       color: new THREE.Color("#999"),
@@ -465,6 +467,9 @@ const initWeaponBP = function (guid, weaponType, scale) {
       //roughness: station.roughness,
       //metalness: station.metalness,
     }),
+
+    armorDamage: 0,
+    structureDamage: 0,
 
     data: initWeaponData(weaponType, scale),
 

@@ -4,7 +4,8 @@ import { rand } from "./utils";
 // NOTE: This file is not currently used, but the plan is in the works.
 // Currently, all contents that of StarGen's (http://eldacur.com/~brons/NerdCorner/StarGen/StarGen.html)
 
-export const about = (val, variance) => val + val * rand(-variance, variance);
+export const about = (val, variance, rng) =>
+  val + val * rand(-variance, variance, rng);
 
 export const luminosity = (mass) => {
   const n = mass < 1 ? 1.75 * (mass - 0.1) + 3.325 : 0.5 * (2.0 - mass) + 4.4;
@@ -162,8 +163,10 @@ export const dayLength = (planet) => {
 /*	 The orbital radius is expected in units of Astronomical Units (AU).	*/
 /*	 Inclination is returned in units of degrees.							*/
 /*--------------------------------------------------------------------------*/
-export const inclination = (orb_radius) => {
-  return (Math.pow(orb_radius, 0.2) * about(C.EARTH_AXIAL_TILT, 0.4)) % 360;
+export const inclination = (orb_radius, rng) => {
+  return (
+    (Math.pow(orb_radius, 0.2) * about(C.EARTH_AXIAL_TILT, 0.4, rng)) % 360
+  );
 };
 
 /*--------------------------------------------------------------------------*/
@@ -265,7 +268,7 @@ export const vol_inventory = (planet) => {
 
     earth_units = mass * C.SOLAR_MASS_IN_EARTH_MASS;
     temp1 = (proportion_const * earth_units) / stellar_mass;
-    temp2 = about(temp1, 0.2);
+    temp2 = about(temp1, 0.2, planet.system.rng);
     if (greenhouse_effect || isGasGiant) return temp2;
 
     return temp2 / 100.0; // 100-140
@@ -443,7 +446,8 @@ export const planet_albedo = (
   water_fraction,
   cloud_fraction,
   ice_fraction,
-  surf_pressure
+  surf_pressure,
+  rng
 ) => {
   let rock_fraction;
   let cloud_adjustment;
@@ -474,20 +478,23 @@ export const planet_albedo = (
     ice_fraction = ice_fraction - cloud_adjustment;
   else ice_fraction = 0.0;
 
-  cloud_part = cloud_fraction * about(C.CLOUD_ALBEDO, 0.2);
+  cloud_part = cloud_fraction * about(C.CLOUD_ALBEDO, 0.2, rng);
 
   if (surf_pressure == 0.0) {
     rock_part =
-      rock_fraction * about(C.ROCKY_AIRLESS_ALBEDO, 0.3); /* about(...,0.3); */
+      rock_fraction *
+      about(C.ROCKY_AIRLESS_ALBEDO, 0.3, rng); /* about(...,0.3); */
     ice_part =
-      ice_fraction * about(C.AIRLESS_ICE_ALBEDO, 0.4); /* about(...,0.4); */
+      ice_fraction *
+      about(C.AIRLESS_ICE_ALBEDO, 0.4, rng); /* about(...,0.4); */
     water_part = 0;
   } else {
     rock_part =
-      rock_fraction * about(C.ROCKY_ALBEDO, 0.1); /* about(...,0.1); */
+      rock_fraction * about(C.ROCKY_ALBEDO, 0.1, rng); /* about(...,0.1); */
     water_part =
-      water_fraction * about(C.WATER_ALBEDO, 0.2); /* about(...,0.2); */
-    ice_part = ice_fraction * about(C.ICE_ALBEDO, 0.1); /* about(...,0.1); */
+      water_fraction * about(C.WATER_ALBEDO, 0.2, rng); /* about(...,0.2); */
+    ice_part =
+      ice_fraction * about(C.ICE_ALBEDO, 0.1, rng); /* about(...,0.1); */
   }
 
   return cloud_part + rock_part + water_part + ice_part;
@@ -660,7 +667,8 @@ export const calculate_surface_temp = (
     planet.waterCover,
     planet.cloudCover,
     planet.iceCover,
-    planet.surfaceTemperature
+    planet.surfaceTemperature,
+    planet.system.rng
   );
 
   // unsetting memoized values
@@ -756,7 +764,13 @@ export const iterate_surface_temp2 = (planet) => {
     )
       water = 0.0;
 
-    albedo = planet_albedo(water, clouds, ice, planet.surfacePressure);
+    albedo = planet_albedo(
+      water,
+      clouds,
+      ice,
+      planet.surfacePressure,
+      planet.system.rng
+    );
     optical_depth = opacity(planet.moleculeLimit, planet.surfacePressure);
     effective_temp = eff_temp(planet.system.ecosphereRadius, planet.a, albedo);
     greenhs_rise = green_rise(
@@ -820,7 +834,7 @@ export const breathable = (planet) => {
       oxygen_ok = ipp >= C.MIN_O2_IPP && ipp <= C.MAX_O2_IPP;
   }
 
-  return oxygen_ok ? "YES" : "NO"; //BREATHABLE" : "UNBREATHABLE";
+  return oxygen_ok ? true : false; //BREATHABLE" : "UNBREATHABLE";
 };
 
 /* function for 'soft limiting' temperatures */

@@ -4,13 +4,15 @@ import useStore from "../stores/store";
 import BuildMech from "./BuildMech";
 import { SCALE } from "../util/gameUtil";
 
+const servoHitNames = [];
+
 const Station = React.memo(({ station }) => {
   //station rotation
   const { clock } = useStore((state) => state.mutation);
   const ref = useRef();
   useFrame(() => {
     if (ref.current) {
-      const r = clock.getElapsedTime() / 10;
+      const r = clock.getElapsedTime() / 50;
       ref.current.rotation.set(0, r, 0);
     }
   });
@@ -23,7 +25,11 @@ const Station = React.memo(({ station }) => {
       scale={SCALE}
       key={station.guid}
     >
-      <BuildMech mechBP={station.stationBP} showAxisLines={0} />
+      <BuildMech
+        mechBP={station.stationBP}
+        servoHitNames={servoHitNames}
+        showAxisLines={0}
+      />
 
       <pointLight
         position={[0, 5, 0]}

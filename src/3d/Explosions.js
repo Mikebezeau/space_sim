@@ -8,10 +8,10 @@ import { SCALE } from "../util/gameUtil";
 
 function make(color, speed) {
   return {
-    ref: React.createRef(),
+    //ref: React.createRef(),
     color,
     //data: new Array(20)
-    data: new Array(2)
+    data: new Array(10)
       .fill()
       .map(() => [
         new THREE.Vector3(),
@@ -21,42 +21,24 @@ function make(color, speed) {
           -1 + Math.random() * 2
         )
           .normalize()
-          .multiplyScalar(speed * 0.75 * SCALE),
+          .multiplyScalar(speed * 2),
       ]),
   };
 }
 
 export default function Explosions() {
-  //test shape
-  const geometry = new THREE.SphereGeometry(10, 8, 8);
-  //test material
-  const material = new THREE.MeshLambertMaterial({
-    emissive: new THREE.Color(0xffffff),
-    emissiveIntensity: 0.5,
-    color: new THREE.Color(0xffffff),
-    opacity: 1,
-    depthWrite: false,
-  });
-  //<Explosion key={id} position={object3d.position} scale={SCALE} />
   const explosions = useStore((state) => state.explosions);
-  //if (explosions.length > 0) console.log(explosions[0]);
   return explosions.map(({ id, object3d }) => (
-    <group key={id}>
-      <mesh
-        geometry={geometry}
-        material={material}
-        position={object3d.position}
-        scale={SCALE}
-      ></mesh>
-    </group>
+    <Explosion key={id} position={object3d.position} />
   ));
 }
 
-function Explosion({ position, scale }) {
+const Explosion = React.memo(({ position, scale }) => {
+  //function Explosion({ position, scale }) {
   const group = useRef();
   const { dummy } = useStore((state) => state.mutation);
   const particles = useMemo(
-    () => [make("white", 0.8), make("orange", 0.6)],
+    () => [make("white", 800 * SCALE), make("white", 600 * SCALE)], //make("orange", 0.6)],
     []
   );
 
@@ -72,32 +54,34 @@ function Explosion({ position, scale }) {
           dummy.updateMatrix();
           mesh.setMatrixAt(i, dummy.matrix);
         });
-        mesh.material.opacity -= 0.025;
+        mesh.material.opacity -= 0.1;
         mesh.instanceMatrix.needsUpdate = true;
       } catch (e) {
         //console.log(e, particles);
       }
     });
   });
-
+  /*instancedMesh frustumCulled={false}*/
   return (
-    <group ref={group} position={position}>
+    <group ref={group} position={position} scale={SCALE}>
       {particles.map(({ color, data }, index) => (
-        <instancedMesh
-          key={Math.random()}
-          args={[null, null, data.length]}
-          frustumCulled={false}
-        >
-          <dodecahedronBufferGeometry attach="geometry" args={[10, 0]} />
+        <instancedMesh key={Math.random()} args={[null, null, data.length]}>
+          <dodecahedronBufferGeometry
+            attach="geometry"
+            args={[100 * SCALE, 0]}
+          />
           <meshBasicMaterial
             attach="material"
             color={color}
             transparent
             opacity={1}
             fog={false}
+            receiveShadow={false}
+            precision={"lowp"}
+            toneMapped={false}
           />
         </instancedMesh>
       ))}
     </group>
   );
-}
+});

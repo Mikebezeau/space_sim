@@ -149,13 +149,13 @@ export default class Planetismal {
     return (
       this._albedo ||
       (this._albedo = this.isGasGiant
-        ? about(GAS_GIANT_ALBEDO, 0.1)
+        ? about(GAS_GIANT_ALBEDO, 0.1, this.system.rng)
         : EARTH_ALBEDO)
     );
   }
 
   get axialTilt() {
-    return inclination(this.a);
+    return inclination(this.a, this.system.rng);
   }
 
   get orbitalZone() {
@@ -258,6 +258,18 @@ export default class Planetismal {
     );
   }
 
+  get planetClass() {
+    const c = convert["metric"];
+    if (this.isGasGiant) {
+      //Class I: Ammonia clouds
+      //Class II: Water clouds
+      //Class III: Cloudless
+      //Class IV: Alkali metals
+      if (c.temp(this.temperature.avg) > 1100) return "IV";
+      return null;
+    }
+  }
+
   get planetType() {
     if (this.dayLength === this.orbitalPeriod * 24 || this.resonant_period)
       return "Rocky";
@@ -265,14 +277,15 @@ export default class Planetismal {
       const radRatio = this.radius / KM_EARTH_RADIUS;
       if (radRatio <= 1.7) return "Gas";
       if (radRatio > 1.7 && radRatio < 3.9) return "Gas Dwarf";
-      return "Jovian";
+      return "Gas Giant";
     }
     if (this.temperature.max > this.boilingPoint) return "Venusian";
-    if (this.temperature.day < FREEZING_POINT_OF_WATER) return "Ice";
+    //if (this.temperature.day < FREEZING_POINT_OF_WATER) return "Ice";
     if (this.surfacePressure <= 250.0) return "Martian";
     if (this.waterCover >= 0.95) return "Water";
     if (this.iceCover >= 0.95) return "Ice";
     if (this.waterCover > 0.05) return "Terrestrial";
+    return "Rocky";
   }
 
   get breathable() {
@@ -377,17 +390,17 @@ export default class Planetismal {
       type: this.planetType,
       "orbital Zone": this.orbitalZone,
       Gravity: `${this.surfaceGravity.toFixed(precision)} gs`,
-      "Ave. temp": `${c.temp(this.temperature.avg).toFixed(precision)} ${
+      "temp.": `${c.temp(this.temperature.min).toFixed(precision)} ${
         c.temp.label
-      }`,
+      } / ${c.temp(this.temperature.max).toFixed(precision)} ${c.temp.label}`,
+
       "surface Pres.": `${this.surfacePressure.toFixed(precision)} mb`,
-      breathable: this.breathable, // still not ready
+      breathable: this.breathable ? "YES" : "NO", // still not ready
       "axial Tilt": `${this.axialTilt.toFixed(precision)}°`,
       "day Length": `${this.dayLength.toFixed(precision)} Hours`,
       "cloud Cover": `${(this.cloudCover * 100).toFixed(precision)}%`,
       "water Cover": `${(this.waterCover * 100).toFixed(precision)}%`,
       "ice Cover": `${(this.iceCover * 100).toFixed(precision)}%`,
-      "Gas Giant": this.isGasGiant ? "Yes" : "No",
       radius: `${c.dist(this.radius).toFixed(precision)} ${c.dist.label}`,
       earthMass: `${this.earthMass.toFixed(precision)} M⊕`,
       density: `${this.density.toFixed(precision)}`,

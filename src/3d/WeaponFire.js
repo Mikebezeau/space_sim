@@ -21,29 +21,34 @@ const weaponFireMaterial = {
     emissive: red,
     emissiveIntensity: 1,
     wireframe: true,
+    receiveShadow: false,
   }),
   proj: new THREE.MeshStandardMaterial({
     color: yellow,
     emissive: yellow,
     emissiveIntensity: 1,
     wireframe: true,
+    receiveShadow: false,
   }),
   missile: new THREE.MeshStandardMaterial({
     color: lightgrey,
     emissive: lightgrey,
     emissiveIntensity: 1,
     wireframe: true,
+    receiveShadow: false,
   }),
 };
 
-export default function WeaponFire() {
+const position = new THREE.Vector3();
+const direction = new THREE.Vector3();
+
+const WeaponFire = React.memo(() => {
+  //export default function WeaponFire() {
   const weaponFireList = useStore((state) => state.weaponFireList);
-  const removeWeaponFire = useStore((state) => state.actions.removeWeaponFire);
+  //const removeWeaponFire = useStore((state) => state.actions.removeWeaponFire);
   const weaponFireGroup = useRef();
 
   //const { clock } = useStore((state) => state.mutation);
-  const position = new THREE.Vector3();
-  const direction = new THREE.Vector3();
 
   useFrame(() => {
     if (!weaponFireGroup.current) return null;
@@ -64,6 +69,7 @@ export default function WeaponFire() {
 
       bullet.getWorldPosition(position);
       bullet.getWorldDirection(direction);
+
       weaponFire.ray.origin.copy(position);
       weaponFire.ray.direction.copy(direction);
 
@@ -71,7 +77,7 @@ export default function WeaponFire() {
       weaponFire.hitBox.max.copy(position);
       weaponFire.hitBox.expandByScalar(SCALE);
     });
-    removeWeaponFire();
+    //removeWeaponFire();
   });
   return (
     <>
@@ -79,11 +85,13 @@ export default function WeaponFire() {
         {weaponFireList.map((weaponFire) => (
           <mesh
             key={weaponFire.id}
-            geometry={weaponFireGeometry[weaponFire.weaponData.weaponType]}
-            material={weaponFireMaterial[weaponFire.weaponData.weaponType]}
+            geometry={weaponFireGeometry[weaponFire.weapon.data.weaponType]}
+            material={weaponFireMaterial[weaponFire.weapon.data.weaponType]}
           />
         ))}
       </group>
     </>
   );
-}
+});
+
+export default WeaponFire;

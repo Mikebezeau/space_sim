@@ -6,14 +6,16 @@ import BuildMech from "./BuildMech";
 import { SCALE } from "../util/gameUtil";
 
 export default function EnemyMechs() {
-  const enemies = useStore((state) => state.enemies);
-  return enemies.map((enemy, i) => <Enemy key={i} index={i} enemy={enemy} />);
+  const { showLeaders, enemies } = useStore((state) => state);
+  return enemies.map((enemy, i) => (
+    <Enemy key={i} enemy={enemy} showLeaders={showLeaders} />
+  ));
 }
 
 const position = new THREE.Vector3();
 const direction = new THREE.Vector3();
 
-const Enemy = React.memo(({ enemy, index }) => {
+const Enemy = React.memo(({ enemy, showLeaders }) => {
   const ref = useRef();
 
   useFrame(() => {
@@ -35,13 +37,23 @@ const Enemy = React.memo(({ enemy, index }) => {
       enemy.hitBox.max.copy(position);
       enemy.hitBox.expandByScalar(enemy.size * 3);
 
-      //testing
-      /*
-      if (index === 0) {
-        ref.current.position.copy(
-          new Vector3(0, 25000 * SCALE, 150000 * SCALE - 1)
+      enemy.servoHitNames = [];
+      enemy.shotsTesting.forEach((shot) => {
+        //detect if shot is hitting any servo peices (or weapons on weapon mounts)
+        const raycast = new THREE.Raycaster(
+          shot.ray.origin,
+          shot.ray.direction
         );
-      }*/
+
+        const mesh = ref.current.children[0];
+        const intersection = raycast.intersectObject(mesh, true);
+        if (intersection.length > 0) {
+          //console.log(intersection[0]);
+          shot.object3d.position.copy(intersection[0].point);
+          enemy.servoHitNames.push(intersection[0].object.name);
+          enemy.shotsHit.push(shot);
+        }
+      });
     }
   });
 
@@ -49,11 +61,12 @@ const Enemy = React.memo(({ enemy, index }) => {
     <group ref={ref} scale={SCALE} key={enemy.id}>
       <BuildMech
         mechBP={enemy.mechBP}
+        servoHitNames={enemy.servoHitNames}
         drawDistanceLevel={enemy.drawDistanceLevel}
         showAxisLines={0}
         isLeader={enemy.id === enemy.groupLeaderGuid}
       />
-      {enemy.id === enemy.groupLeaderGuid && (
+      {showLeaders && enemy.id === enemy.groupLeaderGuid && (
         <mesh
           geometry={enemy.boxHelper.geometry}
           material={
