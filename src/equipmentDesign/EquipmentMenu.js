@@ -5,7 +5,6 @@ import useStore from "../stores/store";
 import useEquipStore from "../stores/equipStore";
 import mechDesigns from "../data/mechDesigns";
 
-import { equipList } from "../data/equipData";
 import Mech from "../equipment/Mech";
 import { Crew, CrewAssignSpaces } from "../equipment/Crew";
 import { Servos } from "../equipment/Servos";
@@ -13,6 +12,7 @@ import ServoPositionButtons from "../equipmentDesign/ServoPositionButtons";
 //import ServoHydraulics from "./equipment/ServoHydraulics";
 import { Weapons, WeaponsAssignSpaces } from "../equipment/Weapons";
 import { LandingBay, LandingBayAssignSpaces } from "../equipment/LandingBay";
+import { FLIGHT } from "../util/gameUtil";
 import "../css/equipmentMenu.css";
 
 export default function EquipmentMenu() {
@@ -67,9 +67,7 @@ export default function EquipmentMenu() {
   };
 
   //MAIN DESIGN MENU
-  const health = useStore((state) => state.health);
-  const stations = useStore((state) => state.stations);
-  const stationDock = useStore((state) => state.stationDock);
+  const { switchScreen } = useStore((state) => state.actions);
 
   const { mainMenuSelection } = useEquipStore((state) => state); //top menu
 
@@ -157,6 +155,7 @@ export default function EquipmentMenu() {
 
   return (
     <>
+      {/*}
       <UpperLeft>
         <h2>Station</h2>
         <h1>{stations[stationDock.stationIndex].name}</h1>
@@ -164,9 +163,10 @@ export default function EquipmentMenu() {
       </UpperLeft>
       <UpperRight>
         <div style={{ width: health + "%" }} />
-      </UpperRight>
+  </UpperRight>*/}
       <Center id="equipmentMenu">
         <div>
+          <button onClick={() => switchScreen(FLIGHT)}>Exit</button>
           <span
             className={selectedBPid === 0 ? "selectedItem" : "nonSelectedItem"}
           >

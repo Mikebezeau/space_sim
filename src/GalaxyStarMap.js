@@ -11,7 +11,7 @@ const direction = new THREE.Vector3();
 
 export default function MainMenu() {
   const { mouse } = useStore((state) => state.mutation);
-  const menuCam = useStore((state) => state.menuCam);
+  const { menuCam, galaxyMapZoom } = useStore((state) => state);
   const starMap = useRef();
   const { camera } = useThree();
 
@@ -26,7 +26,11 @@ export default function MainMenu() {
     menuCam.position.copy(camera.position);
   });
   return (
-    <group ref={starMap} position={[0, 0, -1400 * SCALE]} rotation={[0, 0, 0]}>
+    <group
+      ref={starMap}
+      position={[0, 0, (-1400 + galaxyMapZoom * 200) * SCALE]}
+      rotation={[0, 0, 0]}
+    >
       <GalaxyStars />
     </group>
   );

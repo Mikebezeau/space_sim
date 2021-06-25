@@ -9,7 +9,7 @@ export function ToggleTestControls() {
   return (
     <>
       <div className="toggleContainer">
-        <span>(T)esting Op.</span>
+        <span>Testing</span>
         <label className="switch">
           <input
             type="checkbox"

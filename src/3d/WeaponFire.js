@@ -6,7 +6,8 @@ import useStore from "../stores/store";
 import { SCALE } from "../util/gameUtil";
 
 const red = new THREE.Color("red");
-const yellow = new THREE.Color("yellow");
+const purple = new THREE.Color("purple");
+//const yellow = new THREE.Color("yellow");
 const lightgrey = new THREE.Color("lightgrey");
 
 const weaponFireGeometry = {
@@ -16,26 +17,14 @@ const weaponFireGeometry = {
 };
 
 const weaponFireMaterial = {
-  beam: new THREE.MeshStandardMaterial({
+  beam: new THREE.MeshBasicMaterial({
+    color: purple,
+  }),
+  proj: new THREE.MeshBasicMaterial({
     color: red,
-    emissive: red,
-    emissiveIntensity: 1,
-    wireframe: true,
-    receiveShadow: false,
   }),
-  proj: new THREE.MeshStandardMaterial({
-    color: yellow,
-    emissive: yellow,
-    emissiveIntensity: 1,
-    wireframe: true,
-    receiveShadow: false,
-  }),
-  missile: new THREE.MeshStandardMaterial({
+  missile: new THREE.MeshBasicMaterial({
     color: lightgrey,
-    emissive: lightgrey,
-    emissiveIntensity: 1,
-    wireframe: true,
-    receiveShadow: false,
   }),
 };
 

@@ -22,10 +22,8 @@ import {
   GALAXY_MAP,
   EQUIPMENT_SCREEN,
   CONTROLS_UNATTENDED,
-  CONTROLS_PILOT,
-  CONTROLS_SCAN_PLANET,
-  CONTROLS_SCAN_SHIP,
-  CONTROLS_SCAN_STRUCTURE,
+  CONTROLS_PILOT_COMBAT,
+  CONTROLS_PILOT_SCAN,
 } from "../util/gameUtil";
 import { setupFlock } from "../util/boidController";
 
@@ -51,6 +49,7 @@ const weaponFireSpeed = {
 
 const playerStart = {
   system: 345,
+  mechBPindex: 0,
   x: 0,
   y: 300000 * SCALE * planetScale, //15000
   z: 0, //-50000 * SCALE * planetScale,
@@ -104,12 +103,14 @@ const [useStore] = create((set, get) => {
     planetScale: planetScale,
     //galaxy map
     menuCam: initCamMainMenu(),
+    currentStar: playerStart.system,
     selectedStar: null,
     galaxyStarPositions: initGalaxyStarPositions(),
+    galaxyMapZoom: 0,
     //blueprint design
     blueprintCam: initCamMainMenu(),
     playerScreen: FLIGHT,
-    playerControlMode: CONTROLS_PILOT,
+    playerControlMode: CONTROLS_PILOT_SCAN,
     displayContextMenu: false, //right click menu
     contextMenuPos: { x: 0, y: 0 },
     //flying
@@ -248,7 +249,7 @@ const [useStore] = create((set, get) => {
         //actions.toggleSound(get().sound);
 
         //set player mech info
-        actions.initPlayerMech(0);
+        actions.initPlayerMech(playerStart.mechBPindex);
 
         //addEffect will add the following code to what gets run per frame
         //removes exploded emenies and rocks from store data, removes explosions once they have timed out
@@ -468,22 +469,31 @@ const [useStore] = create((set, get) => {
         player.hitBox.copy(player.boxHelper.geometry.boundingBox);
       },
 
-      displayContextMenu(xPos, yPos) {
+      activateContextMenu(xPos, yPos) {
         //if options up arleady, hide menu
         set((state) => ({ displayContextMenu: !state.displayContextMenu }));
         set(() => ({ contextMenuPos: { x: xPos, y: yPos } }));
       },
       contextMenuSelect(selectVal) {
         /*player selection of control options:
-        CONTROLS_UNATTENDED = 1
-        CONTROLS_PILOT = 2
-        CONTROLS_SCAN_PLANET = 3
-        CONTROLS_SCAN_SHIP = 4
-        CONTROLS_SCAN_STRUCTURE = 5
+        CONTROLS_UNATTENDED = 1,
+        CONTROLS_PILOT_COMBAT = 2,
+        CONTROLS_PILOT_SCAN = 3
         */
         set(() => ({ playerControlMode: selectVal }));
         //hide menu
         set(() => ({ displayContextMenu: false }));
+      },
+      galaxyMapZoomIn() {
+        set((state) => ({
+          galaxyMapZoom:
+            state.galaxyMapZoom < 6
+              ? state.galaxyMapZoom + 1
+              : state.galaxyMapZoom,
+        }));
+      },
+      galaxyMapZoomOut() {
+        set((state) => ({ galaxyMapZoom: state.galaxyMapZoom - 1 }));
       },
       setFocusPlanetIndex(focusPlanetIndex) {
         set(() => ({ focusPlanetIndex: focusPlanetIndex }));
@@ -517,11 +527,19 @@ const [useStore] = create((set, get) => {
             get().player,
             get().enemies[targetIndex],
             true, // true //player autofire
-            false // auto aim
+            false, // auto aim
+            true // isPlayer
           );
       },
       //shoot all mechs weapons
-      shoot(mechBP, shooter, target, autoFire = false, autoAim = true) {
+      shoot(
+        mechBP,
+        shooter,
+        target,
+        autoFire = false,
+        autoAim = true,
+        isPlayer = false
+      ) {
         if (get().selectedTargetIndex === null && autoFire && autoAim)
           return null;
         //for each weapon on the ship, find location and create a weaponFire to be shot from there
@@ -544,6 +562,7 @@ const [useStore] = create((set, get) => {
                 weapon: weapon,
                 team: 0,
                 autoAim: autoAim,
+                isPlayer: isPlayer,
               };
               get().actions.shootWeapon(args);
             }
@@ -560,6 +579,7 @@ const [useStore] = create((set, get) => {
         weapon,
         team,
         autoAim,
+        isPlayer,
       }) {
         //PREPARE FOR FIRING
         const { actions, enemies } = get();
@@ -582,6 +602,7 @@ const [useStore] = create((set, get) => {
           autoFire: autoFire,
           weapon: weapon,
           autoAim: autoAim,
+          isPlayer: isPlayer,
         };
         const reloadSpeed = weapon.burstValue()
           ? 1000 / weapon.burstValue()
@@ -674,7 +695,9 @@ const [useStore] = create((set, get) => {
           hitBox: new THREE.Box3(), //used for hit detection
           //targetIndex: get().selectedTargetIndex,
           time: Date.now(),
-          firstFrameSpeed: JSON.parse(JSON.stringify(shooter.speed)),
+          firstFrameSpeed: isPlayer
+            ? get().player.speed
+            : JSON.parse(JSON.stringify(shooter.speed)),
           //offset: { x: 0, y: 0, z: 0 },
           fireSpeed: fireSpeed,
           velocity: fireSpeed + JSON.parse(JSON.stringify(shooter.speed)),
@@ -784,6 +807,16 @@ const [useStore] = create((set, get) => {
       },
       //main menu slecting star in galaxy map
       detectTargetStar() {
+        //clear targets
+        set(() => ({
+          selectedTargetIndex: null,
+        }));
+        set(() => ({
+          focusTargetIndex: null,
+        }));
+        set(() => ({
+          focusPlanetIndex: null,
+        }));
         //compare camera x,y position to stars x,y and determine which star is closest
         const positions = get().galaxyStarPositions;
         const menuCam = get().menuCam;
@@ -972,10 +1005,24 @@ function initPlayer() {
   return {
     id: 0,
     team: 0,
-    currentMechBPindex: 0,
-    speed: 1,
-    shield: { max: 50, damage: 0 },
+    isInMech: true,
+    currentMechBPindex: playerStart.mechBPindex,
+    locationInfo: {
+      isInSpace: true,
+      starSystemId: 0,
+      isOrbitingPlanet: false,
+      orbitPlanetId: 0,
+      isLandedPlanet: false,
+      landedPlanetId: 0,
+      isDockedStation: false,
+      dockedStationId: 0,
+      isDockedShip: false,
+      dockedShipId: 0,
+    },
     object3d: obj,
+    speed: 0,
+    shield: { max: 50, damage: 0 }, //will be placed in mechBP once shields are completed
+
     ray: new THREE.Ray(),
     hitBox: new THREE.Box3(),
     hit: new THREE.Vector3(),

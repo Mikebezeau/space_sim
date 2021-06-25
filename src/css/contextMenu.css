@@ -1,0 +1,10 @@
+.contextMenu {
+  position: absolute;
+  display: block;
+  width: 150px;
+}
+
+.contextMenu button {
+  pointer-events: auto !important;
+  width: 100%;
+}

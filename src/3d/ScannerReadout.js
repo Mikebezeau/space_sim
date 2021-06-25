@@ -59,8 +59,8 @@ const selectedArrowIndicatorGeometry = new THREE.ConeGeometry(
   4
 );
 const arrowIndicatorGeometry = new THREE.ConeGeometry(
-  0.075 * SCALE,
-  0.6 * SCALE,
+  0.05 * SCALE,
+  0.4 * SCALE,
   4
 );
 const materialArrowIndicator = new THREE.MeshBasicMaterial({
@@ -282,9 +282,10 @@ function placeArrow(camera, enemy, mesh, selectedTargetIndex, enemyIndex) {
   if (enemy.distanceNormalized >= 0.95 || selectedTargetIndex === enemyIndex) {
     //if (1) {
     dummyObj.rotation.copy(camera.rotation);
+    dummyObj.translateY(3.5 * SCALE);
     dummyObj.translateZ(-10 * SCALE);
     dummyObj.lookAt(enemy.object3d.position);
-    dummyObj.translateZ(2 * (1 / enemy.distanceNormalized) * SCALE);
+    dummyObj.translateZ(1 * (1 / enemy.distanceNormalized) * SCALE);
     //flip arrow so it's pointing right way
     dummyObj.getWorldQuaternion(curQuat);
     targetQuat.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2);

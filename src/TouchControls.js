@@ -7,19 +7,23 @@ import {
   useTouchEndControls,
 } from "./controlHooks/useTouchControls";
 import {
-  IS_MOBLIE,
   FLIGHT,
-  MAIN_MENU,
+  GALAXY_MAP,
   EQUIPMENT_SCREEN,
   CONTROLS_UNATTENDED,
-  CONTROLS_PILOT,
-  CONTROLS_SCAN_PLANET,
-  CONTROLS_SCAN_SHIP,
-  CONTROLS_SCAN_STRUCTURE,
+  CONTROLS_PILOT_COMBAT,
+  CONTROLS_PILOT_SCAN,
 } from "./util/gameUtil";
 
 export default function TouchControls({ playerScreen, playerControlMode }) {
-  const actions = useStore((state) => state.actions);
+  const testing = useStore((state) => state.testing);
+  const { actions, displayContextMenu } = useStore((state) => state);
+
+  //menu
+  function handleSpeedUp() {
+    actions.activateContextMenu(window.innerWidth / 2, window.innerHeight / 2);
+  }
+  useTouchStartControls("btn-sys", handleSpeedUp);
 
   //SPEED UP
   function handleSpeedUp() {
@@ -36,12 +40,15 @@ export default function TouchControls({ playerScreen, playerControlMode }) {
   //SHOOT LASERS
   function handleShoot() {
     if (playerScreen === FLIGHT) {
-      if (playerControlMode === CONTROLS_PILOT) {
+      if (playerControlMode === CONTROLS_PILOT_COMBAT && !displayContextMenu) {
         actions.setSelectedTargetIndex(); // selects an enemy target then triggers store: actions.shoot()
-      } else {
-        //show left click menu
+      } else if (
+        playerControlMode === CONTROLS_PILOT_SCAN &&
+        !displayContextMenu
+      ) {
+        testing.warpToPlanet();
       }
-    } else {
+    } else if (playerScreen === GALAXY_MAP) {
       actions.detectTargetStar();
     }
   }
@@ -52,6 +59,7 @@ export default function TouchControls({ playerScreen, playerControlMode }) {
     actions.updateMouseMobile(event);
   }
   useTouchStartControls("btn-ship-move", handleMoveShipStart);
+
   function handleMoveShip(event) {
     actions.updateMouseMobile(event);
   }
@@ -70,9 +78,10 @@ export default function TouchControls({ playerScreen, playerControlMode }) {
         <div id="btn-ship-move"></div>
       </LowerLeft>
       <LowerRight>
-        <div id="btn-speed-up"></div>
-        <div id="btn-speed-down"></div>
-        <div id="btn-shoot"></div>
+        <div id="btn-sys">sys</div>
+        <div id="btn-speed-up">+</div>
+        <div id="btn-speed-down">-</div>
+        <div id="btn-shoot">x</div>
       </LowerRight>
     </>
   );

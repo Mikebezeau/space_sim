@@ -5,10 +5,14 @@ import { useThree, useFrame } from "@react-three/fiber";
 //import { useLoader } from "@react-three/fiber";
 //import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader"; //const { nodes } = useLoader(GLTFLoader, "models/arwing.glb");
 import useStore from "../stores/store";
-import useEquipStore from "../stores/equipStore";
 import BuildMech from "./BuildMech";
-import { SCALE, flipRotation } from "../util/gameUtil";
-
+import {
+  SCALE,
+  flipRotation,
+  CONTROLS_UNATTENDED,
+  CONTROLS_PILOT_COMBAT,
+  CONTROLS_PILOT_SCAN,
+} from "../util/gameUtil";
 const position = new THREE.Vector3();
 const direction = new THREE.Vector3();
 
@@ -28,11 +32,15 @@ const crossMaterial = new THREE.MeshBasicMaterial({
 export default function Ship() {
   const { camera } = useThree();
   const mutation = useStore((state) => state.mutation);
-  const { clock, mouse, ray } = mutation;
+  const { clock, mouse } = mutation;
   const player = useStore((state) => state.player);
-  const weaponFireLightTimer = useStore((state) => state.weaponFireLightTimer);
   const setPlayerObject = useStore((state) => state.actions.setPlayerObject);
-  const playerMechBP = useEquipStore((state) => state.playerMechBP); //for rendering ship servo shapes
+  const {
+    playerMechBP,
+    playerControlMode,
+    displayContextMenu,
+    weaponFireLightTimer,
+  } = useStore((state) => state);
 
   const main = useRef();
   const weaponFireLight = useRef();
@@ -66,8 +74,17 @@ export default function Ship() {
         ? 0.1
         : Math.abs(playerMechBP[0].MV()));
 
+    let mouseX = 0,
+      mouseY = 0;
+    if (
+      playerControlMode === CONTROLS_PILOT_COMBAT ||
+      (playerControlMode === CONTROLS_PILOT_SCAN && !displayContextMenu)
+    ) {
+      mouseX = mouse.x;
+      mouseY = mouse.y;
+    }
     rotateQuat.setFromAxisAngle(
-      direction.set(-mouse.y * 0.25, -mouse.x * 0.3, mouse.x * 0.4),
+      direction.set(-mouseY * 0.25, -mouseX * 0.3, mouseX * 0.4),
       (Math.PI / 10) * MVmod
     );
     //console.log(-mouse.y * 0.25, -mouse.x * 0.3, mouse.x * 0.4);
@@ -89,15 +106,31 @@ export default function Ship() {
     tempObjectDummy.position.copy(main.current.position);
     tempObjectDummy.rotation.copy(main.current.rotation);
 
-    tempObjectDummy.translateZ(-8 * SCALE * playerMechBP[0].scale);
-    tempObjectDummy.translateY(2 * SCALE * playerMechBP[0].scale);
+    let lerpAmount = 0;
 
-    const lerpAmount = 0.95; //distance(state.camera.position, camDummy.position) / 0.8;
+    if (playerControlMode === CONTROLS_UNATTENDED) {
+      tempObjectDummy.translateX(-8 * SCALE * playerMechBP[0].scale);
+      tempObjectDummy.translateY(8 * SCALE * playerMechBP[0].scale);
+      //tempObjectDummy.translateZ(2 * SCALE * playerMechBP[0].scale);
+      lerpAmount = 1;
+    } else {
+      tempObjectDummy.translateZ(-8 * SCALE * playerMechBP[0].scale);
+      tempObjectDummy.translateY(2 * SCALE * playerMechBP[0].scale);
+      lerpAmount = 0.95; //distance(state.camera.position, camDummy.position) / 0.8;
+    }
+
     camera.position.lerp(tempObjectDummy.position, lerpAmount);
-    //get end rotation angle for camera for smooth follow
-    camQuat.setFromEuler(camera.rotation);
+
+    if (playerControlMode === CONTROLS_UNATTENDED) {
+      //looking at the player ship from the side
+      tempObjectDummy.lookAt(main.current.position);
+      endQuat.setFromEuler(tempObjectDummy.rotation);
+    }
     //flip the position the camera should be facing so that the ship moves "forward" using a change in positive Z axis
     endQuat.copy(flipRotation(endQuat));
+
+    //get end rotation angle for camera for smooth follow
+    camQuat.setFromEuler(camera.rotation);
     // rotate towards target quaternion
     camera.rotation.setFromQuaternion(camQuat.slerp(endQuat, 0.2).normalize());
 

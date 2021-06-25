@@ -34,6 +34,8 @@ export function TestingBoidControls() {
 
   */}
       <div className="slidecontainer">
+        BOIDS
+        <br />
         <input
           onInput={(e) => testing.setBoidMod("boidMinRangeMod", e.target.value)}
           type="range"

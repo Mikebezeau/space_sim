@@ -1,7 +1,12 @@
 import React from "react";
 import styled, { css } from "styled-components";
 import useStore from "./stores/store";
-import { GALAXY_MAP, EQUIPMENT_SCREEN } from "./util/gameUtil";
+import {
+  CONTROLS_UNATTENDED,
+  CONTROLS_PILOT_COMBAT,
+  CONTROLS_PILOT_SCAN,
+  EQUIPMENT_SCREEN,
+} from "./util/gameUtil";
 import { ToggleTestControls } from "./testingControls/ToggleTestControls";
 import { TestingMapGalaxy } from "./testingControls/TestingMapGalaxy";
 import { TestingEnemyControls } from "./testingControls/TestingEnemyControls";
@@ -14,9 +19,13 @@ export default function Hud() {
   //testing
   const { testing, toggleTestControls } = useStore((state) => state);
   const { switchScreen } = useStore((state) => state.actions);
-  //
-  const { speed, shield } = useStore((state) => state.player);
-  const { planets, focusPlanetIndex } = useStore((state) => state);
+  const { speed, shield, currentMechBPindex } = useStore(
+    (state) => state.player
+  );
+  const { playerControlMode, playerMechBP, planets, focusPlanetIndex } =
+    useStore((state) => state);
+
+  const weaponList = playerMechBP[currentMechBPindex].weaponList;
 
   //const sound = useStore((state) => state.sound);
   //const toggle = useStore((state) => state.actions.toggleSound);
@@ -41,45 +50,61 @@ export default function Hud() {
   return (
     <>
       <UpperLeft>
-        <h2>Speed</h2>
-        <h1>{speed}</h1>
+        {playerControlMode !== CONTROLS_UNATTENDED && (
+          <>
+            <h2>Speed</h2>
+            <h1>{speed}</h1>
+          </>
+        )}
         <div className="scanData">
           <ToggleTestControls />
           {!toggleTestControls && (
             <>
-              <button onClick={() => switchScreen(GALAXY_MAP)}>
-                (G)alaxy Star Map
-              </button>
-              <button onClick={() => switchScreen(EQUIPMENT_SCREEN)}>
-                (E)quipment
-              </button>
+              {playerControlMode === CONTROLS_PILOT_COMBAT && (
+                <>
+                  {weaponList.beam.map((weapon, i) => (
+                    <p key={i}>{weapon.data.name}</p>
+                  ))}
+                  {weaponList.proj.map((weapon, i) => (
+                    <p key={i}>{weapon.data.name} / AMMO</p>
+                  ))}
+                  {weaponList.missile.map((weapon, i) => (
+                    <p key={i}>{weapon.data.name} / #</p>
+                  ))}
+                </>
+              )}
 
-              <p>System</p>
-              {Object.entries(planets[0].data).map(([key, value]) => {
-                return (
-                  <span key={key}>
-                    {key}:{" "}
-                    <span className="floatRight">
-                      {Math.floor(value * 1000) / 1000 /*rounding off*/}
-                    </span>
-                    <br />
-                  </span>
-                );
-              })}
+              {playerControlMode === CONTROLS_PILOT_SCAN && (
+                <>
+                  <p>System</p>
+                  {Object.entries(planets[0].data).map(([key, value]) => {
+                    return (
+                      <span key={key}>
+                        {key}:{" "}
+                        <span className="floatRight">
+                          {Math.floor(value * 1000) / 1000 /*rounding off*/}
+                        </span>
+                        <br />
+                      </span>
+                    );
+                  })}
+                </>
+              )}
             </>
           )}
           {toggleTestControls && (
             <>
               <TestingMapGalaxy />
-
-              <button onClick={testing.warpToPlanet}>(W)arp to Planet</button>
+              <button onClick={() => switchScreen(EQUIPMENT_SCREEN)}>
+                Equipment
+              </button>
               <TestingEnemyControls />
             </>
           )}
         </div>
       </UpperLeft>
       <UpperRight>
-        {shield.max > 0 && (
+        {playerControlMode === CONTROLS_PILOT_COMBAT && shield.max > 0 && (
           <div className="shieldsBarContainer">
             <div
               className="shieldsBar"
@@ -91,9 +116,11 @@ export default function Hud() {
             </div>
           </div>
         )}
+
         <br />
         <div className="scanData">
           {!toggleTestControls &&
+            playerControlMode === CONTROLS_PILOT_SCAN &&
             focusPlanetIndex !== null &&
             planets[focusPlanetIndex] && (
               <>

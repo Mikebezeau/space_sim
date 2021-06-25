@@ -12,10 +12,9 @@ export default function GalaxyMapHud() {
   return (
     <>
       <UpperLeft>
-        <h2>Galaxy Map</h2>
-        <h1> </h1>
+        <h1 style={{ fontSize: "50px" }}>Galaxy Map</h1>
         <div className="scanData">
-          <button onClick={() => switchScreen(FLIGHT)}>(E)xit</button>
+          <button onClick={() => switchScreen(FLIGHT)}>Exit</button>
           <p>System</p>
           {Object.entries(planets[0].data).map(([key, value]) => {
             return (

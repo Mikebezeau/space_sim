@@ -8,7 +8,7 @@ export function TestingMapGalaxy() {
 
   return (
     <>
-      <button onClick={testing.mapGalaxy}>(M)ap Galaxy</button>
+      <button onClick={testing.mapGalaxy}>Map Galaxy</button>
       <input
         type="textbox"
         placeholder="Map output"

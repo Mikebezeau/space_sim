@@ -4,6 +4,7 @@
 //import ReactDOM from "react-dom";
 import React, { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
+import ContextMenu from "./ContextMenu";
 import GalaxyMapHud from "./GalaxyMapHud";
 import GalaxyStarMap from "./GalaxyStarMap";
 import Stars from "./3d/Stars";
@@ -17,6 +18,7 @@ import Explosions from "./3d/Explosions";
 import PlayerMech from "./3d/PlayerMech";
 import ScannerReadout from "./3d/ScannerReadout";
 import MechHudReadout from "./3d/MechHudReadout";
+import ScanHudReadout from "./3d/ScanHudReadout";
 import WeaponFire from "./3d/WeaponFire";
 import SystemMap from "./3d/SystemMap";
 
@@ -42,20 +44,14 @@ import {
   GALAXY_MAP,
   EQUIPMENT_SCREEN,
   CONTROLS_UNATTENDED,
-  CONTROLS_PILOT,
-  CONTROLS_SCAN_PLANET,
-  CONTROLS_SCAN_SHIP,
-  CONTROLS_SCAN_STRUCTURE,
+  CONTROLS_PILOT_COMBAT,
+  CONTROLS_PILOT_SCAN,
 } from "./util/gameUtil";
 
 function App() {
-  const {
-    testing,
-    actions,
-    playerScreen,
-    playerControlMode,
-    displayContextMenu,
-  } = useStore((state) => state);
+  const testing = useStore((state) => state.testing);
+  const { actions, playerScreen, playerControlMode, displayContextMenu } =
+    useStore((state) => state);
   const { basicMenu } = useEquipStore((state) => state.equipActions);
 
   //mouse move
@@ -82,13 +78,13 @@ function App() {
   //mouse click
   function handleMouseClick(e) {
     if (!IS_MOBLIE) {
-      if (playerScreen === FLIGHT) {
-        if (playerControlMode === CONTROLS_PILOT) {
+      if (playerScreen === FLIGHT && !displayContextMenu) {
+        if (playerControlMode === CONTROLS_PILOT_COMBAT) {
           actions.setSelectedTargetIndex(); // selects an enemy target then triggers store: actions.shoot()
-        } else {
-          //show left click menu
+        } else if (playerControlMode === CONTROLS_PILOT_SCAN) {
+          testing.warpToPlanet();
         }
-      } else {
+      } else if (playerScreen === GALAXY_MAP) {
         actions.detectTargetStar();
       }
     }
@@ -97,25 +93,36 @@ function App() {
 
   //mouse right click
   function handleMouseRightClick(e) {
-    actions.displayContextMenu(e.clientX, e.clientY);
+    actions.activateContextMenu(e.clientX, e.clientY);
   }
   useMouseRightClick(handleMouseRightClick);
 
   //SPEED UP
-  function handleSpeedUp() {
-    actions.speedUp();
+  function handleArrowUp() {
+    if (
+      playerScreen === FLIGHT &&
+      (playerControlMode === CONTROLS_PILOT_COMBAT ||
+        playerControlMode === CONTROLS_PILOT_SCAN)
+    )
+      actions.speedUp();
+    else if (playerScreen === GALAXY_MAP) actions.galaxyMapZoomIn();
   }
-  useKBControls("ArrowUp", handleSpeedUp);
+  useKBControls("ArrowUp", handleArrowUp);
 
   //SPEED DOWN
-  function handleSpeedDown() {
-    actions.speedDown();
+  function handleArrowDown() {
+    if (
+      playerScreen === FLIGHT &&
+      (playerControlMode === CONTROLS_PILOT_COMBAT ||
+        playerControlMode === CONTROLS_PILOT_SCAN)
+    )
+      actions.speedDown();
+    else if (playerScreen === GALAXY_MAP) actions.galaxyMapZoomOut();
   }
-  useKBControls("ArrowDown", handleSpeedDown);
+  useKBControls("ArrowDown", handleArrowDown);
 
   //changing menus
   function handleStationDock() {
-    //actions.stationDoc();
     actions.stationDock();
   }
   useKBControls("KeyD", handleStationDock);
@@ -168,9 +175,15 @@ function App() {
             <Particles />
             <Suspense fallback={null}>
               <PlayerMech />
-              {playerControlMode === CONTROLS_PILOT && (
+              {playerControlMode === CONTROLS_PILOT_SCAN && (
                 <>
                   <SystemMap showPlayer={true} />
+                  <ScannerReadout />
+                  <ScanHudReadout />
+                </>
+              )}
+              {playerControlMode === CONTROLS_PILOT_COMBAT && (
+                <>
                   <ScannerReadout />
                   <MechHudReadout />
                 </>
@@ -185,10 +198,11 @@ function App() {
         )}
         <Effects />
       </Canvas>
+      {playerScreen === FLIGHT && displayContextMenu && <ContextMenu />}
       {playerScreen === FLIGHT && <Hud />}
       {playerScreen === GALAXY_MAP && <GalaxyMapHud />}
       {playerScreen === EQUIPMENT_SCREEN && <EquipmentMenu />}
-      {IS_MOBLIE && (
+      {IS_MOBLIE && playerScreen !== EQUIPMENT_SCREEN && (
         <TouchControls
           playerScreen={playerScreen}
           playerControlMode={playerControlMode}

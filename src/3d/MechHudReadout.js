@@ -24,9 +24,9 @@ const MechHudReadout = React.memo(() => {
     //place readout at top of screen (offset from camera location)
     mechDamageReadout.current.position.copy(camera.position);
     mechDamageReadout.current.rotation.copy(camera.rotation);
-    mechDamageReadout.current.translateX((width / 50) * SCALE);
-    mechDamageReadout.current.translateY(10 * SCALE);
-    mechDamageReadout.current.translateZ(-40 * SCALE);
+    mechDamageReadout.current.translateX((width / 38) * SCALE);
+    mechDamageReadout.current.translateY(12 * SCALE);
+    mechDamageReadout.current.translateZ(-50 * SCALE);
     object3dDummy.rotation.copy(camera.rotation);
     object3dDummy.rotateY(3 - width / 3000);
     object3dDummy.rotateX(-1.5);
