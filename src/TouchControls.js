@@ -20,10 +20,10 @@ export default function TouchControls({ playerScreen, playerControlMode }) {
   const { actions, displayContextMenu } = useStore((state) => state);
 
   //menu
-  function handleSpeedUp() {
+  function handleContextMenu() {
     actions.activateContextMenu(window.innerWidth / 2, window.innerHeight / 2);
   }
-  useTouchStartControls("btn-sys", handleSpeedUp);
+  useTouchStartControls("btn-sys", handleContextMenu);
 
   //SPEED UP
   function handleSpeedUp() {
@@ -64,8 +64,9 @@ export default function TouchControls({ playerScreen, playerControlMode }) {
     actions.updateMouseMobile(event);
   }
   useTouchMoveControls("btn-ship-move", handleMoveShip);
+
   //END MOVE SHIP (to recenter control)
-  function handleMoveShipEnd(event) {
+  function handleMoveShipEnd() {
     let x = window.innerWidth / 2;
     let y = window.innerHeight / 2;
     actions.updateMouse({ clientX: x, clientY: y });
@@ -78,10 +79,10 @@ export default function TouchControls({ playerScreen, playerControlMode }) {
         <div id="btn-ship-move"></div>
       </LowerLeft>
       <LowerRight>
-        <div id="btn-sys">sys</div>
-        <div id="btn-speed-up">+</div>
-        <div id="btn-speed-down">-</div>
-        <div id="btn-shoot">x</div>
+        <span id="btn-speed-up">+</span>
+        <span id="btn-sys">sys</span>
+        <span id="btn-speed-down">-</span>
+        <span id="btn-shoot">x</span>
       </LowerRight>
     </>
   );
@@ -100,7 +101,7 @@ const base = css`
 const LowerLeft = styled.div`
   ${base}
   display:none;
-  bottom: 40px;
+  bottom: 20px;
   left: 50px;
   width: 200px;
   height: 200px;
@@ -124,28 +125,29 @@ const LowerLeft = styled.div`
 const LowerRight = styled.div`
   ${base}
   display:none;
-  bottom: 120px;
+  bottom: 20px;
   right: 50px;
   transform: skew(-5deg, -10deg);
-  height: 240px;
+  height: 300px;
   width: 200px;
 
-  & > div {
-    margin-top: 10%;
+  & > span {
+    margin-left: 10%;
     float: right;
-    clear: both;
-    height: 40%;
-    width: 40%;
+    height: 80px;
+    width: 30px;
     pointer-events: all;
     background: gray;
-    border-radius: 30px 20px;
+    border-radius: 20px 5px;
   }
 
   @media only screen and (max-width: 700px) {
     display: block;
-    height: 30%;
+    height: 80px;
     width: 20%;
     right: 5%;
     bottom: 15%;
   }
 `;
+/*
+ */

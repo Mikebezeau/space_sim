@@ -60,7 +60,7 @@ function App() {
       basicMenu.editShipMouseRotation(e);
     else if (!IS_MOBLIE && playerScreen !== EQUIPMENT_SCREEN)
       actions.updateMouse(e);
-    else actions.updateMouse(e);
+    else if (playerScreen === GALAXY_MAP) actions.updateMouse(e);
   }
   useMouseMove(handleMouseMove);
 
@@ -76,7 +76,7 @@ function App() {
   useMouseUp(handleMouseUp);
 
   //mouse click
-  function handleMouseClick(e) {
+  function handleMouseClick() {
     if (!IS_MOBLIE) {
       if (playerScreen === FLIGHT && !displayContextMenu) {
         if (playerControlMode === CONTROLS_PILOT_COMBAT) {
