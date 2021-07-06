@@ -30,9 +30,7 @@ export default function GalaxyMapHud() {
         </div>
       </UpperLeft>
       <UpperRight>
-        <div className="scanData">
-          <p>Other</p>
-        </div>
+        <div className="scanData"></div>
       </UpperRight>
     </>
   );

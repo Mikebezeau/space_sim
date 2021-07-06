@@ -2,8 +2,8 @@ import React, { useRef } from "react";
 import * as THREE from "three";
 import { useLoader, useFrame } from "@react-three/fiber";
 import { TextureLoader } from "three/src/loaders/TextureLoader.js";
-import useStore from "../stores/store";
-import { distance } from "../util/gameUtil";
+import useStore from "../../stores/store";
+import { distance } from "../../util/gameUtil";
 
 const Planet = React.memo(({ planet }) => {
   //planet rotation

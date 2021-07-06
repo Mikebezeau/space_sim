@@ -80,9 +80,9 @@ export default function TouchControls({ playerScreen, playerControlMode }) {
       </LowerLeft>
       <LowerRight>
         <span id="btn-speed-up">+</span>
-        <span id="btn-sys">sys</span>
         <span id="btn-speed-down">-</span>
         <span id="btn-shoot">x</span>
+        <span id="btn-sys">sys</span>
       </LowerRight>
     </>
   );
@@ -124,29 +124,22 @@ const LowerLeft = styled.div`
 
 const LowerRight = styled.div`
   ${base}
-  display:none;
-  bottom: 20px;
-  right: 50px;
+  display:block;
+  bottom: 10px;
+  right: 20px;
   transform: skew(-5deg, -10deg);
-  height: 300px;
+  height: 100px;
   width: 200px;
 
   & > span {
-    margin-left: 10%;
+    display: block;
+    margin-left: 5%;
     float: right;
     height: 80px;
     width: 30px;
     pointer-events: all;
     background: gray;
     border-radius: 20px 5px;
-  }
-
-  @media only screen and (max-width: 700px) {
-    display: block;
-    height: 80px;
-    width: 20%;
-    right: 5%;
-    bottom: 15%;
   }
 `;
 /*

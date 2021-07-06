@@ -2,8 +2,8 @@ import React from "react";
 import * as THREE from "three";
 import { useRef } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
-import useStore from "../stores/store";
-import { distance, SCALE } from "../util/gameUtil";
+import useStore from "../../stores/store";
+import { distance, SCALE } from "../../util/gameUtil";
 
 const dummyObj = new THREE.Object3D();
 const targetQuat = new THREE.Quaternion(),

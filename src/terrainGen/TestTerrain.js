@@ -2,19 +2,16 @@ import React from "react";
 import * as THREE from "three";
 import { useThree, useFrame } from "@react-three/fiber";
 import { useRef } from "react";
-import useStore from "./stores/store";
-import { SCALE } from "./util/gameUtil";
-
-import GalaxyStars from "./3d/spaceFlight/GalaxyStars";
+import useStore from "../stores/store";
+import { SCALE } from "../util/gameUtil";
 
 const direction = new THREE.Vector3();
 
-export default function GalaxyStarMap() {
+export default function TestTerrian() {
   const { mouse } = useStore((state) => state.mutation);
-  const { menuCam, galaxyMapZoom } = useStore((state) => state);
-  const starMap = useRef();
+  const { terrain, menuCam, galaxyMapZoom } = useStore((state) => state);
   const { camera } = useThree();
-
+  /*
   useFrame(() => {
     //move based on mouse position
     camera.position.set(
@@ -25,13 +22,15 @@ export default function GalaxyStarMap() {
     camera.setRotationFromAxisAngle(direction, 0);
     menuCam.position.copy(camera.position);
   });
+*/
   return (
-    <group
-      ref={starMap}
-      position={[0, 0, (-1400 + galaxyMapZoom * 200) * SCALE]}
-      rotation={[0, 0, 0]}
-    >
-      <GalaxyStars />
+    <group position={[0, 0, 0]} rotation={[0, 0, 0]}>
+      {terrain && (
+        <mesh
+          geometry={terrain.Mesh.geometry}
+          material={terrain.Mesh.material}
+        ></mesh>
+      )}
     </group>
   );
 }

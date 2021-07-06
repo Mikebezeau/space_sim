@@ -1,6 +1,8 @@
 import create from "zustand";
 import * as THREE from "three";
 
+import Terrain from "../terrainGen/Terrain";
+
 import { Curves } from "three/examples/jsm/curves/CurveExtras";
 import { addEffect } from "@react-three/fiber";
 
@@ -27,7 +29,7 @@ import {
 } from "../util/gameUtil";
 import { setupFlock } from "../util/boidController";
 
-import StarSystem from "../accrete/StarSystem"; //ACCRETE
+import StarSystem from "../starSysGen/StarSystem"; //ACCRETE
 
 let guidCounter = 1; //global unique ID
 let explosionGuidCounter = 1; //global unique ID
@@ -51,7 +53,7 @@ const playerStart = {
   system: 345,
   mechBPindex: 0,
   x: 0,
-  y: 300000 * SCALE * planetScale, //15000
+  y: 100, //300000 * SCALE * planetScale, //15000
   z: 0, //-50000 * SCALE * planetScale,
 };
 
@@ -138,6 +140,7 @@ const [useStore] = create((set, get) => {
       planetScale
     ),
     stations: randomStations(seedrandom(playerStart.system), 1),
+    terrain: initTerrain(2, 2), //undefined//initTerrain(get().player.locationInfo),
     mutation: {
       t: 0,
       //position: new THREE.Vector3(),
@@ -1008,11 +1011,11 @@ function initPlayer() {
     isInMech: true,
     currentMechBPindex: playerStart.mechBPindex,
     locationInfo: {
-      isInSpace: true,
-      starSystemId: 0,
+      isInSpace: false, //true,
+      //starSystemId: playerStart.system,
       isOrbitingPlanet: false,
       orbitPlanetId: 0,
-      isLandedPlanet: false,
+      isLandedPlanet: true, //false,
       landedPlanetId: 0,
       isDockedStation: false,
       dockedStationId: 0,
@@ -1194,6 +1197,13 @@ function randomStations(rng, num) {
     }),
   });
   return temp;
+}
+
+function initTerrain(playerLocationInfo) {
+  const rng = seedrandom(
+    playerLocationInfo.starSystemId + "-" + playerLocationInfo.landedPlanetId
+  );
+  return new Terrain(rng(), 0.5, 0);
 }
 
 function initSolarSystem(

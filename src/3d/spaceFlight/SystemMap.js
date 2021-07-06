@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import React, { useRef } from "react"; //useMemo
 import { useThree, useFrame } from "@react-three/fiber";
-import { distance } from "../util/gameUtil";
-import useStore from "../stores/store";
-import { SCALE } from "../util/gameUtil";
+import { distance } from "../../util/gameUtil";
+import useStore from "../../stores/store";
+import { SCALE } from "../../util/gameUtil";
 
 const ringGeometry = new THREE.RingBufferGeometry(1, 1.01, 32);
 const ringMaterial = new THREE.MeshBasicMaterial({

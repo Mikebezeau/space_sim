@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-export const SCALE = 0.001; //MAX=? MIN=0.001
+export const SCALE = 1; //MAX=? MIN=0.001
 
 export const IS_MOBLIE = /Mobi|Android/i.test(navigator.userAgent);
 

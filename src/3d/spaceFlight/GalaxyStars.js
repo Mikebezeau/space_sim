@@ -1,10 +1,10 @@
 import React from "react";
 import * as THREE from "three";
-import { SCALE } from "../util/gameUtil";
-import useStore from "../stores/store";
+import { SCALE } from "../../util/gameUtil";
+import useStore from "../../stores/store";
 import SystemMap from "./SystemMap";
 //import GalaxyMapDestination from "./GalaxyMapDestination";
-import { galaxyMapData } from "../data/galaxtMapData";
+import { galaxyMapData } from "../../data/galaxtMapData";
 
 const yellow = new THREE.Color("yellow");
 const green = new THREE.Color("green");

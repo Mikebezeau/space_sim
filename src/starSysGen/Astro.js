@@ -399,7 +399,7 @@ export const est_temp = (ecosphere_radius, orb_radius, albedo) => {
 /*	to C.R_inner, 99% of it's volatiles are assumed to have been deposited in */
 /*	surface reservoirs (otherwise, it suffers from the greenhouse effect).	*/
 /*--------------------------------------------------------------------------*/
-/*	if ((orb_radius < r_greenhouse) && (zone == 1)) */
+/*	if ((orb_radius < r_greenhouse) && (zone === 1)) */
 
 /*--------------------------------------------------------------------------*/
 /*	The new definition is based on the inital surface temperature and what	*/
@@ -480,7 +480,7 @@ export const planet_albedo = (
 
   cloud_part = cloud_fraction * about(C.CLOUD_ALBEDO, 0.2, rng);
 
-  if (surf_pressure == 0.0) {
+  if (surf_pressure === 0.0) {
     rock_part =
       rock_fraction *
       about(C.ROCKY_AIRLESS_ALBEDO, 0.3, rng); /* about(...,0.3); */
@@ -651,7 +651,9 @@ export const calculate_surface_temp = (
   if (
     planet._temperature.day >= planet.boilingPoint &&
     !first &&
-    !(planet.dayLength == planet.orbitalPeriod * 24.0 || planet.resonant_period)
+    !(
+      planet.dayLength === planet.orbitalPeriod * 24.0 || planet.resonant_period
+    )
   ) {
     planet._waterCover = 0.0;
     boil_off = true;
@@ -825,7 +827,7 @@ export const breathable = (planet) => {
     );
 
     for (n = 0; n < gases.length; n++) {
-      if (gases[n].num == planet.atmosphere[index].num) gas_no = n;
+      if (gases[n].num === planet.atmosphere[index].num) gas_no = n;
     }
 
     //if (ipp > gases[gas_no].max_ipp) return C.POISONOUS;

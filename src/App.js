@@ -2,33 +2,21 @@
 
 //import * as THREE from "three";
 //import ReactDOM from "react-dom";
-import React, { Suspense } from "react";
+import React from "react";
 import { Canvas } from "@react-three/fiber";
 import ContextMenu from "./ContextMenu";
 import GalaxyMapHud from "./GalaxyMapHud";
-import GalaxyStarMap from "./GalaxyStarMap";
-import Stars from "./3d/Stars";
-import Planets from "./3d/Planets";
-import Stations from "./3d/Stations";
 import Effects from "./3d/Effects";
-import Particles from "./3d/Particles";
-import EnemyMechs from "./3d/EnemyMechs";
-import Rocks from "./3d/Rocks";
-import Explosions from "./3d/Explosions";
-import PlayerMech from "./3d/PlayerMech";
-import ScannerReadout from "./3d/ScannerReadout";
-import MechHudReadout from "./3d/MechHudReadout";
-import ScanHudReadout from "./3d/ScanHudReadout";
-import WeaponFire from "./3d/WeaponFire";
-import SystemMap from "./3d/SystemMap";
 
 import TouchControls from "./TouchControls";
 import Hud from "./Hud";
 import EquipmentMenu from "./equipmentDesign/EquipmentMenu";
-import EquipmentBlueprint from "./equipmentDesign/EquipmentBlueprint";
 
 import useStore from "./stores/store";
 import useEquipStore from "./stores/equipStore";
+
+import SpaceFlightMode from "./scenes/SpaceFlightMode";
+import PlanetWalkMode from "./scenes/PlanetWalkMode";
 
 import {
   useKBControls,
@@ -52,6 +40,8 @@ function App() {
   const testing = useStore((state) => state.testing);
   const { actions, playerScreen, playerControlMode, displayContextMenu } =
     useStore((state) => state);
+
+  const { locationInfo } = useStore((state) => state.player); //isInSpace, isLandedPlanet, isDockedStation, isDockedShip
   const { basicMenu } = useEquipStore((state) => state.equipActions);
 
   //mouse move
@@ -163,39 +153,8 @@ function App() {
           //gl.setClearColor(new THREE.Color("#020207"));
         }}
       >
-        <pointLight castShadow intensity={0.6} />
-        <ambientLight intensity={0.025} />
-
-        {playerScreen === GALAXY_MAP && <GalaxyStarMap />}
-        {playerScreen === EQUIPMENT_SCREEN && <EquipmentBlueprint />}
-        {playerScreen === FLIGHT && (
-          <>
-            <Stars />
-            <Explosions />
-            <Particles />
-            <Suspense fallback={null}>
-              <PlayerMech />
-              {playerControlMode === CONTROLS_PILOT_SCAN && (
-                <>
-                  <SystemMap showPlayer={true} />
-                  <ScannerReadout />
-                  <ScanHudReadout />
-                </>
-              )}
-              {playerControlMode === CONTROLS_PILOT_COMBAT && (
-                <>
-                  <ScannerReadout />
-                  <MechHudReadout />
-                </>
-              )}
-              <Rocks />
-              <Planets />
-              <EnemyMechs />
-              <Stations />
-              <WeaponFire />
-            </Suspense>
-          </>
-        )}
+        {locationInfo.isInSpace && <SpaceFlightMode />}
+        {locationInfo.isLandedPlanet && <PlanetWalkMode />}
         <Effects />
       </Canvas>
       {playerScreen === FLIGHT && displayContextMenu && <ContextMenu />}

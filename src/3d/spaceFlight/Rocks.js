@@ -2,8 +2,8 @@
 import React, { useRef } from "react";
 //import { useFrame, useLoader } from "react-three-fiber";
 //import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import useStore from "../stores/store";
-import { SCALE } from "../util/gameUtil";
+import useStore from "../../stores/store";
+import { SCALE } from "../../util/gameUtil";
 
 export default function Rocks() {
   //const gltf = useLoader(GLTFLoader, "/gltf/rock.gltf");
