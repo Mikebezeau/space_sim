@@ -10,6 +10,7 @@ export function TestingMapGalaxy() {
     <>
       <button onClick={testing.mapGalaxy}>Map Galaxy</button>
       <input
+        readOnly
         type="textbox"
         placeholder="Map output"
         value={galaxyMapDataOutput}

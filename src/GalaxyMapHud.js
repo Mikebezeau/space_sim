@@ -1,7 +1,7 @@
 import React from "react";
 import styled, { css } from "styled-components";
 import useStore from "./stores/store";
-import { FLIGHT } from "./util/gameUtil";
+import { FLIGHT } from "./util/constants";
 import "./css/hud.css";
 
 //basic HTML/CSS heads up display used to show player info

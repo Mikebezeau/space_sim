@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import useStore from "../../stores/store";
 import BuildMech from "../BuildMech";
-import { SCALE } from "../../util/gameUtil";
+import { SCALE } from "../../util/constants";
 
 const servoHitNames = [];
 

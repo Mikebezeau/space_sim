@@ -15,6 +15,7 @@ import EquipmentMenu from "./equipmentDesign/EquipmentMenu";
 import useStore from "./stores/store";
 import useEquipStore from "./stores/equipStore";
 
+import EquipmentBlueprint from "./equipmentDesign/EquipmentBlueprint";
 import SpaceFlightMode from "./scenes/SpaceFlightMode";
 import PlanetWalkMode from "./scenes/PlanetWalkMode";
 
@@ -34,7 +35,7 @@ import {
   CONTROLS_UNATTENDED,
   CONTROLS_PILOT_COMBAT,
   CONTROLS_PILOT_SCAN,
-} from "./util/gameUtil";
+} from "./util/constants";
 
 function App() {
   const testing = useStore((state) => state.testing);
@@ -142,6 +143,7 @@ function App() {
       <Canvas
         camera={{
           position: [0, 0, 0],
+          rotation: [0, 0, 0],
           near: 0.001,
           far: 10000,
           fov: 50,
@@ -153,6 +155,7 @@ function App() {
           //gl.setClearColor(new THREE.Color("#020207"));
         }}
       >
+        {playerScreen === EQUIPMENT_SCREEN && <EquipmentBlueprint />}
         {locationInfo.isInSpace && <SpaceFlightMode />}
         {locationInfo.isLandedPlanet && <PlanetWalkMode />}
         <Effects />

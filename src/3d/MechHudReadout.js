@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { useThree, useFrame } from "@react-three/fiber";
 import useStore from "../stores/store";
 import BuildMech from "../3d/BuildMech";
-import { SCALE } from "../util/gameUtil";
+import { SCALE } from "../util/constants";
 import useWindowDimensions from "../useWindowDimensions";
 
 //basic HTML/CSS heads up display used to show player info

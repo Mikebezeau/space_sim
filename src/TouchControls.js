@@ -13,7 +13,7 @@ import {
   CONTROLS_UNATTENDED,
   CONTROLS_PILOT_COMBAT,
   CONTROLS_PILOT_SCAN,
-} from "./util/gameUtil";
+} from "./util/constants";
 
 export default function TouchControls({ playerScreen, playerControlMode }) {
   const testing = useStore((state) => state.testing);

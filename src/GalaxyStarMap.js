@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { useThree, useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import useStore from "./stores/store";
-import { SCALE } from "./util/gameUtil";
+import { SCALE } from "./util/constants";
 
 import GalaxyStars from "./3d/spaceFlight/GalaxyStars";
 

@@ -6,10 +6,11 @@ import {
   CONTROLS_PILOT_COMBAT,
   CONTROLS_PILOT_SCAN,
   EQUIPMENT_SCREEN,
-} from "./util/gameUtil";
+} from "./util/constants";
 import { ToggleTestControls } from "./testingControls/ToggleTestControls";
 import { TestingMapGalaxy } from "./testingControls/TestingMapGalaxy";
 import { TestingEnemyControls } from "./testingControls/TestingEnemyControls";
+import { TestingPlayerLocationControls } from "./testingControls/TestingPlayerLocationControls";
 import { TestingBoidControls } from "./testingControls/TestingBoidControls";
 import "./css/hud.css";
 import "./css/toggleControl.css";
@@ -99,6 +100,7 @@ export default function Hud() {
                 Equipment
               </button>
               <TestingEnemyControls />
+              <TestingPlayerLocationControls />
             </>
           )}
         </div>

@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import * as THREE from "three";
 import { useThree, useFrame } from "@react-three/fiber";
 import useStore from "../../stores/store";
-import { SCALE } from "../../util/gameUtil";
+import { SCALE } from "../../util/constants";
 import useWindowDimensions from "../../useWindowDimensions";
 /*import { useLoader } from "@react-three/fiber";
 import { TextureLoader } from "three/src/loaders/TextureLoader.js";

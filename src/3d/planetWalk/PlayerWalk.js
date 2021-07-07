@@ -4,15 +4,15 @@ import { useRef } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
 //import { useLoader } from "@react-three/fiber";
 //import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader"; //const { nodes } = useLoader(GLTFLoader, "models/arwing.glb");
-import useStore from "../stores/store";
-import BuildMech from "./BuildMech";
+import useStore from "../../stores/store";
+import BuildMech from "../BuildMech";
+import { flipRotation } from "../../util/gameUtil";
 import {
-  SCALE,
-  flipRotation,
+  SCALE_PLANET_WALK,
   CONTROLS_UNATTENDED,
   CONTROLS_PILOT_COMBAT,
   CONTROLS_PILOT_SCAN,
-} from "../util/gameUtil";
+} from "../../util/constants";
 const position = new THREE.Vector3();
 const direction = new THREE.Vector3();
 
@@ -32,38 +32,19 @@ const crossMaterial = new THREE.MeshBasicMaterial({
 export default function Ship() {
   const { camera } = useThree();
   const mutation = useStore((state) => state.mutation);
-  const { clock, mouse } = mutation;
+  const { mouse } = mutation;
   const player = useStore((state) => state.player);
   const setPlayerObject = useStore((state) => state.actions.setPlayerObject);
-  const {
-    playerMechBP,
-    playerControlMode,
-    displayContextMenu,
-    weaponFireLightTimer,
-  } = useStore((state) => state);
+  const { terrain, playerMechBP, playerControlMode, displayContextMenu } =
+    useStore((state) => state);
 
   const main = useRef();
-  const weaponFireLight = useRef();
-  const exhaust = useRef();
-  const engineLight = useRef();
   const cross = useRef();
   const target = useRef();
 
   const servoHitNames = [];
-  /*
-  //not working
-  //on first render have camera look at ship to avoid the camera shift after leaving a menu
-  useEffect(() => {
-    camera.position.copy(main.current.position);
-    camera.translateZ(8 * SCALE);
-    camera.translateY(3 * SCALE);
-    //camera.lookAt(main.current.position);
-    //CAMERA IS SHIFTED A MILLISECOND AFTER FROM PREVIOUS USEFRAME?
-    camera.lookAt(0, 0, 0);
-  }, []);
-  */
 
-  //moving camer, ship, altering crosshairs, engine and weapon lights (activates only while flying)
+  //testing
   useFrame(() => {
     if (!main.current) return null;
     //rotate ship based on mouse position
@@ -77,28 +58,43 @@ export default function Ship() {
     let mouseX = 0,
       mouseY = 0;
     if (
-      playerControlMode === CONTROLS_PILOT_COMBAT ||
-      (playerControlMode === CONTROLS_PILOT_SCAN && !displayContextMenu)
+      (playerControlMode === CONTROLS_PILOT_COMBAT ||
+        playerControlMode === CONTROLS_PILOT_SCAN) &&
+      !displayContextMenu
     ) {
       mouseX = mouse.x;
       mouseY = mouse.y;
     }
+
     rotateQuat.setFromAxisAngle(
-      direction.set(-mouseY * 0.25, -mouseX * 0.3, mouseX * 0.4),
+      direction.set(mouseY * 0.25, -mouseX * 0.3, mouseX * 0.4),
       (Math.PI / 10) * MVmod
     );
-    //console.log(-mouse.y * 0.25, -mouse.x * 0.3, mouse.x * 0.4);
-    //console.log(direction.angleTo(new THREE.Vector3(0, 0, 0)));//1.57
-    //current ship rotation
-    curQuat.setFromEuler(main.current.rotation);
-    //update ship rotation
-    endQuat.multiplyQuaternions(curQuat, rotateQuat);
-    //console.log(curQuat.angleTo(endQuat));
-    main.current.rotation.setFromQuaternion(endQuat.normalize());
-    //move ship forward
-    main.current.translateZ(player.speed * SCALE);
+
+    endQuat.multiplyQuaternions(main.current.quaternion, rotateQuat); //why does removing this line cause fuckup
+    //main.current.rotation.setFromQuaternion(endQuat.normalize());
+    main.current.rotation.x = 0;
+    main.current.rotation.z = 0;
+
+    main.current.rotation.y = main.current.rotation.y - mouseX * 0.05 * MVmod; //this is dumb
+
+    main.current.translateZ(player.speed * SCALE_PLANET_WALK);
+
+    //hit ground test
+    if (terrain) {
+      const raycast = new THREE.Raycaster(
+        player.object3d.position,
+        new THREE.Vector3(0, -1, 0)
+      );
+      const intersection = raycast.intersectObject(terrain.Mesh, true);
+      if (intersection.length > 0) {
+        main.current.position.y =
+          main.current.position.y -
+          intersection[0].distance +
+          5 * SCALE_PLANET_WALK;
+      }
+    }
     //save ship position / rotation to state
-    //ship.position.copy(main.current.position);
     setPlayerObject(main.current); //made this set to state in this way as to reflect updates to other components (SystemMap)
 
     //CAMERA
@@ -109,13 +105,17 @@ export default function Ship() {
     let lerpAmount = 0;
 
     if (playerControlMode === CONTROLS_UNATTENDED) {
-      tempObjectDummy.translateX(-8 * SCALE * playerMechBP[0].scale);
-      tempObjectDummy.translateY(8 * SCALE * playerMechBP[0].scale);
-      //tempObjectDummy.translateZ(2 * SCALE * playerMechBP[0].scale);
+      tempObjectDummy.translateX(
+        -8 * SCALE_PLANET_WALK * playerMechBP[0].scale
+      );
+      tempObjectDummy.translateY(8 * SCALE_PLANET_WALK * playerMechBP[0].scale);
+      //tempObjectDummy.translateZ(2 * SCALE_PLANET_WALK * playerMechBP[0].scale);
       lerpAmount = 1;
     } else {
-      tempObjectDummy.translateZ(-8 * SCALE * playerMechBP[0].scale);
-      tempObjectDummy.translateY(2 * SCALE * playerMechBP[0].scale);
+      tempObjectDummy.translateZ(
+        -8 * SCALE_PLANET_WALK * playerMechBP[0].scale
+      );
+      tempObjectDummy.translateY(2 * SCALE_PLANET_WALK * playerMechBP[0].scale);
       lerpAmount = 0.95; //distance(state.camera.position, camDummy.position) / 0.8;
     }
 
@@ -133,26 +133,6 @@ export default function Ship() {
     camQuat.setFromEuler(camera.rotation);
     // rotate towards target quaternion
     camera.rotation.setFromQuaternion(camQuat.slerp(endQuat, 0.2).normalize());
-
-    //engine flicker
-    let flickerVal = Math.sin(clock.getElapsedTime() * 500);
-    let speedRoof = player.speed > 25 ? 25 : player.speed;
-    exhaust.current.position.z = speedRoof / -8;
-    exhaust.current.scale.x = speedRoof / 10 + flickerVal * 5;
-    exhaust.current.scale.y = speedRoof / 10 + flickerVal * 5;
-    exhaust.current.scale.z = speedRoof + 1.5 + flickerVal * 5;
-    player.speed > 2
-      ? (exhaust.current.material.visible = 1)
-      : (exhaust.current.material.visible = 0);
-    engineLight.current.intensity = player.speed > 0 ? player.speed * 0.05 : 0;
-
-    //weapon firing light blast
-    weaponFireLight.current.intensity +=
-      ((weaponFireLightTimer && Date.now() - weaponFireLightTimer < 100
-        ? 1
-        : 0) -
-        weaponFireLight.current.intensity) *
-      0.3;
 
     main.current.getWorldPosition(position);
     main.current.getWorldDirection(direction);
@@ -185,20 +165,11 @@ export default function Ship() {
       }
     });
   });
-  /*
-const pointLight = new THREE.PointLight( 0xff0000, 1, 100 );
-pointLight.position.set( 10, 10, 10 );
-scene.add( pointLight );
-
-const sphereSize = 1;
-const pointLightHelper = new THREE.PointLightHelper( pointLight, sphereSize );
-scene.add( pointLightHelper );
-*/
 
   return (
     <group
       ref={main}
-      scale={SCALE}
+      scale={SCALE_PLANET_WALK}
       position={[
         player.object3d.position.x,
         player.object3d.position.y,
@@ -215,12 +186,6 @@ scene.add( pointLightHelper );
         servoHitNames={servoHitNames}
         showAxisLines={false}
       />
-      {/*player.boxHelper && (
-          <mesh
-            geometry={player.boxHelper.geometry}
-            material={player.boxHelper.material}
-          ></mesh>
-        )*/}
       <group ref={cross} position={[0, 0, 300]} name="cross">
         <mesh renderOrder={1000} material={crossMaterial}>
           <boxBufferGeometry attach="geometry" args={[20, 1, 1]} />
@@ -253,29 +218,10 @@ scene.add( pointLightHelper );
       </group>
 
       <pointLight
-        ref={weaponFireLight}
-        position={[0, 0, 0.2]}
-        distance={3 * SCALE}
-        intensity={0}
+        position={[0, 0, 0]}
+        distance={3 * SCALE_PLANET_WALK}
+        intensity={0.5}
         color="lightgreen"
-      />
-      <mesh ref={exhaust} position={[0, 0.2, 0]}>
-        <dodecahedronBufferGeometry attach="geometry" args={[0.05, 0]} />
-        <meshStandardMaterial
-          attach="material"
-          color="lightblue"
-          transparent
-          opacity={0.3}
-          emissive="lightblue"
-          emissiveIntensity="0.3"
-        />
-      </mesh>
-      <pointLight
-        ref={engineLight}
-        position={[0, 0.2, -0.75]}
-        distance={3 * SCALE}
-        intensity={0}
-        color="lightblue"
       />
     </group>
   );

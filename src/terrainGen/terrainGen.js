@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import SimplexNoise from "simplex-noise";
-
+import { SCALE_PLANET_WALK } from "../util/constants";
 //const simplex = new SimplexNoise(Math.random);
 //const value2d = simplex.noise2D(x, y);
 
@@ -20,8 +20,8 @@ export default class Terrain {
   }
 
   _createGeometry() {
-    const dimension = 1000;
-    const segment = 50;
+    const dimension = 10000 * SCALE_PLANET_WALK;
+    const segment = 250;
     const vertices = segment + 1;
 
     const simplex = new SimplexNoise(this._seed);

@@ -1,7 +1,7 @@
 import React from "react";
 import { useRef, useEffect } from "react";
 import useStore from "../../stores/store";
-import { SCALE } from "../../util/gameUtil";
+import { SCALE } from "../../util/constants";
 
 export default function Particles() {
   const instancedMesh = useRef();

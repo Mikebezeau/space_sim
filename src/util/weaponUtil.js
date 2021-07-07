@@ -1,6 +1,6 @@
 import { equipList } from "../data/equipData";
 import { weaponList } from "../data/weaponData";
-import { applyScaledWeightMult, applyScaledCPMult } from "./equipUtil";
+import { applyScaledWeightMult, applyScaledCPMult } from "./mechServoUtil";
 
 const weaponUtil = {
   //keep weight separate for unique calculations based on weapon type

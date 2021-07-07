@@ -4,15 +4,15 @@ import { useRef } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
 //import { useLoader } from "@react-three/fiber";
 //import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader"; //const { nodes } = useLoader(GLTFLoader, "models/arwing.glb");
-import useStore from "../stores/store";
-import BuildMech from "./BuildMech";
+import useStore from "../../stores/store";
+import BuildMech from "../BuildMech";
+import { flipRotation } from "../../util/gameUtil";
 import {
   SCALE,
-  flipRotation,
   CONTROLS_UNATTENDED,
   CONTROLS_PILOT_COMBAT,
   CONTROLS_PILOT_SCAN,
-} from "../util/gameUtil";
+} from "../../util/constants";
 const position = new THREE.Vector3();
 const direction = new THREE.Vector3();
 
@@ -32,20 +32,38 @@ const crossMaterial = new THREE.MeshBasicMaterial({
 export default function Ship() {
   const { camera } = useThree();
   const mutation = useStore((state) => state.mutation);
-  const { mouse } = mutation;
+  const { clock, mouse } = mutation;
   const player = useStore((state) => state.player);
   const setPlayerObject = useStore((state) => state.actions.setPlayerObject);
-  const { playerMechBP, playerControlMode, displayContextMenu } = useStore(
-    (state) => state
-  );
+  const {
+    playerMechBP,
+    playerControlMode,
+    displayContextMenu,
+    weaponFireLightTimer,
+  } = useStore((state) => state);
 
   const main = useRef();
+  const weaponFireLight = useRef();
+  const exhaust = useRef();
+  const engineLight = useRef();
   const cross = useRef();
   const target = useRef();
 
   const servoHitNames = [];
+  /*
+  //not working
+  //on first render have camera look at ship to avoid the camera shift after leaving a menu
+  useEffect(() => {
+    camera.position.copy(main.current.position);
+    camera.translateZ(8 * SCALE);
+    camera.translateY(3 * SCALE);
+    //camera.lookAt(main.current.position);
+    //CAMERA IS SHIFTED A MILLISECOND AFTER FROM PREVIOUS USEFRAME?
+    camera.lookAt(0, 0, 0);
+  }, []);
+  */
 
-  //testing
+  //moving camer, ship, altering crosshairs, engine and weapon lights (activates only while flying)
   useFrame(() => {
     if (!main.current) return null;
     //rotate ship based on mouse position
@@ -59,8 +77,9 @@ export default function Ship() {
     let mouseX = 0,
       mouseY = 0;
     if (
-      playerControlMode === CONTROLS_PILOT_COMBAT ||
-      (playerControlMode === CONTROLS_PILOT_SCAN && !displayContextMenu)
+      (playerControlMode === CONTROLS_PILOT_COMBAT ||
+        playerControlMode === CONTROLS_PILOT_SCAN) &&
+      !displayContextMenu
     ) {
       mouseX = mouse.x;
       mouseY = mouse.y;
@@ -116,6 +135,26 @@ export default function Ship() {
     // rotate towards target quaternion
     camera.rotation.setFromQuaternion(camQuat.slerp(endQuat, 0.2).normalize());
 
+    //engine flicker
+    let flickerVal = Math.sin(clock.getElapsedTime() * 500);
+    let speedRoof = player.speed > 25 ? 25 : player.speed;
+    exhaust.current.position.z = speedRoof / -8;
+    exhaust.current.scale.x = speedRoof / 10 + flickerVal * 5;
+    exhaust.current.scale.y = speedRoof / 10 + flickerVal * 5;
+    exhaust.current.scale.z = speedRoof + 1.5 + flickerVal * 5;
+    player.speed > 2
+      ? (exhaust.current.material.visible = 1)
+      : (exhaust.current.material.visible = 0);
+    engineLight.current.intensity = player.speed > 0 ? player.speed * 0.05 : 0;
+
+    //weapon firing light blast
+    weaponFireLight.current.intensity +=
+      ((weaponFireLightTimer && Date.now() - weaponFireLightTimer < 100
+        ? 1
+        : 0) -
+        weaponFireLight.current.intensity) *
+      0.3;
+
     main.current.getWorldPosition(position);
     main.current.getWorldDirection(direction);
     player.ray.origin.copy(position);
@@ -147,6 +186,15 @@ export default function Ship() {
       }
     });
   });
+  /*
+const pointLight = new THREE.PointLight( 0xff0000, 1, 100 );
+pointLight.position.set( 10, 10, 10 );
+scene.add( pointLight );
+
+const sphereSize = 1;
+const pointLightHelper = new THREE.PointLightHelper( pointLight, sphereSize );
+scene.add( pointLightHelper );
+*/
 
   return (
     <group
@@ -168,6 +216,12 @@ export default function Ship() {
         servoHitNames={servoHitNames}
         showAxisLines={false}
       />
+      {/*player.boxHelper && (
+          <mesh
+            geometry={player.boxHelper.geometry}
+            material={player.boxHelper.material}
+          ></mesh>
+        )*/}
       <group ref={cross} position={[0, 0, 300]} name="cross">
         <mesh renderOrder={1000} material={crossMaterial}>
           <boxBufferGeometry attach="geometry" args={[20, 1, 1]} />
@@ -198,6 +252,32 @@ export default function Ship() {
           <boxBufferGeometry attach="geometry" args={[1, 40, 1]} />
         </mesh>
       </group>
+
+      <pointLight
+        ref={weaponFireLight}
+        position={[0, 0, 0.2]}
+        distance={3 * SCALE}
+        intensity={0}
+        color="lightgreen"
+      />
+      <mesh ref={exhaust} position={[0, 0.2, 0]}>
+        <dodecahedronBufferGeometry attach="geometry" args={[0.05, 0]} />
+        <meshStandardMaterial
+          attach="material"
+          color="lightblue"
+          transparent
+          opacity={0.3}
+          emissive="lightblue"
+          emissiveIntensity="0.3"
+        />
+      </mesh>
+      <pointLight
+        ref={engineLight}
+        position={[0, 0.2, -0.75]}
+        distance={3 * SCALE}
+        intensity={0}
+        color="lightblue"
+      />
     </group>
   );
 }

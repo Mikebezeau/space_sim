@@ -5,7 +5,7 @@ import {
   CONTROLS_UNATTENDED,
   CONTROLS_PILOT_COMBAT,
   CONTROLS_PILOT_SCAN,
-} from "./util/gameUtil";
+} from "./util/constants";
 import "./css/contextMenu.css";
 
 export default function ContextMenu() {

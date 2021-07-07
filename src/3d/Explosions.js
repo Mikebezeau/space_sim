@@ -4,7 +4,7 @@ import React, { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import useStore from "../stores/store";
 //import useStore, { audio, playAudio } from "../store";
-import { SCALE } from "../util/gameUtil";
+import { SCALE } from "../util/constants";
 
 function make(color, speed) {
   return {

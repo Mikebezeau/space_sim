@@ -1,7 +1,7 @@
 import create from "zustand";
 import * as THREE from "three";
 
-import Terrain from "../terrainGen/Terrain";
+import Terrain from "../terrainGen/terrainGen";
 
 import { Curves } from "three/examples/jsm/curves/CurveExtras";
 import { addEffect } from "@react-three/fiber";
@@ -9,16 +9,15 @@ import { addEffect } from "@react-three/fiber";
 //import * as audio from "./audio";
 import { loopAI } from "../masterAI";
 
-import { servoUtil } from "../util/equipUtil";
+import { servoUtil } from "../util/mechServoUtil";
 import {
   guid,
   initPlayerMechBP,
   initStationBP,
   initEnemyMechBP,
 } from "../util/initEquipUtil";
+import { getRandomArbitrary, distance } from "../util/gameUtil";
 import {
-  getRandomArbitrary,
-  distance,
   SCALE,
   FLIGHT,
   GALAXY_MAP,
@@ -26,7 +25,8 @@ import {
   CONTROLS_UNATTENDED,
   CONTROLS_PILOT_COMBAT,
   CONTROLS_PILOT_SCAN,
-} from "../util/gameUtil";
+} from "../util/constants";
+
 import { setupFlock } from "../util/boidController";
 
 import StarSystem from "../starSysGen/StarSystem"; //ACCRETE
@@ -39,7 +39,7 @@ const starsInGalaxy = 15000;
 const systemScale = 200, //,
   planetScale = 0.05; //;
 
-const numEnemies = 20;
+const numEnemies = 0;
 
 const weaponFireSpeed = {
   beam: 100,
@@ -53,7 +53,7 @@ const playerStart = {
   system: 345,
   mechBPindex: 0,
   x: 0,
-  y: 100, //300000 * SCALE * planetScale, //15000
+  y: 10000, //300000 * SCALE * planetScale, //15000
   z: 0, //-50000 * SCALE * planetScale,
 };
 
@@ -112,7 +112,7 @@ const [useStore] = create((set, get) => {
     //blueprint design
     blueprintCam: initCamMainMenu(),
     playerScreen: FLIGHT,
-    playerControlMode: CONTROLS_PILOT_SCAN,
+    playerControlMode: CONTROLS_PILOT_COMBAT, //CONTROLS_PILOT_SCAN,
     displayContextMenu: false, //right click menu
     contextMenuPos: { x: 0, y: 0 },
     //flying
@@ -227,6 +227,24 @@ const [useStore] = create((set, get) => {
           showLeaders: !state.showLeaders,
         }));
       },
+      changeLocationSpace() {
+        //set player location
+        let locationInfo = get().player.locationInfo;
+        locationInfo.isInSpace = 1;
+        locationInfo.isLandedPlanet = 0;
+        set((state) => ({
+          player: { ...state.player, locationInfo: locationInfo },
+        }));
+      },
+      changeLocationPlanet() {
+        //set player location
+        let locationInfo = get().player.locationInfo;
+        locationInfo.isInSpace = 0;
+        locationInfo.isLandedPlanet = 1;
+        set((state) => ({
+          player: { ...state.player, locationInfo: locationInfo },
+        }));
+      },
       warpToPlanet() {
         let player = get().player;
         if (get().focusPlanetIndex) {
@@ -274,7 +292,15 @@ const [useStore] = create((set, get) => {
           if (playerScreen !== FLIGHT) return;
 
           //run enemy AI routine
-          loopAI(player, enemies, enemyBoids, mutation.clock, actions.shoot);
+          //find enemies in area of player
+          const localEnemies = enemies;
+          loopAI(
+            player,
+            localEnemies,
+            enemyBoids,
+            mutation.clock,
+            actions.shoot
+          );
 
           const timeNow = Date.now();
           get().weaponFireList.forEach((weaponFire) => {
@@ -524,17 +550,16 @@ const [useStore] = create((set, get) => {
           selectedTargetIndex: targetIndex,
         }));
 
-        if (targetIndex !== null)
-          get().actions.shoot(
-            get().playerMechBP[0],
-            get().player,
-            get().enemies[targetIndex],
-            true, // true //player autofire
-            false, // auto aim
-            true // isPlayer
-          );
+        get().actions.shoot(
+          get().playerMechBP[0],
+          get().player,
+          targetIndex === null ? null : get().enemies[targetIndex],
+          targetIndex === null ? false : true, // true //player autofire
+          false, // auto aim
+          true // isPlayer
+        );
       },
-      //shoot all mechs weapons
+      //shoot each weapon if ready
       shoot(
         mechBP,
         shooter,
@@ -543,8 +568,9 @@ const [useStore] = create((set, get) => {
         autoAim = true,
         isPlayer = false
       ) {
-        if (get().selectedTargetIndex === null && autoFire && autoAim)
+        if (get().selectedTargetIndex === null && autoFire && autoAim) {
           return null;
+        }
         //for each weapon on the ship, find location and create a weaponFire to be shot from there
         Object.values(mechBP.weaponList).forEach((weapons) => {
           weapons.forEach((weapon) => {
@@ -672,7 +698,7 @@ const [useStore] = create((set, get) => {
           angleDiff = weaponRotation.angleTo(shooter.object3d.quaternion);
         }
         //dumb way of asking if not a player firing (dont shoot enemy missiles)
-        else if (!autoFire) angleDiff = 1;
+        else if (!autoFire) angleDiff = 1; //!isPlayer?
 
         //this sucks
         if (get().playerScreen !== FLIGHT) return null;
@@ -1203,7 +1229,7 @@ function initTerrain(playerLocationInfo) {
   const rng = seedrandom(
     playerLocationInfo.starSystemId + "-" + playerLocationInfo.landedPlanetId
   );
-  return new Terrain(rng(), 0.5, 0);
+  return new Terrain(rng(), 5, 0);
 }
 
 function initSolarSystem(

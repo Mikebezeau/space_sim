@@ -12,7 +12,7 @@ import ServoPositionButtons from "../equipmentDesign/ServoPositionButtons";
 //import ServoHydraulics from "./equipment/ServoHydraulics";
 import { Weapons, WeaponsAssignSpaces } from "../equipment/Weapons";
 import { LandingBay, LandingBayAssignSpaces } from "../equipment/LandingBay";
-import { FLIGHT } from "../util/gameUtil";
+import { FLIGHT } from "../util/constants";
 import "../css/equipmentMenu.css";
 
 export default function EquipmentMenu() {

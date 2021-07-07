@@ -1,5 +1,5 @@
 import { useRef, useEffect } from "react";
-import { IS_MOBLIE } from "../util/gameUtil";
+import { IS_MOBLIE } from "../util/constants";
 
 export function useTouchStartControls(elementID, callback) {
   const callbackRef = useRef(callback);

@@ -1,6 +1,6 @@
 import React from "react";
 import * as THREE from "three";
-import { SCALE } from "../../util/gameUtil";
+import { SCALE } from "../../util/constants";
 import useStore from "../../stores/store";
 import SystemMap from "./SystemMap";
 //import GalaxyMapDestination from "./GalaxyMapDestination";

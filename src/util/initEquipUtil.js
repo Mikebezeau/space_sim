@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { equipList } from "../data/equipData";
 import { weaponList } from "../data/weaponData";
-import { applyScaledCPMult, servoUtil, mech, armorUtil } from "./equipUtil";
+import { applyScaledCPMult, servoUtil, mech, armorUtil } from "./mechServoUtil";
 import { weaponUtil } from "./weaponUtil";
 import mechDesigns from "../data/mechDesigns";
 
