@@ -1,5 +1,4 @@
 import React from "react";
-import styled, { css } from "styled-components";
 import useStore from "./stores/store";
 import {
   CONTROLS_UNATTENDED,
@@ -13,12 +12,12 @@ import { TestingEnemyControls } from "./testingControls/TestingEnemyControls";
 import { TestingPlayerLocationControls } from "./testingControls/TestingPlayerLocationControls";
 import { TestingBoidControls } from "./testingControls/TestingBoidControls";
 import "./css/hud.css";
+import "./css/hudSpaceFlight.css";
 import "./css/toggleControl.css";
 
 //basic HTML/CSS heads up display used to show player info
 export default function Hud() {
-  //testing
-  const { testing, toggleTestControls } = useStore((state) => state);
+  const { toggleTestControls } = useStore((state) => state);
   const { switchScreen } = useStore((state) => state.actions);
   const { speed, shield, currentMechBPindex } = useStore(
     (state) => state.player
@@ -30,34 +29,18 @@ export default function Hud() {
 
   //const sound = useStore((state) => state.sound);
   //const toggle = useStore((state) => state.actions.toggleSound);
-  /*
-  const toggle = () => {
-    return null;
-  };
-  //const seconds = useRef();
-  
-  useEffect(() => {
-    const t = Date.now();
-    const i = setInterval(
-      () => (seconds.current.innerText = ((Date.now() - t) / 1000).toFixed(1)),
-      100
-    );
-    return () => clearInterval(i);
-  }, []);
-*/
-
   //const speedVal = useMemo(() => speed + "Km/s", [speed]);
 
   return (
     <>
-      <UpperLeft>
+      <div id="upperLeft" className="hud">
         {playerControlMode !== CONTROLS_UNATTENDED && (
           <>
             <h2>Speed</h2>
             <h1>{speed}</h1>
           </>
         )}
-        <div className="scanData">
+        <div className="hudData">
           <ToggleTestControls />
           {!toggleTestControls && (
             <>
@@ -104,8 +87,8 @@ export default function Hud() {
             </>
           )}
         </div>
-      </UpperLeft>
-      <UpperRight>
+      </div>
+      <div id="upperRight" className="hud">
         {playerControlMode === CONTROLS_PILOT_COMBAT && shield.max > 0 && (
           <div className="shieldsBarContainer">
             <div
@@ -120,7 +103,7 @@ export default function Hud() {
         )}
 
         <br />
-        <div className="scanData">
+        <div className="hudData">
           {!toggleTestControls &&
             playerControlMode === CONTROLS_PILOT_SCAN &&
             focusPlanetIndex !== null &&
@@ -145,102 +128,7 @@ export default function Hud() {
             </>
           )}
         </div>
-      </UpperRight>
+      </div>
     </>
   );
 }
-
-const base = css`
-  font-family: "Teko", sans-serif;
-  position: absolute;
-  text-transform: uppercase;
-  font-weight: 900;
-  font-variant-numeric: slashed-zero tabular-nums;
-  line-height: 1em;
-  pointer-events: none;
-  color: lightblue;
-`;
-
-const UpperLeft = styled.div`
-  ${base}
-  top: 40px;
-  left: 2vw;
-  transform: skew(5deg, 5deg);
-  width: 18vw;
-  & > h1 {
-    margin: 0;
-    font-size: 10vw;
-    line-height: 1em;
-  }
-  & > h2 {
-    margin: 0;
-    font-size: 2vw;
-    line-height: 1em;
-  }
-
-  @media only screen and (min-width: 500px) {
-    width: 180px;
-  }
-`;
-
-const UpperRight = styled.div`
-  ${base}
-  text-align: right;
-  top: 250px;
-  right: 2vw;
-  transform: skew(-5deg, -5deg);
-  font-size: 1.5vw;
-  width: 18vw;
-
-  @media only screen and (min-width: 500px) {
-    width: 180px;
-  }
-`;
-
-/*
-const LowerLeft = styled.div`
-  ${base}
-  bottom: 40px;
-  left: 50px;
-  transform: skew(-5deg, -10deg);
-  width: 200px;
-  & > h1 {
-    margin: 0;
-    font-size: 10em;
-    line-height: 1em;
-  }
-  & > h2 {
-    margin: 0;
-    font-size: 2em;
-    line-height: 1em;
-  }
-  @media only screen and (max-width: 700px) {
-    & > h1 {
-      font-size: 6em !important;
-    }
-    & > h2 {
-      font-size: 3em !important;
-    }
-  }
-`;
-
-const LowerRight = styled.div`
-  ${base}
-  bottom: 70px;
-  right: 50px;
-  transform: skew(5deg, 10deg);
-  height: 40px;
-  width: 200px;
-  background: black;
-  & > div {
-    height: 100%;
-    background: lightblue;
-  }
-
-  @media only screen and (max-width: 700px) {
-    bottom: 50px;
-    height: 30px;
-    width: 150px;
-  }
-`;
-*/

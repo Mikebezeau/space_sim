@@ -1,0 +1,30 @@
+.shieldsBarContainer {
+  width: 100%;
+  height: 20px;
+  margin-bottom: 20px;
+  background: black;
+}
+
+.shieldsBar {
+  height: 100%;
+
+  background: lightblue;
+  color: white;
+}
+.shieldsBar span {
+  position: absolute;
+  left: 0px;
+  width: 18vw;
+  text-align: center;
+  font-size: 1.5vw;
+  mix-blend-mode: exclusion;
+}
+
+@media only screen and (min-width: 500px) {
+  .hudData {
+    font-size: 10px;
+  }
+  .shieldsBar span {
+    font-size: 15px;
+  }
+}

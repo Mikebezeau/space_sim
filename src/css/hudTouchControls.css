@@ -1,0 +1,43 @@
+#lowerLeft {
+  display: none;
+  bottom: 20px;
+  left: 50px;
+  width: 200px;
+  height: 200px;
+}
+
+#lowerLeft div {
+  pointer-events: all;
+  height: 100%;
+  width: 100%;
+  background: gray;
+  border-radius: 500px;
+}
+
+@media only screen and (max-width: 700px) {
+  #lowerLeft {
+    display: block;
+    height: 120px;
+    width: 120px;
+    left: 5%;
+  }
+}
+
+#lowerRight {
+  display: block;
+  bottom: 10px;
+  right: 20px;
+  transform: skew(-5deg, -10deg);
+  height: 100px;
+  width: 200px;
+}
+#lowerRight span {
+  display: block;
+  margin-left: 5%;
+  float: right;
+  height: 80px;
+  width: 30px;
+  pointer-events: all;
+  background: gray;
+  border-radius: 20px 5px;
+}

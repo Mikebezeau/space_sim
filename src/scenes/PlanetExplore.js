@@ -3,7 +3,7 @@ import React, { Suspense } from "react";
 import useStore from "../stores/store";
 
 import TestTerrain from "../terrainGen/TestTerrain";
-import PlayerWalk from "../3d/planetWalk/PlayerWalk";
+import PlayerWalk from "../3d/planetExplore/PlayerWalk";
 import WeaponFire from "../3d/WeaponFire";
 
 import {
@@ -22,6 +22,7 @@ export default function PlanetWalkMode() {
   return (
     <>
       <pointLight position={[1500, 5000, 0]} castShadow intensity={0.1} />
+      <ambientLight intensity={0.2} />
       <Suspense fallback={null}>
         <PlayerWalk />
       </Suspense>

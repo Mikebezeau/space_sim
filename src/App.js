@@ -16,8 +16,8 @@ import useStore from "./stores/store";
 import useEquipStore from "./stores/equipStore";
 
 import EquipmentBlueprint from "./equipmentDesign/EquipmentBlueprint";
-import SpaceFlightMode from "./scenes/SpaceFlightMode";
-import PlanetWalkMode from "./scenes/PlanetWalkMode";
+import SpaceFlight from "./scenes/SpaceFlight";
+import PlanetExplore from "./scenes/PlanetExplore";
 
 import {
   useKBControls,
@@ -156,8 +156,8 @@ function App() {
         }}
       >
         {playerScreen === EQUIPMENT_SCREEN && <EquipmentBlueprint />}
-        {locationInfo.isInSpace && <SpaceFlightMode />}
-        {locationInfo.isLandedPlanet && <PlanetWalkMode />}
+        {locationInfo.isInSpace && <SpaceFlight />}
+        {locationInfo.isLandedPlanet && <PlanetExplore />}
         <Effects />
       </Canvas>
       {playerScreen === FLIGHT && displayContextMenu && <ContextMenu />}

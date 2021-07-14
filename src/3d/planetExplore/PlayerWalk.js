@@ -73,14 +73,15 @@ export default function Ship() {
 
     endQuat.multiplyQuaternions(main.current.quaternion, rotateQuat); //why does removing this line cause fuckup
     //main.current.rotation.setFromQuaternion(endQuat.normalize());
-    main.current.rotation.x = 0;
-    main.current.rotation.z = 0;
+    //main.current.rotation.x = 0;
+    //main.current.rotation.z = 0;
 
     main.current.rotation.y = main.current.rotation.y - mouseX * 0.05 * MVmod; //this is dumb
 
     main.current.translateZ(player.speed * SCALE_PLANET_WALK);
 
     //hit ground test
+    /*
     if (terrain) {
       const raycast = new THREE.Raycaster(
         player.object3d.position,
@@ -91,9 +92,11 @@ export default function Ship() {
         main.current.position.y =
           main.current.position.y -
           intersection[0].distance +
-          5 * SCALE_PLANET_WALK;
+          500 * SCALE_PLANET_WALK;
       }
     }
+    */
+    main.current.position.y = 50 * SCALE_PLANET_WALK;
     //save ship position / rotation to state
     setPlayerObject(main.current); //made this set to state in this way as to reflect updates to other components (SystemMap)
 
@@ -166,6 +169,7 @@ export default function Ship() {
     });
   });
 
+  //console.log(player.object3d.position);
   return (
     <group
       ref={main}

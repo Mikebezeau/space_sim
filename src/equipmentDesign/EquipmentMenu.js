@@ -1,6 +1,5 @@
 //import React, { useMemo, useRef, useEffect } from "react";
 import React, { useState } from "react";
-import styled, { css } from "styled-components";
 import useStore from "../stores/store";
 import useEquipStore from "../stores/equipStore";
 import mechDesigns from "../data/mechDesigns";
@@ -155,16 +154,7 @@ export default function EquipmentMenu() {
 
   return (
     <>
-      {/*}
-      <UpperLeft>
-        <h2>Station</h2>
-        <h1>{stations[stationDock.stationIndex].name}</h1>
-        <h1>{stations[stationDock.stationIndex].type}</h1>
-      </UpperLeft>
-      <UpperRight>
-        <div style={{ width: health + "%" }} />
-  </UpperRight>*/}
-      <Center id="equipmentMenu">
+      <div id="equipmentMenu">
         <div>
           <button onClick={() => switchScreen(FLIGHT)}>Exit</button>
           <span
@@ -235,8 +225,8 @@ export default function EquipmentMenu() {
           </span>
         </div>
         <hr />
-        <Mech style={{ float: "right" }} />
-        <LeftSidebar>
+        <Mech />
+        <div>
           <hr />
           {topMenuSelection.map((value, key) => (
             <span
@@ -272,99 +262,12 @@ export default function EquipmentMenu() {
               }
             )
           )}
-        </LeftSidebar>
+        </div>
         <hr style={{ clear: "both" }} />
         {mainMenuSelection !== 2 &&
           subCatagories[mainMenuSelection][subSelection] &&
           subCatagories[mainMenuSelection][subSelection].component}
-      </Center>
+      </div>
     </>
   );
 }
-
-const base = css`
-  font-family: "Teko", sans-serif;
-  position: absolute;
-  text-transform: uppercase;
-  font-weight: 900;
-  font-variant-numeric: slashed-zero tabular-nums;
-  line-height: 1em;
-  pointer-events: none;
-  color: lightblue;
-`;
-
-const Center = styled.div`
-  ${base}
-  overflow-y: scroll;
-  top: 15%;
-  left: 10%;
-  pointer-events: all;
-  cursor: pointer;
-  width: 80%;
-  height: 80%;
-  border: 1px solid #fff;
-  @media only screen and (max-width: 700px) {
-    font-size: 1.5em;
-  }
-  li {
-    list-style-type: none;
-    margin-bottom:5%;
-    &:hover {
-      color: white;
-    }
-`;
-
-const LeftSidebar = styled.div`
-  float: left;
-`;
-
-const UpperLeft = styled.div`
-  ${base}
-  top: 40px;
-  left: 50px;
-  transform: skew(5deg, 10deg);
-  width: 20%;
-  & > h1 {
-    margin: 0;
-    font-size: 1em;
-    line-height: 1em;
-  }
-  & > h2 {
-    margin: 0;
-    font-size: 0.8em;
-    line-height: 1em;
-  }
-  @media only screen and (max-width: 700px) {
-    top: 5%;
-    left: 12%;
-    & > h1 {
-      font-size: 3em !important;
-    }
-    & > h2 {
-      font-size: 1em !important;
-    }
-  }
-`;
-
-const UpperRight = styled.div`
-  ${base}
-  text-align: right;
-  top: 40px;
-  right: 50px;
-  transform: skew(-5deg, -10deg);
-  font-size: 2em;
-  height: 40px;
-  width: 200px;
-  background: black;
-  & > div {
-    height: 100%;
-    background: lightblue;
-  }
-
-  @media only screen and (max-width: 700px) {
-    bottom: 50px;
-    height: 10px;
-    width: 50px;
-    font-size: 1.5em;
-  }
-`;

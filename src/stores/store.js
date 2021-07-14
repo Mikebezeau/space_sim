@@ -2,6 +2,7 @@ import create from "zustand";
 import * as THREE from "three";
 
 import Terrain from "../terrainGen/terrainGen";
+import GenerateCity from "../terrainGen/cityGen";
 
 import { Curves } from "three/examples/jsm/curves/CurveExtras";
 import { addEffect } from "@react-three/fiber";
@@ -19,6 +20,7 @@ import {
 import { getRandomArbitrary, distance } from "../util/gameUtil";
 import {
   SCALE,
+  SCALE_PLANET_WALK,
   FLIGHT,
   GALAXY_MAP,
   EQUIPMENT_SCREEN,
@@ -53,8 +55,8 @@ const playerStart = {
   system: 345,
   mechBPindex: 0,
   x: 0,
-  y: 10000, //300000 * SCALE * planetScale, //15000
-  z: 0, //-50000 * SCALE * planetScale,
+  y: 1, //300000 * SCALE * planetScale, //15000
+  z: -3, //-50000 * SCALE * planetScale,
 };
 
 let cancelExplosionTO = undefined;
@@ -141,6 +143,7 @@ const [useStore] = create((set, get) => {
     ),
     stations: randomStations(seedrandom(playerStart.system), 1),
     terrain: initTerrain(2, 2), //undefined//initTerrain(get().player.locationInfo),
+    city: GenerateCity(),
     mutation: {
       t: 0,
       //position: new THREE.Vector3(),
@@ -662,14 +665,17 @@ const [useStore] = create((set, get) => {
           weapon.locationServoId,
           mechBP.servoList
         ).offset;
+        const currentScale = get().player.locationInfo.isLandedPlanet
+          ? SCALE_PLANET_WALK
+          : SCALE;
         weaponFireObj.translateX(
-          (weapon.offset.x + weapon.servoOffset.x) * SCALE
+          (weapon.offset.x + weapon.servoOffset.x) * currentScale
         );
         weaponFireObj.translateY(
-          (weapon.offset.y + weapon.servoOffset.y) * SCALE
+          (weapon.offset.y + weapon.servoOffset.y) * currentScale
         );
         weaponFireObj.translateZ(
-          (weapon.offset.z + weapon.servoOffset.z) * SCALE
+          (weapon.offset.z + weapon.servoOffset.z) * currentScale
         );
 
         //if a missile fire straight ahead
@@ -681,7 +687,7 @@ const [useStore] = create((set, get) => {
           weaponFireObj.lookAt(target.object3d.position);
         }
         //move forward so bullet isnt 1/2 way through ship... >.< - change
-        weaponFireObj.translateZ(weaponFireOffsetZ * SCALE);
+        weaponFireObj.translateZ(weaponFireOffsetZ * currentScale);
 
         //autofire target provided, if not a missile, only fire if within certain angle in front of ship
         //if (autoFire && weapon.data.weaponType !== "missile") {
@@ -734,9 +740,9 @@ const [useStore] = create((set, get) => {
         };
 
         const box = new THREE.BoxGeometry(
-          0.1 * SCALE,
-          0.1 * SCALE,
-          200 * SCALE
+          0.1 * currentScale,
+          0.1 * currentScale,
+          200 * currentScale
         );
         const mesh = new THREE.MeshStandardMaterial({
           color: new THREE.Color("yellow"),

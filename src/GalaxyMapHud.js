@@ -1,8 +1,7 @@
 import React from "react";
-import styled, { css } from "styled-components";
 import useStore from "./stores/store";
 import { FLIGHT } from "./util/constants";
-import "./css/hud.css";
+import "./css/hudSpaceFlight.css";
 
 //basic HTML/CSS heads up display used to show player info
 export default function GalaxyMapHud() {
@@ -11,9 +10,9 @@ export default function GalaxyMapHud() {
 
   return (
     <>
-      <UpperLeft>
+      <div id="upperLeft" className="hud">
         <h1 style={{ fontSize: "50px" }}>Galaxy Map</h1>
-        <div className="scanData">
+        <div className="hudData">
           <button onClick={() => switchScreen(FLIGHT)}>Exit</button>
           <p>System</p>
           {Object.entries(planets[0].data).map(([key, value]) => {
@@ -28,57 +27,10 @@ export default function GalaxyMapHud() {
             );
           })}
         </div>
-      </UpperLeft>
-      <UpperRight>
-        <div className="scanData"></div>
-      </UpperRight>
+      </div>
+      <div id="upperRight" className="hud">
+        <div className="hudData"></div>
+      </div>
     </>
   );
 }
-
-const base = css`
-  font-family: "Teko", sans-serif;
-  position: absolute;
-  text-transform: uppercase;
-  font-weight: 900;
-  font-variant-numeric: slashed-zero tabular-nums;
-  line-height: 1em;
-  pointer-events: none;
-  color: lightblue;
-`;
-
-const UpperLeft = styled.div`
-  ${base}
-  top: 40px;
-  left: 2vw;
-  transform: skew(5deg, 5deg);
-  width: 18vw;
-  & > h1 {
-    margin: 0;
-    font-size: 10vw;
-    line-height: 1em;
-  }
-  & > h2 {
-    margin: 0;
-    font-size: 2vw;
-    line-height: 1em;
-  }
-
-  @media only screen and (min-width: 500px) {
-    width: 180px;
-  }
-`;
-
-const UpperRight = styled.div`
-  ${base}
-  text-align: right;
-  top: 250px;
-  right: 2vw;
-  transform: skew(-5deg, -5deg);
-  font-size: 1.5vw;
-  width: 18vw;
-
-  @media only screen and (min-width: 500px) {
-    width: 180px;
-  }
-`;

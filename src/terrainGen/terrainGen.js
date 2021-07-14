@@ -25,7 +25,7 @@ export default class Terrain {
     const vertices = segment + 1;
 
     const simplex = new SimplexNoise(this._seed);
-    console.log(simplex);
+    //console.log(simplex);
 
     const geometry = new THREE.PlaneGeometry(
       dimension,

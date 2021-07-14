@@ -35,6 +35,8 @@ button,
 .slidecontainer {
   pointer-events: auto !important;
   margin: 2%;
+  padding: 2%;
+  line-height: 25px;
   width: 60%;
   background-color: black;
   border-color: lightblue;

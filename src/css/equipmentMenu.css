@@ -1,11 +1,44 @@
+hr {
+  width: 100%;
+}
+
+#equipmentMenu {
+  position: absolute;
+  overflow-y: scroll;
+  top: 15%;
+  left: 10%;
+  pointer-events: all;
+  cursor: pointer;
+  width: 80%;
+  height: 80%;
+  border: 1px solid #fff;
+  color: white;
+}
+
+#equipmentMenu li {
+  list-style-type: none;
+  margin-bottom: 5%;
+}
+
+#equipmentMenu button:hover {
+  color: white;
+}
+
+@media only screen and (max-width: 700px) {
+  #equipmentMenu {
+    font-size: 0.7em;
+  }
+}
+
 #equipmentMenu select,
 #equipmentMenu button,
 #equipmentMenu input {
   font-family: "Teko", sans-serif;
-  text-transform: uppercase;
   font-weight: 600;
-  margin: 4px 6px;
+  margin: 2px 2px;
+  padding: 0 8px;
   width: auto;
+  border: 1px solid grey !important;
 }
 
 #equipmentMenu table {
@@ -14,11 +47,6 @@
 }
 #equipmentMenu td {
   text-align: center;
-}
-
-#equipmentMenu button {
-  border: 1px solid grey !important;
-  margin: 4px 6px;
 }
 
 #equipmentMenu .selectedItem {

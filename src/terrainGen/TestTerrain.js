@@ -1,36 +1,39 @@
 import React from "react";
-import * as THREE from "three";
-import { useThree, useFrame } from "@react-three/fiber";
-import { useRef } from "react";
 import useStore from "../stores/store";
-import { SCALE } from "../util/gameUtil";
+import Buildings from "../3d/planetExplore/Buildings";
 
-const direction = new THREE.Vector3();
+const TestTerrian = () => {
+  const { terrain, city } = useStore((state) => state);
 
-export default function TestTerrian() {
-  const { mouse } = useStore((state) => state.mutation);
-  const { terrain, menuCam, galaxyMapZoom } = useStore((state) => state);
-  const { camera } = useThree();
-  /*
-  useFrame(() => {
-    //move based on mouse position
-    camera.position.set(
-      menuCam.position.x + mouse.x * 0.01,
-      menuCam.position.y - mouse.y * 0.01,
-      menuCam.position.z
-    );
-    camera.setRotationFromAxisAngle(direction, 0);
-    menuCam.position.copy(camera.position);
-  });
-*/
   return (
-    <group position={[0, 0, 0]} rotation={[0, 0, 0]}>
-      {terrain && (
-        <mesh
-          geometry={terrain.Mesh.geometry}
-          material={terrain.Mesh.material}
-        ></mesh>
-      )}
-    </group>
+    <>
+      <Buildings buildings={city.buildings} />
+
+      {/*
+      <mesh
+        position={city.terrain.mergedStreetMesh.position}
+        geometry={city.terrain.mergedStreetMesh.geometry}
+        material={city.terrain.mergedStreetMesh.material}
+      ></mesh>
+
+      <mesh
+        position={city.terrain.mergedGroundMesh.position}
+        geometry={city.terrain.mergedGroundMesh.geometry}
+        material={city.terrain.mergedGroundMesh.material}
+      ></mesh>
+      
+      <mesh
+        position={city.terrain.baseMesh.position}
+        geometry={city.terrain.baseMesh.geometry}
+        material={city.terrain.baseMesh.material}
+      ></mesh>
+      <mesh
+        position={city.terrain.water.position}
+        geometry={city.terrain.water.geometry}
+        material={city.terrain.water.material}
+      ></mesh>*/}
+    </>
   );
-}
+};
+
+export default TestTerrian;

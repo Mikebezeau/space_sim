@@ -1,5 +1,4 @@
 import React from "react";
-import styled, { css } from "styled-components";
 import useStore from "./stores/store";
 import {
   useTouchStartControls,
@@ -14,6 +13,8 @@ import {
   CONTROLS_PILOT_COMBAT,
   CONTROLS_PILOT_SCAN,
 } from "./util/constants";
+import "./css/hud.css";
+import "./css/hudTouchControls.css";
 
 export default function TouchControls({ playerScreen, playerControlMode }) {
   const testing = useStore((state) => state.testing);
@@ -75,72 +76,15 @@ export default function TouchControls({ playerScreen, playerControlMode }) {
 
   return (
     <>
-      <LowerLeft>
+      <div id="lowerLeft" className="hud">
         <div id="btn-ship-move"></div>
-      </LowerLeft>
-      <LowerRight>
+      </div>
+      <div id="lowerRight" className="hud">
         <span id="btn-speed-up">+</span>
         <span id="btn-speed-down">-</span>
         <span id="btn-shoot">x</span>
         <span id="btn-sys">sys</span>
-      </LowerRight>
+      </div>
     </>
   );
 }
-const base = css`
-  font-family: "Teko", sans-serif;
-  position: absolute;
-  text-transform: uppercase;
-  font-weight: 900;
-  font-variant-numeric: slashed-zero tabular-nums;
-  line-height: 1em;
-  pointer-events: none;
-  color: lightblue;
-`;
-
-const LowerLeft = styled.div`
-  ${base}
-  display:none;
-  bottom: 20px;
-  left: 50px;
-  width: 200px;
-  height: 200px;
-
-  & > div {
-    pointer-events: all;
-    height: 100%;
-    width: 100%;
-    background: gray;
-    border-radius: 500px;
-  }
-
-  @media only screen and (max-width: 700px) {
-    display: block;
-    height: 120px;
-    width: 120px;
-    left: 5%;
-  }
-`;
-
-const LowerRight = styled.div`
-  ${base}
-  display:block;
-  bottom: 10px;
-  right: 20px;
-  transform: skew(-5deg, -10deg);
-  height: 100px;
-  width: 200px;
-
-  & > span {
-    display: block;
-    margin-left: 5%;
-    float: right;
-    height: 80px;
-    width: 30px;
-    pointer-events: all;
-    background: gray;
-    border-radius: 20px 5px;
-  }
-`;
-/*
- */

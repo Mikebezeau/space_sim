@@ -1,5 +1,5 @@
 export const SCALE = 0.001; //MAX=? MIN=0.001
-export const SCALE_PLANET_WALK = 1;
+export const SCALE_PLANET_WALK = 0.5;
 
 export const IS_MOBLIE = /Mobi|Android/i.test(navigator.userAgent);
 
