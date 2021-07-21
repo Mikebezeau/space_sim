@@ -2,7 +2,7 @@ import create from "zustand";
 import * as THREE from "three";
 
 import Terrain from "../terrainGen/terrainGen";
-import GenerateCity from "../terrainGen/cityGen";
+import generateCity from "../terrainGen/cityGen";
 
 import { Curves } from "three/examples/jsm/curves/CurveExtras";
 import { addEffect } from "@react-three/fiber";
@@ -54,9 +54,9 @@ const weaponFireSpeed = {
 const playerStart = {
   system: 345,
   mechBPindex: 0,
-  x: 0,
+  x: 996,
   y: 1, //300000 * SCALE * planetScale, //15000
-  z: -3, //-50000 * SCALE * planetScale,
+  z: 1270, //-50000 * SCALE * planetScale,
 };
 
 let cancelExplosionTO = undefined;
@@ -142,8 +142,13 @@ const [useStore] = create((set, get) => {
       planetScale
     ),
     stations: randomStations(seedrandom(playerStart.system), 1),
-    terrain: initTerrain(2, 2), //undefined//initTerrain(get().player.locationInfo),
-    city: GenerateCity(),
+    //terrain must clear a level spot for the city
+    planetTerrain: initTerrain(
+      { starSystemId: 2, landedPlanetId: 2 },
+      { numCity: 6, minSize: 3, maxSize: 10, density: 0.15 }
+    ), // {terrain, city}
+    //terrain: initTerrain({ starSystemId: 2, landedPlanetId: 2 }), //undefined//initTerrain(get().player.locationInfo),
+    //city: generateCity(15, get().terrain.AverageCityElevation()),
     mutation: {
       t: 0,
       //position: new THREE.Vector3(),
@@ -247,6 +252,18 @@ const [useStore] = create((set, get) => {
         set((state) => ({
           player: { ...state.player, locationInfo: locationInfo },
         }));
+      },
+      changeLocationCity() {
+        get().testing.changeLocationPlanet();
+        let player = get().player;
+        player.object3d.position.setX(
+          get().planetTerrain.terrain.cities[0].position.x
+        );
+        player.object3d.position.setY(0);
+        player.object3d.position.setZ(
+          get().planetTerrain.terrain.cities[0].position.z
+        );
+        set(() => ({ player: player }));
       },
       warpToPlanet() {
         let player = get().player;
@@ -536,6 +553,9 @@ const [useStore] = create((set, get) => {
       },
 
       setSelectedTargetIndex() {
+        //TESTING
+        console.log("player position", get().player.object3d.position);
+
         //make work for enemies as well
         //set new target for current shooter
 
@@ -1231,11 +1251,29 @@ function randomStations(rng, num) {
   return temp;
 }
 
-function initTerrain(playerLocationInfo) {
+function initTerrain(playerLocationInfo, cities) {
   const rng = seedrandom(
     playerLocationInfo.starSystemId + "-" + playerLocationInfo.landedPlanetId
   );
-  return new Terrain(rng(), 5, 0);
+  //cities.numCity, cities.density, cities.minSize, cities.maxSize
+  //spot must be leveled for city
+  const genCities = [];
+  for (let i = 0; i < cities.numCity; i++) {
+    genCities.push(
+      generateCity(
+        rng,
+        i === 0
+          ? cities.maxSize
+          : Math.floor(
+              rng() * (cities.maxSize - cities.minSize) + cities.minSize
+            ),
+        cities.density
+      )
+    );
+  }
+  //console.log(genCities);
+  const terrain = new Terrain(rng, genCities, 3, 0);
+  return { terrain: terrain, cities: genCities };
 }
 
 function initSolarSystem(

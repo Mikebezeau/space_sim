@@ -35,8 +35,10 @@ export default function Ship() {
   const { mouse } = mutation;
   const player = useStore((state) => state.player);
   const setPlayerObject = useStore((state) => state.actions.setPlayerObject);
-  const { terrain, playerMechBP, playerControlMode, displayContextMenu } =
-    useStore((state) => state);
+  const { playerMechBP, playerControlMode, displayContextMenu } = useStore(
+    (state) => state
+  );
+  const { terrain } = useStore((state) => state.planetTerrain);
 
   const main = useRef();
   const cross = useRef();
@@ -73,30 +75,54 @@ export default function Ship() {
 
     endQuat.multiplyQuaternions(main.current.quaternion, rotateQuat); //why does removing this line cause fuckup
     //main.current.rotation.setFromQuaternion(endQuat.normalize());
-    //main.current.rotation.x = 0;
-    //main.current.rotation.z = 0;
-
+    main.current.rotation.x = 0;
+    main.current.rotation.z = 0;
+    //manually setting turn totation to avoid gimbal lock
     main.current.rotation.y = main.current.rotation.y - mouseX * 0.05 * MVmod; //this is dumb
 
-    main.current.translateZ(player.speed * SCALE_PLANET_WALK);
+    main.current.translateZ(player.speed * 0.1 * SCALE_PLANET_WALK);
 
     //hit ground test
-    /*
     if (terrain) {
+      //check for ground, starting far above player to avoid going through ground on forward move into steep terrain
+      tempObjectDummy.position.copy(main.current.position);
+      tempObjectDummy.rotation.copy(main.current.rotation);
+      tempObjectDummy.translateY(10000 * SCALE_PLANET_WALK);
+
       const raycast = new THREE.Raycaster(
-        player.object3d.position,
+        tempObjectDummy.position,
         new THREE.Vector3(0, -1, 0)
       );
-      const intersection = raycast.intersectObject(terrain.Mesh, true);
-      if (intersection.length > 0) {
-        main.current.position.y =
-          main.current.position.y -
-          intersection[0].distance +
-          500 * SCALE_PLANET_WALK;
+
+      //shitty check for roads
+      //console.log(terrain.roads.count);
+      let onRoad = false;
+      terrain.roads.forEach((road) => {
+        if (!onRoad) {
+          const intersectionRoad = raycast.intersectObject(road.mesh, true);
+          if (intersectionRoad.length > 0) {
+            main.current.position.y =
+              main.current.position.y -
+              (intersectionRoad[0].distance - 10000 * SCALE_PLANET_WALK) +
+              0.75 * SCALE_PLANET_WALK; //this is to offset for height of vehicle, will change to reflect calculated height
+            onRoad = true;
+          }
+        }
+      });
+
+      if (!onRoad) {
+        const intersection = raycast.intersectObject(terrain.Mesh, true);
+        if (intersection.length > 0) {
+          main.current.position.y =
+            main.current.position.y -
+            (intersection[0].distance - 10000 * SCALE_PLANET_WALK) +
+            0.75 * SCALE_PLANET_WALK; //this is to offset for height of vehicle, will change to reflect calculated height
+        }
+        //defalut to avoid going to center of planet
+        else main.current.position.y = 400 * SCALE_PLANET_WALK;
       }
     }
-    */
-    main.current.position.y = 50 * SCALE_PLANET_WALK;
+
     //save ship position / rotation to state
     setPlayerObject(main.current); //made this set to state in this way as to reflect updates to other components (SystemMap)
 

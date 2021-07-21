@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import SimplexNoise from "simplex-noise";
 import { CSG } from "three-csg-ts";
-
+import { SCALE_PLANET_WALK } from "../util/constants";
 // Color hex codes
 const colors = {
   WHITE: 0xffffff,
@@ -24,46 +24,47 @@ let geometry = null,
   buildingGeometryParameters = 0,
   buildingPosition = 0,
   numberOfSurroundingBuildings = 0,
+  generatedBuildingBlockList = [],
   trunkMesh = 0,
   branchMesh = 0,
   tree = 0,
   noise = null;
 // The number of blocks to include in our grid in dimensional format (i.e. the value of 10 will
 // create a grid with 10 by 10 blocks)
-var gridSize = 15;
+//var gridSize = 15;
 
 // City road widths. Roads seperate our city grid blocks.
-var roadWidth = 10;
+var roadWidth = 7 * SCALE_PLANET_WALK;
 
 // The maximum 'density' value to use when generating trees for our park blocks
-var maximumTreeDensity = 70;
+var maximumTreeDensity = 10;
 
 // City block size
-var blockSize = 25;
+var blockSize = 20 * SCALE_PLANET_WALK;
 
 // City block margin
-var blockMargin = 2;
+var blockMargin = 1.5 * SCALE_PLANET_WALK;
 
 // Minimum and maximum building height values
-var minBuildingHeight = 5;
-var maxBuildingHeight = 25;
+var minBuildingHeight = 3 * SCALE_PLANET_WALK;
+var maxBuildingHeight = 40 * SCALE_PLANET_WALK;
 
 // Helper functions used to get our total city size
-function getCityWidth() {
+function getCityWidth(gridSize) {
   return blockSize * gridSize;
 }
 
-function getCityLength() {
+function getCityLength(gridSize) {
   return blockSize * gridSize;
 }
 
 // Maximum building height deviation allowed for buildings allocated within the same block
-const maxBuildingHeightDeviation = 5;
+const maxBuildingHeightDeviation = 2 * SCALE_PLANET_WALK;
 
 // This is a percentage cut-off we use to serve as an indicator of whether we have a 'tall'
 // building or not. Generally, we use 2 canvas elements - one for tall buildings and the other
 // which is reserved for smaller ones.
-const tallPercentageCutoff = 60;
+const tallPercentageCutoff = 20;
 
 // Number of sub-divisions to apply to our short building blocks. As an example, a value of 2 will
 // result in 2 block divisions and a total of 4 buildings assigned to each non-tall city block.
@@ -72,15 +73,15 @@ const blockSubdivisions = 2;
 // This is our maximum building 'slice' deviation - i.e. whenever we have more than 1 building allocated
 // in one building block, we allow the building width / depth deviation between the buildings to vary
 // by this amount:
-const maxBuildingSliceDeviation = 5;
+const maxBuildingSliceDeviation = 1 * SCALE_PLANET_WALK;
 
 // These are our city base heights
-const groundHeight = 30;
-const curbHeight = 1;
+const groundHeight = 0 * SCALE_PLANET_WALK;
+const curbHeight = 0.05 * SCALE_PLANET_WALK;
 
 // Tree properties
-const minTreeHeight = 1;
-const maxTreeHeight = 3;
+const minTreeHeight = 0.2 * SCALE_PLANET_WALK;
+const maxTreeHeight = 4 * SCALE_PLANET_WALK;
 
 // Maps used to hold boolean indicators which show whether our grid coordinates represent a
 // ground or building block.
@@ -90,11 +91,11 @@ var buildingMap;
 // Threshold value used to assign ground blocks. Any normalized values within the [0, 1] range that are
 // between [0, groundThreshold] get assigned to a ground block which can can either be a building block
 // or a park / parking block
-const groundThreshold = 0.85;
+//const groundThreshold = 0.05;
 
 // Threshold value used to assign park / parking blocks. Any normalized ground block values falling between the
 // [0, parkThreshold] range are assigned to a park or parking block.
-const parkThreshold = 0.2;
+const parkThreshold = 0.02;
 
 // Initialize the smaller building canvas dimensions and generate the canvas for these buildings:
 
@@ -179,16 +180,16 @@ function getHexadecimalString(number) {
 }
 
 // Return a random integer between min (inclusive) and max (exclusive)
-function getRandomIntBetween(min, max) {
+function getRandomIntBetween(rng, min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+  return Math.floor(rng * (max - min + 1)) + min;
 }
 
 // Generate a random building height deviation value and return it. We use this to vary the
 // building dimensions within the same block element.
-function generateBuildingHeightDeviation() {
-  return getRandomIntBetween(0, maxBuildingHeightDeviation);
+function generateBuildingHeightDeviation(rng) {
+  return getRandomIntBetween(rng(), 0, maxBuildingHeightDeviation);
 }
 
 // Return a normalized version of the input array which maps the array elements to a range between 0 and 1
@@ -216,11 +217,11 @@ function generate2DArray(array, numberOfColumns) {
 
 // Helper functions which can be used to transform our 1-D index -> 2-D coordinates
 
-function getXCoordinateFromIndex(index) {
+function getXCoordinateFromIndex(index, gridSize) {
   return parseInt(index / gridSize);
 }
 
-function getZCoordinateFromIndex(index) {
+function getZCoordinateFromIndex(index, gridSize) {
   return index % gridSize;
 }
 
@@ -230,8 +231,8 @@ function getNoiseValue(x, y, frequency) {
 }
 
 // Generate the ground / building maps we're going to use to assign blocks to the city
-function generatePreceduralMaps() {
-  noise = new SimplexNoise(Math.random());
+function generatePreceduralMaps(rng, gridSize, density) {
+  noise = new SimplexNoise(rng());
 
   // Noise frequency values we're using to generate our block distribution. The higher the value, the smoother the
   // distribution:
@@ -260,7 +261,8 @@ function generatePreceduralMaps() {
   // Map our noises to an binary array which serves as an indicator showing whether the array element is a
   // ground block or a water block
   var groundDistributionMap = normalizedDistribution.map(function (arrayValue) {
-    return arrayValue <= groundThreshold ? true : false;
+    //return arrayValue <= groundThreshold ? true : false;
+    return arrayValue <= density ? true : false;
   });
 
   // Transform the 1-D ground mapping into a 2-D array with (x, z) coordinates
@@ -408,13 +410,13 @@ function getMergedMesh(meshList, material) {
 }
 
 // Translate the grid x coordinate into a THREE.js scene x coordinate and return it
-function getSceneXCoordinate(x) {
-  return x * blockSize + blockSize / 2 - getCityWidth() / 2;
+function getSceneXCoordinate(x, gridSize) {
+  return x * blockSize + blockSize / 2 - getCityWidth(gridSize) / 2;
 }
 
 // Translate the grid z coordinate into a THREE.js scene z coordinate and return it
-function getSceneZCoordinate(z) {
-  return z * blockSize + blockSize / 2 - getCityLength() / 2;
+function getSceneZCoordinate(z, gridSize) {
+  return z * blockSize + blockSize / 2 - getCityLength(gridSize) / 2;
 }
 
 // Return true if the grid block located at (x, z) is a ground block; and false if
@@ -433,7 +435,7 @@ function isBuildingBlock(x, z) {
 // on our grid. This is used to heuristically determine whether to build a park or
 // parking in our city. We want parking to be located closer to our buildings, so we
 // check to see the surrounding building count prior to deciding what to build.
-function getSurroundingBuildingNumber(x, z) {
+function getSurroundingBuildingNumber(x, z, gridSize) {
   buildingCount = 0;
 
   for (let i = Math.max(0, x - 1); i <= Math.min(x + 1, gridSize - 1); i++) {
@@ -446,7 +448,7 @@ function getSurroundingBuildingNumber(x, z) {
 }
 
 // Generate the scene / city terrain
-function generateCityTerrain() {
+function generateCityTerrain(gridSize, elevation) {
   var streetHeight = 2 * curbHeight;
 
   // Initialize the base mesh parameters and create the base mesh
@@ -454,9 +456,9 @@ function generateCityTerrain() {
   var baseColor = colors.DARK_BROWN;
 
   var baseGeometryParams = {
-    width: getCityWidth(),
+    width: getCityWidth(gridSize),
     height: groundHeight,
-    depth: getCityLength(),
+    depth: getCityLength(gridSize),
   };
 
   var basePosition = {
@@ -470,9 +472,9 @@ function generateCityTerrain() {
   // Initialize the water mesh parameters and create the water mesh
 
   var waterGeometryParams = {
-    width: getCityWidth() - 2,
+    width: getCityWidth(gridSize) - 2,
     height: 0,
-    depth: getCityLength() - 2,
+    depth: getCityLength(gridSize) - 2,
   };
 
   var waterPosition = {
@@ -491,8 +493,8 @@ function generateCityTerrain() {
   for (let i = 0; i < groundMap.length; i++) {
     for (let j = 0; j < groundMap[0].length; j++) {
       if (isGroundBlock(i, j)) {
-        var x = getSceneXCoordinate(i);
-        var z = getSceneZCoordinate(j);
+        var x = getSceneXCoordinate(i, gridSize);
+        var z = getSceneZCoordinate(j, gridSize);
 
         groundMeshList.push(
           getBoxMesh(
@@ -540,14 +542,14 @@ function generateCityTerrain() {
 
   // Finally, add in the base and water meshes to finish off the terrain
   //scene.add(baseMesh, water);
-  const mergedStreetMesh = getMergedMesh(streetMeshList);
-  const mergedGroundMesh = getMergedMesh(groundMeshList);
-  return { mergedStreetMesh, mergedGroundMesh, baseMesh, water };
+  //const mergedStreetMesh = getMergedMesh(streetMeshList);
+  //const mergedGroundMesh = getMergedMesh(groundMeshList);
+  return { streetMeshList, groundMeshList, baseMesh, water };
 }
 
 // Generate the ground / city blocks composed of buildings / parks / parking and add them
 // to the scene
-function generateGroundBlocks() {
+function generateGroundBlocks(rng, gridSize, elevation) {
   let buildingMeshList = [],
     buildingCurbList = [],
     parkMeshList = [],
@@ -560,8 +562,8 @@ function generateGroundBlocks() {
       if (isGroundBlock(i, j)) {
         // Translate our grid coordinates to the scene (x, z) coordinates
 
-        var x = getSceneXCoordinate(i);
-        var z = getSceneZCoordinate(j);
+        var x = getSceneXCoordinate(i, gridSize);
+        var z = getSceneZCoordinate(j, gridSize);
 
         // Calculate the total block curb width
         var curbWidth = blockSize - roadWidth;
@@ -592,6 +594,7 @@ function generateGroundBlocks() {
           // Generate a building / buildings with a random height parameter and add it / them to the scene:
 
           var buildingHeight = getRandomIntBetween(
+            rng(),
             minBuildingHeight,
             maxBuildingHeight
           );
@@ -609,20 +612,28 @@ function generateGroundBlocks() {
             z: z,
           };
 
-          let buildingMesh = generateBuildingBlock(
+          generatedBuildingBlockList = [];
+          generateBuildingBlock(
+            rng,
             buildingGeometryParameters,
             buildingPosition,
-            blockSubdivisions,
-            []
+            blockSubdivisions
           );
-          if (buildingMesh)
-            buildingMeshList = buildingMeshList.concat(buildingMesh);
+
+          if (generatedBuildingBlockList.length > 0)
+            buildingMeshList = buildingMeshList.concat(
+              generatedBuildingBlockList
+            );
         } else {
           // Otherwise, we don't have a building block, so we use a heuristic approach to deciding whether to
           // use the block to either construct a park or parking. If the block is surrounded by less than 5
           // buildings, we build a park. Otherwise, we build an empty 'parking' lot / block.
 
-          numberOfSurroundingBuildings = getSurroundingBuildingNumber(i, j);
+          numberOfSurroundingBuildings = getSurroundingBuildingNumber(
+            i,
+            j,
+            gridSize
+          );
 
           // If the building block is surrounded by less than 5 buildings, we allocate it to a park:
           if (numberOfSurroundingBuildings < 5) {
@@ -650,7 +661,7 @@ function generateGroundBlocks() {
 
             var buildingWidth = curbWidth - blockMargin * 2;
 
-            let trees = generateTrees(x, z, buildingWidth);
+            let trees = generateTrees(rng, x, z, buildingWidth);
 
             if (trees) treesMeshList = treesMeshList.concat(trees);
           } else {
@@ -728,12 +739,12 @@ function getCylinderMesh(color, cylinderGeometryParameters, position) {
 }
 
 // Generate a tree on the scene (x, y) coordinate
-var Tree = function (x, z) {
+var Tree = function (rng, x, z) {
   // Array we use to hold the components which compose the tree
   this.components = [];
 
   // Generate a random height for our tree
-  var treeHeight = getRandomIntBetween(minTreeHeight, maxTreeHeight);
+  var treeHeight = getRandomIntBetween(rng(), minTreeHeight, maxTreeHeight);
 
   trunkMesh = getBoxMesh(
     // Geometry parameters
@@ -769,7 +780,7 @@ var Tree = function (x, z) {
   );
 
   // Rotate the tree in a random direction
-  branchMesh.rotation.y = Math.random();
+  //branchMesh.rotation.y = rng(); //Math.random();
 
   // Add the branch / trunk to the tree components list
   this.components.push(branchMesh, trunkMesh);
@@ -778,27 +789,45 @@ var Tree = function (x, z) {
   this.getMergedMesh = function () {
     return getMergedMesh(this.components);
   };
+  /*
+  trunkMesh.updateMatrix(); // as needed
+  var singleGeometry = new THREE.BufferGeometry();
+  singleGeometry.merge(trunkMesh.geometry, trunkMesh.matrix);
 
+  branchMesh.updateMatrix(); // as needed
+  singleGeometry.merge(branchMesh.geometry, branchMesh.matrix);
+  var singleMeshTree = new THREE.Mesh(singleGeometry, branchMesh.material);
+  
+  return [singleMeshTree];
+  */
   return this.components;
 };
 
 // Generate trees centered within our scene (x, z) coordiante and laying within the given
 // park size parameter
-function generateTrees(x, z, parkSize) {
+function generateTrees(rng, x, z, parkSize) {
   var trees = [];
 
   // Generate a random number from [0 -> maximum tree density] to allocate to this park block
-  var numberOfTrees = getRandomIntBetween(0, maximumTreeDensity);
+  var numberOfTrees = getRandomIntBetween(rng(), 0, maximumTreeDensity);
 
   // Generate the park tree elements
   for (let i = 0; i < numberOfTrees; i++) {
     // Generate a random (x, z) coordinate for our tree and generate the tree
 
-    var tree_x_coord = getRandomIntBetween(x - parkSize / 2, x + parkSize / 2);
-    var tree_z_coord = getRandomIntBetween(z - parkSize / 2, z + parkSize / 2);
+    var tree_x_coord = getRandomIntBetween(
+      rng(),
+      x - parkSize / 2,
+      x + parkSize / 2
+    );
+    var tree_z_coord = getRandomIntBetween(
+      rng(),
+      z - parkSize / 2,
+      z + parkSize / 2
+    );
 
     // Generate a tree at the generated (x, z) coordiante and it to our array of trees
-    tree = new Tree(tree_x_coord, tree_z_coord);
+    tree = new Tree(rng, tree_x_coord, tree_z_coord);
     if (tree) {
       trees = trees.concat(tree);
     }
@@ -891,18 +920,19 @@ function isTall(height) {
 // it by the 'numOfDivisions' assigned. The last buildings parameter is an array holding the
 // generated buildings created and assigned to this block.
 function generateBuildingBlock(
+  rng,
   geometryParameters,
   position,
-  numOfDivisions,
-  buildings
+  numOfDivisions
 ) {
   // If the building is tall or if we have less than 1 sub-division to generate, create a building
   if (isTall(geometryParameters.height) || numOfDivisions < 1) {
     // Generate a randomized maximum height deviation to use for our building
-    var maxHeightDeviation = generateBuildingHeightDeviation();
+    var maxHeightDeviation = generateBuildingHeightDeviation(rng);
 
     // Generate a random building height falling within our generated deviation
     var buildingHeight = getRandomIntBetween(
+      rng(),
       geometryParameters.height - maxHeightDeviation,
       geometryParameters.height + maxHeightDeviation
     );
@@ -924,10 +954,10 @@ function generateBuildingBlock(
     // Generate a new building with the assigned position and geometry and add it to our
     // array of buildings
     var building = Building(buildingGeometryParameters, buildingPosition);
-    if (building) buildings.push(building);
+    if (building) generatedBuildingBlockList.push(building);
 
     // Calculate the amount of buildings we've already generated
-    var totalBuildingsBuilt = buildings.length;
+    var totalBuildingsBuilt = generatedBuildingBlockList.length;
 
     // Calculate the total number of buildings we're targeting to build (according to the amount of
     // sub-divisions assigned to our block)
@@ -938,19 +968,14 @@ function generateBuildingBlock(
     if (
       totalBuildingsBuilt >= totalBuildingsToBuild ||
       isTall(buildingGeometryParameters.height)
-    ) {
-      //scene.add(getMergedMesh(buildings));
-      //const mergedBuildingMesh = getMergedMesh(buildings);
-      //return mergedBuildingMesh;
-      return buildings;
-    }
+    )
+      return;
   } else {
-    //console.log(buildings.length);
     // Otherwise, we sub-divide our block into different components and generate a building whithin
     // each sub component block
     // Generate a randomized block 'slice' deviation to use
     var sliceDeviation = Math.abs(
-      getRandomIntBetween(0, maxBuildingSliceDeviation)
+      getRandomIntBetween(rng(), 0, maxBuildingSliceDeviation)
     );
 
     // If our geometry depth is larger than our width, we slice the depth dimension in 2 and generate
@@ -979,6 +1004,8 @@ function generateBuildingBlock(
       // Recursively generate the new sub-divided block elements and add them to the scene
 
       generateBuildingBlock(
+        // seeded random
+        rng,
         // Building geometry parameters
         {
           width: geometryParameters.width,
@@ -991,11 +1018,11 @@ function generateBuildingBlock(
           z: z1,
         },
         // Decrement the total number of sub-divisions we need to perform
-        numOfDivisions - 1,
-        buildings
+        numOfDivisions - 1
       );
 
       generateBuildingBlock(
+        rng,
         // Building geometry parameters
         {
           width: geometryParameters.width,
@@ -1008,8 +1035,7 @@ function generateBuildingBlock(
           z: z2,
         },
         // Decrement the total number of sub-divisions we need to perform
-        numOfDivisions - 1,
-        buildings
+        numOfDivisions - 1
       );
     } else {
       // Slice the width dimension in 2 and generate 2 sub-divisions / building elements spread across our
@@ -1038,6 +1064,7 @@ function generateBuildingBlock(
       // Recursively generate the new sub-divided block elements and add them to the scene
 
       generateBuildingBlock(
+        rng,
         // Building geometry parameters
         {
           width: width1,
@@ -1050,11 +1077,11 @@ function generateBuildingBlock(
           z: position.z,
         },
         // Decrement the total number of sub-divisions we need to perform
-        numOfDivisions - 1,
-        buildings
+        numOfDivisions - 1
       );
 
       generateBuildingBlock(
+        rng,
         // Building geometry parameters
         {
           width: width2,
@@ -1067,20 +1094,24 @@ function generateBuildingBlock(
           z: position.z,
         },
         // Decrement the total number of sub-divisions we need to perform
-        numOfDivisions - 1,
-        buildings
+        numOfDivisions - 1
       );
     }
   }
 }
 
 // Function which initializes all of our city / scene elements
-function generateCity() {
-  generatePreceduralMaps();
-  const buildings = generateGroundBlocks();
-  const terrain = generateCityTerrain();
-  console.log(buildings, terrain);
-  return { buildings: buildings, terrain: terrain };
+function generateCity(rng, gridSize, density) {
+  //console.log(rng());
+  generatePreceduralMaps(rng, gridSize, density);
+  const buildings = generateGroundBlocks(rng, gridSize);
+  const terrain = null; //generateCityTerrain(gridSize, elevation);
+  //console.log(buildings, terrain);
+  return {
+    size: gridSize * blockSize, //(20 + 1.5 + 7 / 2)
+    buildings: buildings,
+    terrain: terrain,
+  };
 }
 
 export default generateCity;

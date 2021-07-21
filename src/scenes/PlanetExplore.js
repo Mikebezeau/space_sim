@@ -22,7 +22,7 @@ export default function PlanetWalkMode() {
   return (
     <>
       <pointLight position={[1500, 5000, 0]} castShadow intensity={0.1} />
-      <ambientLight intensity={0.2} />
+      <ambientLight intensity={0.05} />
       <Suspense fallback={null}>
         <PlayerWalk />
       </Suspense>

@@ -10,6 +10,7 @@ export function TestingPlayerLocationControls() {
     <>
       <button onClick={testing.changeLocationSpace}>SpaceFlight</button>
       <button onClick={testing.changeLocationPlanet}>PlanetWalk</button>
+      <button onClick={testing.changeLocationCity}>ToCity</button>
     </>
   );
 }
