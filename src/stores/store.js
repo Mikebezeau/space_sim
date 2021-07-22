@@ -54,9 +54,9 @@ const weaponFireSpeed = {
 const playerStart = {
   system: 345,
   mechBPindex: 0,
-  x: 996,
+  x: -750,
   y: 1, //300000 * SCALE * planetScale, //15000
-  z: 1270, //-50000 * SCALE * planetScale,
+  z: 925, //-50000 * SCALE * planetScale,
 };
 
 let cancelExplosionTO = undefined;
@@ -144,8 +144,8 @@ const [useStore] = create((set, get) => {
     stations: randomStations(seedrandom(playerStart.system), 1),
     //terrain must clear a level spot for the city
     planetTerrain: initTerrain(
-      { starSystemId: 2, landedPlanetId: 2 },
-      { numCity: 6, minSize: 3, maxSize: 10, density: 0.15 }
+      { starSystemId: playerStart.system, landedPlanetId: 2 },
+      { numCity: 10, minSize: 3, maxSize: 15, density: 0.2 }
     ), // {terrain, city}
     //terrain: initTerrain({ starSystemId: 2, landedPlanetId: 2 }), //undefined//initTerrain(get().player.locationInfo),
     //city: generateCity(15, get().terrain.AverageCityElevation()),
@@ -257,11 +257,11 @@ const [useStore] = create((set, get) => {
         get().testing.changeLocationPlanet();
         let player = get().player;
         player.object3d.position.setX(
-          get().planetTerrain.terrain.cities[0].position.x
+          get().planetTerrain.terrain.CityPositions[0].position.x
         );
         player.object3d.position.setY(0);
         player.object3d.position.setZ(
-          get().planetTerrain.terrain.cities[0].position.z
+          get().planetTerrain.terrain.CityPositions[0].position.z
         );
         set(() => ({ player: player }));
       },
@@ -1272,7 +1272,7 @@ function initTerrain(playerLocationInfo, cities) {
     );
   }
   //console.log(genCities);
-  const terrain = new Terrain(rng, genCities, 3, 0);
+  const terrain = new Terrain(rng, genCities, 2, 0);
   return { terrain: terrain, cities: genCities };
 }
 

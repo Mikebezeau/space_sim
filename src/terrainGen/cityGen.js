@@ -95,7 +95,7 @@ var buildingMap;
 
 // Threshold value used to assign park / parking blocks. Any normalized ground block values falling between the
 // [0, parkThreshold] range are assigned to a park or parking block.
-const parkThreshold = 0.02;
+const parkThreshold = 0.01;
 
 // Initialize the smaller building canvas dimensions and generate the canvas for these buildings:
 
@@ -555,6 +555,30 @@ function generateGroundBlocks(rng, gridSize, elevation) {
     parkMeshList = [],
     treesMeshList = [],
     parkingMeshList = [];
+
+  //add a fun little building in the center of big cities
+  if (gridSize > 8) {
+    const pyramidMaterial = new THREE.MeshBasicMaterial({
+      color: new THREE.Color("#111"),
+      side: THREE.DoubleSide,
+      castShadow: 1,
+      receiveShadow: 1,
+      //wireframe: true,
+    });
+    const pyramidGeometry = new THREE.ConeGeometry(
+      (blockSize * gridSize) / 3,
+      (blockSize * gridSize) / 3,
+      4,
+      1,
+      true
+    );
+    const pyramid = new THREE.Mesh(pyramidGeometry, pyramidMaterial);
+    pyramid.position.set(0, 0, 0);
+    pyramid.rotation.set(0, Math.PI / 8, 0);
+    pyramid.receiveShadow = true;
+    pyramid.castShadow = true;
+    buildingMeshList = buildingMeshList.concat(pyramid);
+  }
   // Go through each one of our grid blocks
   for (let i = 0; i < gridSize; i++) {
     for (let j = 0; j < gridSize; j++) {
@@ -956,6 +980,7 @@ function generateBuildingBlock(
     var building = Building(buildingGeometryParameters, buildingPosition);
     if (building) generatedBuildingBlockList.push(building);
 
+    /*
     // Calculate the amount of buildings we've already generated
     var totalBuildingsBuilt = generatedBuildingBlockList.length;
 
@@ -970,6 +995,7 @@ function generateBuildingBlock(
       isTall(buildingGeometryParameters.height)
     )
       return;
+      */
   } else {
     // Otherwise, we sub-divide our block into different components and generate a building whithin
     // each sub component block

@@ -1,7 +1,7 @@
 import React from "react";
 
 const Buildings = React.memo(({ buildings }) => {
-  console.log("treesMeshList", buildings.treesMeshList);
+  //console.log("treesMeshList", buildings.treesMeshList);
   return (
     <group>
       {Object.entries(buildings.buildingMeshList).map(([key, mesh]) => (

@@ -69,7 +69,7 @@ export default function Ship() {
     }
 
     rotateQuat.setFromAxisAngle(
-      direction.set(mouseY * 0.25, -mouseX * 0.3, mouseX * 0.4),
+      direction.set(mouseY * 0.8, -mouseX * 0.6, mouseX * 0.4),
       (Math.PI / 10) * MVmod
     );
 
@@ -80,9 +80,9 @@ export default function Ship() {
     //manually setting turn totation to avoid gimbal lock
     main.current.rotation.y = main.current.rotation.y - mouseX * 0.05 * MVmod; //this is dumb
 
-    main.current.translateZ(player.speed * 0.1 * SCALE_PLANET_WALK);
+    main.current.translateZ(player.speed * 0.01 * SCALE_PLANET_WALK);
 
-    //hit ground test
+    //hit floor test
     if (terrain) {
       //check for ground, starting far above player to avoid going through ground on forward move into steep terrain
       tempObjectDummy.position.copy(main.current.position);
@@ -94,7 +94,7 @@ export default function Ship() {
         new THREE.Vector3(0, -1, 0)
       );
 
-      //shitty check for roads
+      //shitty collision check for roads
       //console.log(terrain.roads.count);
       let onRoad = false;
       terrain.roads.forEach((road) => {
@@ -110,6 +110,7 @@ export default function Ship() {
         }
       });
 
+      //collision check for ground
       if (!onRoad) {
         const intersection = raycast.intersectObject(terrain.Mesh, true);
         if (intersection.length > 0) {

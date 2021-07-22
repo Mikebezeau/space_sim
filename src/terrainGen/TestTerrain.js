@@ -10,8 +10,23 @@ const TestTerrian = () => {
   return (
     <>
       <Terrain terrain={planetTerrain.terrain} />
+
+      <mesh
+        position={[
+          planetTerrain.terrain.roads[0].endPosition.x,
+          planetTerrain.terrain.roads[0].endPosition.y + 20,
+          planetTerrain.terrain.roads[0].endPosition.z,
+        ]}
+        geometry={new THREE.SphereGeometry(2, 8, 8)}
+        material={
+          new THREE.MeshStandardMaterial({
+            emissive: new THREE.Color("yellow"),
+            emissiveIntensity: 0.9,
+          })
+        }
+      ></mesh>
       {planetTerrain.terrain.roads.map((road, index) => (
-        <>
+        <group key={index}>
           <mesh
             position={[
               road.startPosition.x,
@@ -25,23 +40,11 @@ const TestTerrian = () => {
               })
             }
           ></mesh>
-          <mesh
-            position={[
-              road.endPosition.x,
-              road.endPosition.y + 20,
-              road.endPosition.z,
-            ]}
-            geometry={new THREE.SphereGeometry(2, 8, 8)}
-            material={
-              new THREE.MeshBasicMaterial({
-                color: new THREE.Color("red"),
-              })
-            }
-          ></mesh>
-          <Road key={index} road={road} />
-        </>
+
+          <Road road={road} />
+        </group>
       ))}
-      {planetTerrain.terrain.cities.map((city, index) => (
+      {planetTerrain.terrain.CityPositions.map((city, index) => (
         <group
           key={index}
           position={[city.position.x, city.position.y, city.position.z]}
